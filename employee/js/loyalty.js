@@ -25,9 +25,7 @@ function renderLoyalty(){
   const next=nextTier();
 
   const homeAmt=document.getElementById('homePointsAmt');
-  const homeTier=document.getElementById('homePointsTier');
   if(homeAmt) homeAmt.textContent=S.loyaltyPoints+' points';
-  if(homeTier) homeTier.textContent=tier.name+' member';
 
   const total=document.getElementById('loyTotal');
   if(!total) return;

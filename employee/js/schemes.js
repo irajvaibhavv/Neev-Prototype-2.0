@@ -91,7 +91,7 @@ const STATE_SCHEMES={
   ],
   'Maharashtra':[
     {name:'Majhi Ladki Bahin Yojana',icon:'👩',desc:'₹1,500/month for women.',url:'https://ladakibahin.maharashtra.gov.in',tag:'Welfare',
-     rule:p=>p.female&&p.age>=21&&p.age<=65&&p.familyIncome<250000&&!p.tax&&!p.car&&!p.govt&&'yes',
+     rule:p=>p.female&&p.age>=21&&p.age<=65&&p.familyIncome<=250000&&!p.tax&&!p.car&&!p.govt&&'yes',
      check:'Only one unmarried woman per family; max two women per family. Annual e-KYC required.',
      docs:['Aadhaar card','Maharashtra domicile / ration card','Income certificate or yellow/orange ration card','Bank passbook']},
     {name:'Mahatma Jyotiba Phule Jan Arogya',icon:'🏥',desc:'Cashless treatment up to ₹5 lakh per family per year.',url:'https://www.jeevandayee.gov.in',tag:'Health',
@@ -137,7 +137,7 @@ const STATE_SCHEMES={
   ],
   'Tamil Nadu':[
     {name:'Kalaignar Magalir Urimai Thogai',icon:'👩',desc:'₹1,000/month for women head of family.',url:'https://kmut.tn.gov.in',tag:'Welfare',
-     rule:p=>p.female&&p.age>=21&&p.familyIncome<250000&&p.anyCard&&!p.car&&!p.tax&&!p.govt&&'yes',
+     rule:p=>p.female&&p.age>=21&&p.familyIncome<=250000&&p.anyCard&&!p.car&&!p.tax&&!p.govt&&'yes',
      check:'Named head of family on ration card. Land within limits (5 acres wet / 10 acres dry). No professional-tax payer in family.',
      docs:['Aadhaar card','Family ration card','Bank passbook','Electricity bill']},
     {name:"CM's Comprehensive Health Insurance (CMCHIS)",icon:'🏥',desc:'Cashless treatment at empanelled hospitals.',url:'https://www.cmchistn.com',tag:'Health',
@@ -157,7 +157,7 @@ const STATE_SCHEMES={
      check:'Gujarat resident.',
      docs:['Aadhaar card','Income certificate or NFSA ration card']},
     {name:'Namo Lakshmi Yojana',icon:'👩‍🎓',desc:'₹50,000 for daughters studying in Class 9–12.',url:'https://www.digitalgujarat.gov.in',tag:'Education',
-     rule:p=>p.daughter10to18&&p.familyIncome<600000&&'maybe',
+     rule:p=>p.daughter10to18&&p.familyIncome<=600000&&'maybe',
      check:'Daughter must be in Class 9–12 — confirm with her school (private-school rules unclear).',
      docs:['School ID / bonafide certificate','Aadhaar card','Income certificate','Bank account']},
   ],
@@ -210,8 +210,60 @@ function ageFromDob(dob){
   return age;
 }
 
-// Question ids in the Part B form (value stored in S.schemeProfile under the key after 'sp').
-const SP_FIELDS=['LiveState','MonthlyIncome','FamilyIncome','Pf','Tax','Govt','Ration','OwnHome','Car','Occupation','Marital','Children','DaughterU10','Daughter10to18'];
+// Part B questions, rendered as tap-to-select chips. Income brackets end exactly on real scheme
+// thresholds (₹1L, 1.2L, 2.5L, 3L, 4L, 6L, 9L) and store the bracket's upper bound, so rules compare with <=.
+const YES_NO=[['yes','Yes'],['no','No']];
+const SP_QUESTIONS=[
+  {sec:'💰 Income'},
+  {f:'MonthlyIncome',q:'Your own monthly income',num:true,opts:[[14999,'Below ₹15,000'],[15000,'₹15,000 or more']]},
+  {f:'FamilyIncome',q:"Whole family's yearly income",num:true,opts:[
+    [100000,'Up to ₹1 lakh','≈ ₹8,000/month'],[120000,'₹1 – 1.2 lakh','≈ ₹10,000/month'],
+    [250000,'₹1.2 – 2.5 lakh','≈ ₹20,000/month'],[300000,'₹2.5 – 3 lakh','≈ ₹25,000/month'],
+    [400000,'₹3 – 4 lakh','≈ ₹33,000/month'],[600000,'₹4 – 6 lakh','≈ ₹50,000/month'],
+    [900000,'₹6 – 9 lakh','≈ ₹75,000/month'],[99999999,'Above ₹9 lakh','']]},
+  {f:'Pf',q:'Is PF or ESIC cut from your salary?',opts:YES_NO},
+  {sec:'💼 Work'},
+  {f:'Occupation',q:'What work do you do?',cols:3,opts:[
+    ['Construction','Construction','','🏗️'],['Delivery','Delivery / gig','','🛵'],['Domestic','Domestic help','','🧹'],
+    ['Factory','Factory / security','','🏭'],['Farmer','Farmer','','🌾'],['Vendor','Street vendor','','🛒'],['Other','Other','','💼']]},
+  {sec:'👨‍👩‍👧 Family'},
+  {f:'Marital',q:'Marital status',cols:3,opts:[['Married','Married'],['Unmarried','Unmarried'],['Single','Widowed / divorced']]},
+  {f:'Children',q:'How many children?',num:true,cols:5,opts:[[0,'0'],[1,'1'],[2,'2'],[3,'3'],[4,'4+']]},
+  {f:'DaughterU10',q:'Do you have a daughter below 10 years?',opts:YES_NO},
+  {f:'Daughter10to18',q:'Do you have a daughter aged 10–18 years?',opts:YES_NO},
+  {f:'Tax',q:'Does anyone in your family pay income tax or file GST?',opts:YES_NO},
+  {f:'Govt',q:'Does anyone in your family have a government / PSU job (even contract) or a government pension?',opts:YES_NO},
+  {sec:'🏠 Home & ration card'},
+  {f:'Ration',q:'Which ration card do you have?',opts:[
+    ['Antyodaya','Antyodaya (AAY)','Poorest families'],['Priority','Priority / BPL','NFSA card'],
+    ['Other','Other card','APL / state card'],['None','No ration card','']]},
+  {f:'OwnHome',q:'Does anyone in your family own a pucca house?',opts:YES_NO},
+  {f:'Car',q:"Does your family own a car or jeep? (tractor doesn't count)",opts:YES_NO},
+];
+const SP_KEYS=SP_QUESTIONS.filter(q=>q.f).map(q=>q.f);
+let spAns={};
+
+function renderSchemeQuestions(){
+  document.getElementById('spQuestions').innerHTML=SP_QUESTIONS.map(q=>{
+    if(q.sec) return '<div class="sp-sec">'+q.sec+'</div>';
+    const chips=q.opts.map(([v,label,sub,ic])=>
+      '<button type="button" class="opt-chip'+(String(spAns[q.f])===String(v)?' sel':'')+'" onclick="selectSpChip(\''+q.f+'\',\''+v+'\')">'
+      +(ic?'<span class="ic">'+ic+'</span>':'')+label+(sub?'<span class="sub">'+sub+'</span>':'')+'</button>').join('');
+    return '<div class="sp-q"><span class="sp-q-label">'+q.q+'</span><div class="opt-grid'+(q.cols?' cols-'+q.cols:'')+'">'+chips+'</div></div>';
+  }).join('');
+  updateSpProgress();
+}
+
+function selectSpChip(f,v){
+  const q=SP_QUESTIONS.find(x=>x.f===f);
+  spAns[f]=q.num?+v:v;
+  renderSchemeQuestions();
+}
+
+function updateSpProgress(){
+  const done=SP_KEYS.filter(k=>spAns[k]!==undefined).length;
+  document.getElementById('spFindBtn').textContent=done<SP_KEYS.length?'Find my schemes ('+done+'/'+SP_KEYS.length+' answered)':'Find my schemes →';
+}
 
 // Home tile entry: users with Aadhaar data + a complete saved profile go straight to results.
 function openSchemes(){
@@ -233,11 +285,10 @@ function openSchemeProfile(){
     document.getElementById('spAadhaarDoneBlock').style.display='none';
     document.getElementById('spDetailsBlock').style.display='none';
   }
-  const p=S.schemeProfile||{};
-  SP_FIELDS.filter(f=>f!=='LiveState').forEach(f=>{
-    const v=p[f]!==undefined?p[f]:(f==='MonthlyIncome'?S.salary:'');
-    document.getElementById('sp'+f).value=(v===undefined||v===null)?'':v;
-  });
+  spAns={};
+  SP_KEYS.forEach(k=>{ if(S.schemeProfile&&S.schemeProfile[k]!==undefined) spAns[k]=S.schemeProfile[k]; });
+  if(spAns.MonthlyIncome===undefined&&S.salary) spAns.MonthlyIncome=S.salary<15000?14999:15000;
+  renderSchemeQuestions();
   go('s-scheme-profile');
 }
 
@@ -305,17 +356,9 @@ function showSchemeAadhaarDetails(){
 }
 
 function findMySchemes(){
-  const p={};
-  for(const f of SP_FIELDS){
-    const v=document.getElementById('sp'+f).value;
-    if(v===''){toast('Please answer all questions');return;}
-    p[f]=v;
-  }
-  for(const f of ['MonthlyIncome','FamilyIncome','Children']){
-    p[f]=+p[f];
-    if(!(p[f]>=0)){toast('Please enter a valid number');return;}
-  }
-  S.schemeProfile=p;
+  const missing=SP_KEYS.find(k=>spAns[k]===undefined);
+  if(missing){toast('Please answer all questions');return;}
+  S.schemeProfile={...spAns,LiveState:document.getElementById('spLiveState').value};
   renderSchemes();
   go('s-schemes');
 }

@@ -264,30 +264,9 @@ function populateDisbursementAccounts(){
     el.textContent='Your salary account';
   }
 }
-function onDisbursementChange(){
-  const val=document.getElementById('kfsDisbursementAcct').value;
-  document.getElementById('kfsDisbursementOther').style.display=val==='other'?'block':'none';
-}
-function saveOtherBankAccount(){
-  const accNum=document.getElementById('kfsOtherAccNum').value.trim();
-  const ifsc=document.getElementById('kfsOtherIfsc').value.trim();
-  const bankName=document.getElementById('kfsOtherBankName').value.trim();
-  if(!accNum){toast('Enter account number');return;}
-  if(!ifsc){toast('Enter IFSC code');return;}
-  if(!bankName){toast('Enter bank name');return;}
-  const last4=accNum.slice(-4);
-  const sel=document.getElementById('kfsDisbursementAcct');
-  const opt=document.createElement('option');
-  opt.value='custom_'+accNum;
-  opt.textContent=bankName+' ****'+last4;
-  sel.insertBefore(opt,sel.querySelector('option[value="other"]'));
-  sel.value=opt.value;
-  document.getElementById('kfsDisbursementOther').style.display='none';
-  toast('Account saved');
-}
-
 function openNotPartnered(){
   document.getElementById('npCompanyName').textContent=S.signupCompany||'your company';
+  document.getElementById('npCompanyInput').value=S.signupCompany||'';
   document.getElementById('npHrName').value='';
   document.getElementById('npHrPhone').value='';
   document.getElementById('npHrEmail').value='';
@@ -298,6 +277,9 @@ function submitHrReferral(){
   const name=document.getElementById('npHrName').value.trim();
   const phone=document.getElementById('npHrPhone').value.trim();
   const email=document.getElementById('npHrEmail').value.trim();
+  const company=document.getElementById('npCompanyInput').value.trim();
+  if(!company){toast('Please enter your company name');return;}
+  S.signupCompany=company;
   if(!name){toast('Please enter your manager/HR name');return;}
   if(!phone||phone.length<10){toast('Please enter a valid phone number');return;}
   S.hrReferral={name:name,phone:phone,email:email,company:S.signupCompany};

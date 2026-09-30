@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <link href="shared/theme.css" rel="stylesheet">
-<link href="employee/style.css" rel="stylesheet">
+<link href="employee/style.css?v=2" rel="stylesheet">
 <style>
 :root{--bg:#F1F6F3;} /* employee app uses a slightly cooler background than the dashboards */
 body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;color:var(--ink);}
@@ -448,7 +448,7 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
         <div>
           <b style="font-size:13.5px;color:var(--danger);">Your company has not tied up with Neev yet</b>
           <p style="font-size:12px;color:var(--muted);margin-top:4px;">Add your company name or scan your employee badge.</p>
-          <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="go('s-not-partnered')">Add company name →</button>
+          <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="openNotPartnered()">Add company name →</button>
         </div>
       </div>
     </div>
@@ -583,7 +583,7 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
               <b class="banner-title">Complete your profile</b>
               <p class="banner-sub" id="profileNudgeText">Add KYC to unlock salary advances</p>
             </div>
-            <span class="banner-cta" onclick="go('s-identity-verify')">Do it →</span>
+            <span class="banner-cta" onclick="openLoansEntry()">Do it →</span>
           </div>
           <div class="banner-progress"><div class="banner-progress-fill" id="profileNudgeBar" style="width:30%;"></div></div>
         </div>
@@ -945,7 +945,7 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
 <!-- ===== BBPS: BILL PAYMENTS + SCAN & PAY ===== -->
 <div class="screen" id="s-bbps">
   <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Bill Payments</h2></div><button class="icon-btn" onclick="speakScreen('s-bbps')">🔊</button></div>
-  <div class="card center-col" style="padding:20px;cursor:pointer;background:linear-gradient(135deg,var(--teal-900),var(--teal-700));border:none;" onclick="requireBank(openScanner)">
+  <div class="card center-col" style="padding:20px;cursor:pointer;background:linear-gradient(135deg,var(--teal-900),var(--teal-700));border:none;" onclick="openScanner()">
     <div style="font-size:34px;margin-bottom:6px;">📷</div>
     <b style="color:#fff;font-size:15px;">Scan &amp; Pay</b>
     <p style="color:rgba(255,255,255,0.75);font-size:12px;margin-top:4px;">Scan any UPI QR code to pay instantly</p>
@@ -1242,7 +1242,9 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
       <b style="font-size:13px;color:var(--teal-900);">Manager / HR details</b>
     </div>
     <div style="padding:16px;">
-      <label class="field-label">Name *</label>
+      <label class="field-label">Your company name *</label>
+      <input type="text" id="npCompanyInput" placeholder="e.g. Sharma Logistics" style="margin-bottom:12px;" oninput="document.getElementById('npCompanyName').textContent=this.value.trim()||'your company'">
+      <label class="field-label">Manager / HR name *</label>
       <input type="text" id="npHrName" placeholder="e.g. Priya Sharma" style="margin-bottom:12px;">
       <label class="field-label">Phone number *</label>
       <input type="tel" id="npHrPhone" placeholder="10-digit mobile number" maxlength="10" style="margin-bottom:12px;">
@@ -1551,7 +1553,7 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
 <div class="screen" id="s-documents">
   <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-profile')">←</button><h2>My documents</h2></div><button class="icon-btn" onclick="speakScreen('s-documents')">🔊</button></div>
   <p class="muted" style="margin-bottom:14px;">Download your loan agreements, statements, and repayment schedules.</p>
-  <div class="card" style="cursor:pointer;" onclick="downloadDoc('T2E Agreement')">
+  <div class="card" style="cursor:pointer;" onclick="downloadDoc('Loan Agreement')">
     <div style="display:flex;align-items:center;gap:12px;">
       <div class="scheme-ic" style="background:var(--teal-100);">📄</div>
       <div style="flex:1;"><b style="font-size:14px;">Loan Agreement</b><p class="muted" style="font-size:12px;margin-top:2px;">Signed agreement between you and Neev</p></div>
@@ -1616,67 +1618,18 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
     <div class="field-row" style="margin-bottom:0;"><label class="field-label">State (as per Aadhaar)</label><input type="text" id="spState" readonly></div>
   </div>
 
-  <!-- Part B: common questions (chosen from research on most-used schemes; see research_notes/) -->
+  <!-- Part B: common questions (chosen from research on most-used schemes; see research_notes/).
+       Chip groups are rendered by renderSchemeQuestions() in schemes.js from SP_QUESTIONS. -->
   <div class="card" id="spDetailsBlock" style="display:none;">
-    <b style="font-size:14px;">Step 2 · A few more details</b>
-    <div class="field-row" style="margin-top:10px;">
-      <label class="field-label">State you live in</label>
-      <select id="spLiveState"></select>
+    <b style="font-size:14px;">Step 2 · A few quick questions</b>
+    <p class="muted" style="font-size:12px;margin:2px 0 12px;">Just tap your answer.</p>
+    <div class="sp-q">
+      <span class="sp-q-label">📍 State you live in</span>
+      <select id="spLiveState" style="margin-bottom:0;"></select>
       <p class="muted" style="font-size:11px;margin-top:4px;">Defaulted to your Aadhaar state. Change it if you now live elsewhere.</p>
     </div>
-    <div class="field-row">
-      <label class="field-label">Your own monthly income (₹)</label>
-      <input type="number" id="spMonthlyIncome" min="0" placeholder="e.g. 14000">
-    </div>
-    <div class="field-row">
-      <label class="field-label">Total yearly income of your whole family (₹)</label>
-      <input type="number" id="spFamilyIncome" min="0" placeholder="e.g. 180000">
-    </div>
-    <div class="field-row">
-      <label class="field-label">Is PF or ESIC cut from your salary?</label>
-      <select id="spPf"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
-    </div>
-    <div class="field-row">
-      <label class="field-label">Does anyone in your family pay income tax or file GST?</label>
-      <select id="spTax"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
-    </div>
-    <div class="field-row">
-      <label class="field-label">Does anyone in your family have a government / PSU job (even contract) or government pension?</label>
-      <select id="spGovt"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
-    </div>
-    <div class="field-row">
-      <label class="field-label">Ration card</label>
-      <select id="spRation"><option value="">Select</option><option value="Antyodaya">Antyodaya (AAY)</option><option value="Priority">Priority household / BPL</option><option value="Other">Other card (APL / state card)</option><option value="None">No ration card</option></select>
-    </div>
-    <div class="field-row">
-      <label class="field-label">Does anyone in your family own a pucca house?</label>
-      <select id="spOwnHome"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
-    </div>
-    <div class="field-row">
-      <label class="field-label">Does your family own a car or jeep? (tractor does not count)</label>
-      <select id="spCar"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
-    </div>
-    <div class="field-row">
-      <label class="field-label">Your work</label>
-      <select id="spOccupation"><option value="">Select</option><option value="Construction">Construction worker</option><option value="Delivery">Delivery / gig work</option><option value="Domestic">Domestic help</option><option value="Factory">Factory / security staff</option><option value="Farmer">Farmer</option><option value="Vendor">Street vendor</option><option value="Other">Other</option></select>
-    </div>
-    <div class="field-row">
-      <label class="field-label">Marital status</label>
-      <select id="spMarital"><option value="">Select</option><option value="Married">Married</option><option value="Unmarried">Unmarried</option><option value="Single">Widowed / divorced / separated</option></select>
-    </div>
-    <div class="field-row">
-      <label class="field-label">How many children do you have?</label>
-      <input type="number" id="spChildren" min="0" max="15" placeholder="e.g. 2">
-    </div>
-    <div class="field-row">
-      <label class="field-label">Do you have a daughter below 10 years?</label>
-      <select id="spDaughterU10"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
-    </div>
-    <div class="field-row">
-      <label class="field-label">Do you have a daughter aged 10–18 years?</label>
-      <select id="spDaughter10to18"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
-    </div>
-    <button class="btn btn-primary" onclick="findMySchemes()">Find my schemes</button>
+    <div id="spQuestions"></div>
+    <button class="btn btn-primary" id="spFindBtn" onclick="findMySchemes()">Find my schemes</button>
   </div>
 </div>
 
@@ -1739,7 +1692,7 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
 <div class="bottomnav" id="bottomNav" style="display:none;">
   <button class="navbtn active" data-target="s-home" onclick="navTo('s-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></button>
   <button class="navbtn" data-target="s-ledger" onclick="navTo('s-ledger')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>Ledger</span></button>
-  <button class="navbtn" onclick="requireBank(openScanner)" title="Scan &amp; Pay"><span class="navbtn-scan-icon">📷</span><span>Scan</span></button>
+  <button class="navbtn" onclick="openScanner()" title="Scan &amp; Pay"><span class="navbtn-scan-icon">📷</span><span>Scan</span></button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1967,54 +1920,6 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
   </div>
 </div>
 
-<!-- Loan consents bottom-sheet (CIBIL, EPFO, ESIC — shown when proceeding from amount) -->
-<div class="modal-bg" id="loanConsentModal">
-  <div class="modal-box" style="padding:22px 18px;">
-    <b style="font-size:15px;display:block;margin-bottom:4px;">Allow loan consents</b>
-    <p class="muted" style="font-size:12px;margin-bottom:14px;">Tap each to allow, then continue.</p>
-    <div id="loanConsentList"></div>
-    <button class="btn btn-primary" id="loanConsentContinueBtn" style="margin-top:14px;" onclick="confirmLoanConsents()">Continue</button>
-  </div>
-</div>
-
-<div class="modal-bg" id="aaConsentModal">
-  <div class="modal-box" style="padding:22px 18px;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-      <span style="font-size:24px;">🏦</span>
-      <div><b style="font-size:15px;">Account Aggregator Consent</b><p class="muted" style="font-size:11px;margin-top:2px;">RBI-regulated data sharing</p></div>
-    </div>
-    <div style="background:var(--teal-100);border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;line-height:1.6;color:var(--ink);">
-      <p style="font-weight:600;margin-bottom:6px;">By giving consent, you authorise:</p>
-      <ul style="padding-left:16px;margin:0;">
-        <li>Neev's AA (FIU) to fetch your bank account details and transaction history for the last 6 months</li>
-        <li>Data will be used only for credit assessment and loan processing</li>
-        <li>Consent is valid for 6 months and can be revoked anytime</li>
-        <li>Your data is encrypted end-to-end per RBI Account Aggregator framework</li>
-      </ul>
-      <p style="margin-top:8px;font-size:11px;color:var(--muted);">Regulated under RBI Master Direction on Account Aggregator (DoR.FIN.REC.51/03.10.124/2021-22)</p>
-    </div>
-    <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink);cursor:pointer;margin-bottom:14px;">
-      <input type="checkbox" id="aaConsentCheck" onclick="toggleAaConsentOtp()" style="margin-top:2px;width:20px;height:20px;flex-shrink:0;">
-      <span>I have read and agree to share my financial data via Account Aggregator for loan processing</span>
-    </label>
-    <div id="aaConsentOtpBlock" style="display:none;">
-      <p class="muted" style="font-size:12px;margin-bottom:8px;">Enter OTP sent to ****<span id="aaConsentPhoneLast4">XXXX</span></p>
-      <div class="otp-row" style="margin-bottom:10px;">
-        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
-        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
-        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
-        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
-      </div>
-      <button class="btn btn-primary" onclick="verifyAaConsentFromModal()">Verify & give consent</button>
-    </div>
-    <div id="aaConsentDoneBadge" style="display:none;text-align:center;padding:10px 0;">
-      <span style="color:var(--success);font-size:14px;font-weight:600;">✅ AA consent verified</span>
-    </div>
-    <div style="height:8px"></div>
-    <button class="btn btn-outline" onclick="closeAaConsentModal()" style="font-size:13px;">Cancel</button>
-  </div>
-</div>
-
 <div class="modal-bg" id="langModal">
   <div class="modal-box" style="text-align:left;max-height:78%;display:flex;flex-direction:column;padding:0;overflow:hidden;">
     <div style="padding:24px 20px 14px;text-align:center;border-bottom:1px solid var(--border);flex-shrink:0;">
@@ -2053,16 +1958,16 @@ function toggleKfsSection(toggle){
 <script src="employee/js/core.js"></script>
 <script src="employee/js/account.js"></script>
 <script src="employee/js/permissions.js?v=3"></script>
-<script src="employee/js/loyalty.js?v=2"></script>
+<script src="employee/js/loyalty.js?v=3"></script>
 <script src="employee/js/i18n.js?v=3"></script>
 <script src="employee/js/signup.js?v=6"></script>
 <script src="employee/js/pin.js"></script>
 <script src="employee/js/login.js"></script>
 <script src="employee/js/onboarding.js"></script>
 <script src="employee/js/employer-setup.js?v=11"></script>
-<script src="employee/js/home.js?v=6"></script>
+<script src="employee/js/home.js?v=7"></script>
 <script src="employee/js/pan.js?v=7"></script>
-<script src="employee/js/apply.js?v=11"></script>
+<script src="employee/js/apply.js?v=13"></script>
 <script src="employee/js/enach.js?v=4"></script>
 <script src="employee/js/bankstatement.js?v=6"></script>
 <script src="employee/js/insurance.js"></script>
@@ -2074,7 +1979,7 @@ function toggleKfsSection(toggle){
 <script src="employee/js/notifications.js"></script>
 <script src="employee/js/referral.js"></script>
 <script src="employee/js/grievance.js"></script>
-<script src="employee/js/schemes.js?v=7"></script>
+<script src="employee/js/schemes.js?v=8"></script>
 <script src="employee/js/main.js"></script>
 </body>
 </html>

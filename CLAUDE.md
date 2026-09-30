@@ -90,17 +90,17 @@ Global state stored in `S` (defined in `core.js`). Key fields added/used:
 | `main.js` | Init, bottom nav, profile rendering | — |
 | `signup.js` | Phone OTP → straight to home; existing number → redirects to login; camera modal also serves schemes OCR | `?v=6` |
 | `login.js` | Returning user login | — |
-| `home.js` | Home screen, banner carousel, Sakhi, Loans Hub with interactive slider | `?v=6` |
+| `home.js` | Home screen, banner carousel (profile CTA: employer → DigiLocker KYC → PIN), Sakhi, Loans Hub slider | `?v=7` |
 | `employer-setup.js` | Name prompt (if missing) → Company select (with badge scan) → ECN verify → phone OTP; BuildRight always resolves to Ramesh Kumar (demo) | `?v=11` |
 | `pan.js` | DigiLocker (Aadhaar+PAN) + KYC consents + selfie face match | `?v=7` |
-| `apply.js` | Loan flow: reason tiles → KFS (collapsible) → T&C → e-sign/e-nach → success | `?v=11` |
+| `apply.js` | Loan flow: reason tiles → KFS (collapsible) → T&C → e-sign/e-nach → success; not-partnered screen (company name + HR contact) | `?v=13` |
 | `bankstatement.js` | AA consent + OTP → fetch accounts → select salary account (no upload, no ESIC/EPF) | `?v=6` |
 | `enach.js` | E-NACH mandate modal (auto-populated from AA, readonly fields) | `?v=4` |
 | `permissions.js` | Loan consents (CIBIL, EPFO, ESIC) — 3 toggles only, no AA | `?v=3` |
 | `i18n.js` | Language selection (Hindi, English, Voice only), translation, voice/TTS | `?v=3` |
 | `insurance.js` | Insurance products flow | — |
 | `investment.js` | FD/investment flow | — |
-| `schemes.js` | Govt schemes: Aadhaar + profile (`s-scheme-profile`) → eligibility-matched list (eligible / may be eligible) with docs, agent form | `?v=7` |
+| `schemes.js` | Govt schemes: Aadhaar + profile (`s-scheme-profile`) → eligibility-matched list (eligible / may be eligible) with docs, agent form | `?v=8` |
 | `ledger.js` | Loan list, loan detail, repayment timeline | — |
 | Others | `loyalty.js`, `referral.js`, `bbps.js`, `grievance.js`, etc. | — |
 
@@ -426,7 +426,9 @@ Two distinct scenarios:
 
 ### CF-14. Government schemes eligibility flow (replaces state selector)
 - Home tile → `openSchemes()`. Aadhaar data + complete `S.schemeProfile` → straight to results; else `s-scheme-profile`.
-- `s-scheme-profile`: Part A Aadhaar: scan card (OCR mock via shared `cameraPermModal`, `S._camForScheme` flag) or enter number (1.5s mock; skipped if KYC gave aadhaar/gender/dob) → Part B common questions (ids `sp` + `SP_FIELDS` in `schemes.js`): state you live in (defaults to Aadhaar state — client ask), own monthly income, family yearly income, PF/ESIC, income tax/GST in family, govt job/pension in family, ration card, pucca house, car, occupation, marital status, no. of children, daughter <10, daughter 10–18.
+- `s-scheme-profile`: Part A Aadhaar: scan card (OCR mock via shared `cameraPermModal`, `S._camForScheme` flag) or enter number (1.5s mock; skipped if KYC gave aadhaar/gender/dob) → Part B common questions as tap-to-select chips (`SP_QUESTIONS` config → `renderSchemeQuestions()`, answers in `spAns`; CSS `.opt-chip` in style.css; income brackets end on real scheme thresholds and store the upper bound): state you live in (defaults to Aadhaar state — client ask), own monthly income, family yearly income, PF/ESIC, income tax/GST in family, govt job/pension in family, ration card, pucca house, car, occupation, marital status, no. of children, daughter <10, daughter 10–18.
 - Questions + scheme list chosen from deep research (Sep 2026): `research_notes/Indian welfare schemes eligibility/`. 13 central schemes + 1–2 most-used per state (14 states).
 - Each scheme `rule(p)` returns `'yes'` (criteria fully covered by questions), `'maybe'` (official list / unverified rule decides — badge "May be eligible — confirm"), or false. `check` = criteria we can't ask, shown as "Also check". Accuracy over generosity (client requirement).
-- Check: `node tests/schemes.check.js`. File: `schemes.js` `?v=7`, `signup.js` `?v=6`
+- Check: `node tests/schemes.check.js`. File: `schemes.js` `?v=8`, `signup.js` `?v=6`, `style.css?v=2`
+5. **Broken clicks**: after any HTML/JS change run `node tests/clicks.check.js` — flags onclick handlers calling undefined functions, go()/navTo()/goBack() to missing screens, and getElementById on missing ids. It can't judge whether a destination makes *sense* — check that by reading labels.
+6. Bottom-nav **Scan** opens the scanner directly; the bank-account gate (`requireBank`) sits on the Pay button, not on opening the scanner.

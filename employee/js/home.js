@@ -55,6 +55,9 @@ function updateProfileSlide(){
   if(!S.company){
     textEl.textContent='Verify employment details to unlock salary advances';
     if(ctaEl) ctaEl.setAttribute('onclick',"startEmployerSetup()");
+  } else if(!S.aadhaar){
+    textEl.textContent='Complete KYC with DigiLocker to unlock salary advances';
+    if(ctaEl) ctaEl.setAttribute('onclick',"openLoansEntry()");
   } else if(!S.pin){
     textEl.textContent='Set a PIN to secure your account';
     if(ctaEl) ctaEl.setAttribute('onclick',"go('s-setup-pin')");
