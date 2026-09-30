@@ -1,5 +1,6 @@
 // Run from repo root: node tests/schemes.check.js — sanity-checks scheme eligibility rules.
-const assert=require('assert');
+const assert=require("assert");
+global.saveCurrentProfile=()=>{};global.applyProfileFields=()=>{};
 global.document={getElementById:()=>({})};
 global.S={address:'Patna, Bihar',gender:'Male',dob:'15-03-1992'};
 eval(require('fs').readFileSync('employee/js/schemes.js','utf8')+';global.E=eligibleSchemes;global.G=getStateFromAddress;');
@@ -78,3 +79,25 @@ assert.equal(EL().find(s=>s.name==='e-Shram Card').status,'yes','schemes not dep
 // answered OwnHome=yes → PMAY gone
 S.schemeProfile={...base,OwnHome:'yes'}; delete S.schemeProfile.Car; assert(!EL().some(s=>s.name==='PM Awas Yojana (Urban 2.0)'));
 console.log('short flow ok');
+
+// ---- cart flow: funnel steps, draft → cart → paid, complete vs pending ----
+global.setTimeout=fn=>fn();
+eval(require('fs').readFileSync('employee/js/schemes.js','utf8')+';global.OPENF=openAgentForm;global.UP=agentDocUpload;global.ADD=submitAgentForm;global.PAY=payForCart;global.CART=cartApps;global.APPS=schemeApps;global.RE_IFSC=RE_IFSC;global.RE_ACC=RE_ACC;global.RE_MOB=RE_MOB;global.FLD=()=>agFields;global.PICK=agPick;');
+S.gender='Male'; S.schemeProfile={...base}; S.schemeApplications=[]; S.funnel={};
+global.openSchemes&&0;
+// e-Shram has no official form fields → only mobile/address + docs
+OPENF('e-Shram Card'); assert(S.funnel.schemeClicked&&!S.funnel.formStarted,'opening form = clicked, not started');
+els2.agentMobile={value:'9876543210'}; els2.agentAddress={value:'Delhi'};
+UP(0); assert(S.funnel.formStarted,'uploading a doc = started'); assert.equal(APPS()[0].status,'draft');
+ADD(); assert.equal(APPS()[0].status,'cart'); assert(S.funnel.cartAdded);
+assert.equal(APPS()[0].docsMissing.length,ALL.find(s=>s.name==='e-Shram Card').docs.length-1,'skipped docs recorded as missing');
+// second scheme, all docs uploaded
+OPENF('PM Suraksha Bima Yojana');
+FLD().forEach((f,i)=>{ if(f.t==='yn'||f.t==='sel'){ els2['agW'+i]={outerHTML:''}; PICK(i,f.must==='no'?1:0); } else els2['agF'+i]={value:f.re===RE_IFSC?'SBIN0001234':f.re===RE_ACC?'12345678':f.t==='date'?'1990-01-01':f.re===RE_MOB?'9876543210':'x'}; });
+ALL.find(s=>s.name==='PM Suraksha Bima Yojana').docs.forEach((d,i)=>UP(i));
+ADD(); assert.equal(CART().length,2,'two schemes in cart: '+lastToast);
+PAY(); assert.equal(CART().length,0); assert(S.funnel.paid);
+const paid=APPS().filter(a=>a.status==='paid');
+assert.equal(paid.length,2); assert(paid.find(a=>a.scheme==='e-Shram Card').docsMissing.length>0,'e-Shram → pending');
+assert.equal(paid.find(a=>a.scheme==='PM Suraksha Bima Yojana').docsMissing.length,0,'PMSBY → complete');
+console.log('cart flow ok');

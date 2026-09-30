@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <link href="shared/theme.css" rel="stylesheet">
-<link href="employee/style.css?v=4" rel="stylesheet">
+<link href="employee/style.css?v=5" rel="stylesheet">
 <style>
 :root{--bg:#F1F6F3;} /* employee app uses a slightly cooler background than the dashboards */
 body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;color:var(--ink);}
@@ -1634,7 +1634,7 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
 </div>
 
 <div class="screen" id="s-schemes">
-  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Government schemes</h2></div><button class="icon-btn" onclick="speakScreen('s-schemes')">🔊</button></div>
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Government schemes</h2></div><div style="display:flex;gap:8px;"><button class="icon-btn" style="position:relative;" onclick="openSchemeCart()" aria-label="Cart">🛒<span id="schemeCartBadge" class="cart-badge" style="display:none;">0</span></button><button class="icon-btn" onclick="speakScreen('s-schemes')">🔊</button></div></div>
 
   <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;">
     <div>
@@ -1646,6 +1646,32 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
 
   <!-- Scheme cards rendered by JS -->
   <div id="schemesList"></div>
+</div>
+
+<!-- ===== SCHEME CART ===== -->
+<div class="screen" id="s-scheme-cart">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="renderSchemes();go('s-schemes')">←</button><h2>Your cart</h2></div><button class="icon-btn" onclick="speakScreen('s-scheme-cart')">🔊</button></div>
+  <div id="cartMain">
+    <div id="cartItems"></div>
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+      <div><b style="font-size:14px;">Total</b><p class="muted" style="font-size:12px;margin-top:2px;" id="cartCount">0 schemes</p></div>
+      <b style="font-size:20px;color:var(--teal-900);" id="cartTotal">₹0</b>
+    </div>
+    <p class="muted" style="font-size:11px;margin:0 0 10px;">Neev service fee for preparing and filing your applications. Government schemes themselves are free.</p>
+    <button class="btn btn-primary" id="cartPayBtn" onclick="payForCart()">Pay via UPI</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-outline" onclick="renderSchemes();go('s-schemes')">Add more schemes</button>
+  </div>
+  <div id="cartResult" style="display:none;">
+    <div class="card center-col" style="padding:22px;border-color:var(--success);">
+      <div style="font-size:34px;">✅</div>
+      <b style="margin-top:8px;font-size:15px;" id="cartResultTitle">Payment successful</b>
+      <p class="muted" style="font-size:12px;margin-top:2px;" id="cartResultRef">—</p>
+    </div>
+    <div class="card"><div id="cartResultList"></div></div>
+    <p class="muted" style="font-size:12px;margin:0 0 12px;" id="cartResultNote">—</p>
+    <button class="btn btn-primary" onclick="renderSchemes();go('s-schemes')">Back to schemes</button>
+  </div>
 </div>
 
 <!-- ===== PROFILE ===== -->
@@ -1846,34 +1872,25 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
 
 <div class="modal-bg" id="agentModal">
   <div class="modal-box" style="text-align:left;max-height:85%;overflow-y:auto;">
-    <div id="agentFormBlock">
-      <div style="font-size:30px;text-align:center;">🧑‍💼</div>
-      <h2 style="margin:10px 0 4px;font-size:17px;text-align:center;">Apply with an Agent</h2>
+    <div id="agentFormBlock" oninput="markFormStarted()">
+      <div style="font-size:30px;text-align:center;">📝</div>
+      <h2 style="margin:10px 0 4px;font-size:17px;text-align:center;">Apply for scheme</h2>
       <p style="margin-bottom:12px;text-align:center;font-weight:700;color:var(--teal-900);" id="agentFormScheme">—</p>
       <div id="agentPrefill"></div>
       <div id="agentNewFields"></div>
-      <div class="field-row">
-        <label class="field-label">Preferred time to contact</label>
-        <select id="agentTime"><option value="morning">Morning (9 AM - 12 PM)</option><option value="afternoon">Afternoon (12 PM - 4 PM)</option><option value="evening">Evening (4 PM - 8 PM)</option></select>
-      </div>
-      <div class="card" style="background:var(--teal-100);border:none;display:flex;justify-content:space-between;align-items:center;gap:10px;">
-        <div><b style="font-size:13.5px;">Agent service fee</b><p class="muted" style="font-size:12px;margin-top:2px;">₹49, one-time</p></div>
-        <span style="color:var(--teal-700);font-weight:700;cursor:pointer;text-decoration:underline;white-space:nowrap;" onclick="openPaymentLink()">Pay ₹49 →</span>
-      </div>
-      <button class="btn btn-primary" onclick="submitAgentForm()">Submit request</button>
+      <div id="agentDocs"></div>
+      <button class="btn btn-primary" onclick="submitAgentForm()">Add to cart 🛒 · ₹49</button>
       <div style="height:8px"></div>
       <button class="btn btn-outline" onclick="closeAgentForm()">Cancel</button>
     </div>
-    <div id="agentAssigningBlock" style="display:none;text-align:center;">
-      <div style="font-size:26px;">⏳</div>
-      <p class="muted" style="margin-top:8px;">Finding an agent near you…</p>
-    </div>
-    <div id="agentAssignedBlock" style="display:none;text-align:center;">
-      <div style="font-size:30px;">✅</div>
-      <h2 style="margin:10px 0 6px;font-size:17px;">Agent assigned!</h2>
-      <p class="muted" id="agentAssignedText">—</p>
+    <div id="agentAddedBlock" style="display:none;text-align:center;">
+      <div style="font-size:34px;">🛒</div>
+      <h2 style="margin:10px 0 6px;font-size:17px;">Added to cart</h2>
+      <p class="muted" id="agentAddedText">—</p>
       <div style="height:14px"></div>
-      <button class="btn btn-primary" onclick="closeAgentForm()">Done</button>
+      <button class="btn btn-primary" onclick="openSchemeCart()">Go to cart</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-outline" onclick="closeAgentForm()">Add more schemes</button>
     </div>
   </div>
 </div>
@@ -1930,7 +1947,7 @@ function toggleKfsSection(toggle){
 <script src="employee/js/permissions.js?v=3"></script>
 <script src="employee/js/loyalty.js?v=3"></script>
 <script src="employee/js/i18n.js?v=3"></script>
-<script src="employee/js/signup.js?v=6"></script>
+<script src="employee/js/signup.js?v=7"></script>
 <script src="employee/js/pin.js"></script>
 <script src="employee/js/login.js"></script>
 <script src="employee/js/onboarding.js"></script>
@@ -1949,7 +1966,7 @@ function toggleKfsSection(toggle){
 <script src="employee/js/notifications.js"></script>
 <script src="employee/js/referral.js"></script>
 <script src="employee/js/grievance.js"></script>
-<script src="employee/js/schemes.js?v=12"></script>
+<script src="employee/js/schemes.js?v=14"></script>
 <script src="employee/js/main.js"></script>
 </body>
 </html>

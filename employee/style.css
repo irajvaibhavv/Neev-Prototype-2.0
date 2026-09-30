@@ -295,3 +295,8 @@ label.field-label{display:block;font-size:12px;font-weight:700;color:var(--muted
 .ag-row b{color:var(--teal-900);text-align:right;flex:1;font-weight:600;}
 
 .sp-auto-val{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;border-radius:12px;background:var(--teal-100);color:var(--teal-700);font-size:13px;}
+
+/* Scheme cart */
+.cart-badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;place-items:center;}
+.ag-doc{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+.ag-doc .btn-sm{width:auto;padding:6px 10px;margin:0;}

@@ -1,11 +1,20 @@
 // Neev Employee App — Government Schemes: Aadhaar + common questions → eligibility-matched schemes.
 // Scheme list + rules come from research (Sep 2026) — see research_notes/Indian welfare schemes eligibility/.
-const AGENT_POOL=[
-  { name:'Rajesh Kumar', phone:'98XXXXXX21' },
-  { name:'Sunita Sharma', phone:'98XXXXXX47' },
-  { name:'Vikram Singh', phone:'98XXXXXX63' }
-];
 let agentFormScheme=null;
+const SCHEME_FEE=49; // ₹ per scheme, paid once for the whole cart
+
+// Funnel tracking for the manager portal (agent-portal/): first time each step happens, per user.
+// downloaded = has an account; then schemesOpened → schemeClicked → formStarted → cartAdded → paid.
+function trackFunnel(step){
+  S.funnel=S.funnel||{};
+  if(!S.funnel[step]){ S.funnel[step]=new Date().toISOString(); saveCurrentProfile(); }
+}
+
+// One application per scheme: status 'draft' (started filling) → 'cart' → 'paid'.
+// Paid + all documents = complete; paid + missing documents = pending (manager portal sections).
+const schemeApps=()=>(S.schemeApplications=S.schemeApplications||[]);
+const openAppFor=name=>schemeApps().find(a=>a.scheme===name&&a.status!=='paid');
+const cartApps=()=>schemeApps().filter(a=>a.status==='cart');
 
 // Each scheme: rule(p) → 'yes' (criteria fully covered by our questions),
 // 'maybe' (official list / unverified criteria decide it — user must confirm), or false.
@@ -305,6 +314,7 @@ function updateSpProgress(){
 
 // Home tile entry: users with Aadhaar data + a complete saved profile go straight to results.
 function openSchemes(){
+  trackFunnel('schemesOpened');
   if(S.aadhaar&&S.gender&&S.dob&&S.schemeProfile&&spRequired(S.schemeProfile).every(q=>S.schemeProfile[q.f]!==undefined)){ renderSchemes(); go('s-schemes'); return; }
   openSchemeProfile();
 }
@@ -480,14 +490,23 @@ function renderSchemes(){
             <p class="muted" style="font-size:11px;margin-top:4px;">Free of cost</p>
           </div>
           <div style="flex:1;text-align:center;">
-            <button class="btn btn-primary btn-sm" style="width:100%;" onclick="openAgentForm('${s.name.replace(/'/g,"\\'")}')">Apply with Agent</button>
-            <p class="muted" style="font-size:11px;margin-top:4px;">₹49</p>
+            ${applyButton(s)}
           </div>
         </div>
       </div>
     </div>`;
   });
   document.getElementById('schemesList').innerHTML=html;
+  updateCartBadge();
+}
+
+function applyButton(s){
+  const q=s.name.replace(/'/g,"\\'");
+  const paid=schemeApps().find(a=>a.scheme===s.name&&a.status==='paid');
+  const inCart=schemeApps().find(a=>a.scheme===s.name&&a.status==='cart');
+  if(paid) return '<button class="btn btn-outline btn-sm" style="width:100%;" disabled>Applied ✓</button><p class="muted" style="font-size:11px;margin-top:4px;">'+(paid.docsMissing.length?'Documents pending':'Complete')+'</p>';
+  if(inCart) return '<button class="btn btn-outline btn-sm" style="width:100%;" onclick="openSchemeCart()">In cart 🛒</button><p class="muted" style="font-size:11px;margin-top:4px;">Tap to pay</p>';
+  return '<button class="btn btn-primary btn-sm" style="width:100%;" onclick="openAgentForm(\''+q+'\')">Apply via Neev</button><p class="muted" style="font-size:11px;margin-top:4px;">₹'+SCHEME_FEE+'</p>';
 }
 
 // Application-form fields per scheme — built ONLY from what the official form / portal was CONFIRMED to ask
@@ -568,13 +587,16 @@ function agPick(i,j){
   const f=agFields[i], opts=f.t==='yn'?['Yes','No']:f.o;
   agState[i]=opts[j];
   document.getElementById('agW'+i).outerHTML=renderAgentField(f,i);
+  markFormStarted();
 }
 
-// Scheme-specific agent form: Aadhaar + quiz answers arrive prefilled (read-only); the "new details" are only
+// Scheme application form (opens from "Apply via Neev"): Aadhaar + quiz answers arrive prefilled (read-only); the "new details" are only
 // fields CONFIRMED from the scheme's official form (SCHEME_FORM). Unverified schemes: agent collects the rest.
 function openAgentForm(schemeName){
   const sch=findScheme(schemeName);
   agentFormScheme=schemeName;
+  trackFunnel('schemeClicked');
+  agDocs={...((openAppFor(schemeName)||{}).docs||{})};
   document.getElementById('agentFormScheme').textContent=(sch?sch.icon+' ':'')+schemeName;
   const aadhaar=(S.aadhaar||'').replace(/\s/g,'');
   const A=S.schemeProfile||{};
@@ -592,22 +614,43 @@ function openAgentForm(schemeName){
   const fieldsHtml=agFields.map((f,i)=>f.if&&!f.if(A)?'':renderAgentField(f,i)).join('');
   const note=cfg
     ?'<p class="muted" style="font-size:11px;margin:4px 0 10px;">Asked as per the scheme\'s official form ('+cfg.src+'). Anything else, your agent will collect at the visit.</p>'
-    :'<p class="muted" style="font-size:11px;margin:4px 0 10px;">ℹ️ We have not verified this scheme\'s application form yet, so we only take the details above. Your agent will collect anything else at the visit.</p>';
+    :'<p class="muted" style="font-size:11px;margin:4px 0 10px;">ℹ️ We have not verified this scheme\'s application form yet, so we only take the details above. Our team will collect anything else.</p>';
   document.getElementById('agentNewFields').innerHTML=
     '<div class="ag-sec">✏️ New details for this scheme</div>'+note+fieldsHtml+
     '<div class="field-row"><label class="field-label">Mobile number *</label><input type="tel" id="agentMobile" inputmode="numeric" maxlength="10" value="'+(S.mobile||'')+'"></div>'+
-    '<div class="field-row"><label class="field-label">Where should the agent visit you? *</label><input type="text" id="agentAddress" value="'+(S.currentAddress||S.address||'')+'"></div>';
-  document.getElementById('agentTime').value='morning';
+    '<div class="field-row"><label class="field-label">Current address *</label><input type="text" id="agentAddress" value="'+(S.currentAddress||S.address||'')+'"></div>';
+  renderAgentDocs();
   document.getElementById('agentFormBlock').style.display='block';
-  document.getElementById('agentAssigningBlock').style.display='none';
-  document.getElementById('agentAssignedBlock').style.display='none';
+  document.getElementById('agentAddedBlock').style.display='none';
   document.getElementById('agentModal').classList.add('show');
+}
+
+// Mock document upload — one slot per "Documents needed" item. Skipping is allowed (→ Pending after payment).
+let agDocs={};
+function renderAgentDocs(){
+  const sch=findScheme(agentFormScheme); const docs=(sch&&sch.docs)||[];
+  document.getElementById('agentDocs').innerHTML='<div class="ag-sec">📎 Documents</div>'
+    +'<p class="muted" style="font-size:11px;margin:0 0 8px;">Upload what you have now. You can skip — your application will show as pending until they\'re added.</p>'
+    +docs.map((d,i)=>'<div class="ag-doc"><span>'+(agDocs[d]?'✅ ':'📄 ')+d+'</span>'
+      +(agDocs[d]==='uploading'?'<b class="muted">Uploading…</b>'
+        :agDocs[d]?'<span class="ag-link" onclick="agentDocUpload('+i+',true)">Remove</span>'
+        :'<button type="button" class="btn btn-outline btn-sm" onclick="agentDocUpload('+i+')">📷 Upload</button>')+'</div>').join('');
+}
+function agentDocUpload(i,remove){
+  const d=findScheme(agentFormScheme).docs[i];
+  if(remove){ delete agDocs[d]; renderAgentDocs(); return; }
+  markFormStarted();
+  agDocs[d]='uploading'; renderAgentDocs();
+  setTimeout(()=>{ agDocs[d]=true; renderAgentDocs(); },900);
+}
+
+// First interaction with the form = "started filling": creates a draft application (manager sees it as Incomplete).
+function markFormStarted(){
+  trackFunnel('formStarted');
+  if(!openAppFor(agentFormScheme)) schemeApps().push({id:'APP'+Date.now(),createdAt:new Date().toISOString(),scheme:agentFormScheme,status:'draft'});
 }
 function closeAgentForm(){
   document.getElementById('agentModal').classList.remove('show');
-}
-function openPaymentLink(){
-  toast('💳 Online payments coming soon! For now, just submit your request below.');
 }
 function submitAgentForm(){
   const A=S.schemeProfile||{};
@@ -626,16 +669,80 @@ function submitAgentForm(){
   const mobile=document.getElementById('agentMobile').value.trim();
   const address=document.getElementById('agentAddress').value.trim();
   if(!RE_MOB.test(mobile)){toast('Enter a valid 10-digit mobile number');return;}
-  if(!address){toast('Enter an address for the agent to reach you');return;}
-  const time=document.getElementById('agentTime').value;
+  if(!address){toast('Enter your current address');return;}
+  if(Object.values(agDocs).includes('uploading')){toast('Please wait for the upload to finish');return;}
+  markFormStarted();
+  const sch=findScheme(agentFormScheme);
+  const docs={}; sch.docs.forEach(d=>{ docs[d]=!!agDocs[d]; });
+  Object.assign(openAppFor(agentFormScheme),{status:'cart',cartAt:new Date().toISOString(),mobile,address,formData:data,docs,
+    docsMissing:sch.docs.filter(d=>!docs[d]),state:(S.schemeProfile||{}).LiveState});
+  trackFunnel('cartAdded');
+  saveCurrentProfile();
   document.getElementById('agentFormBlock').style.display='none';
-  document.getElementById('agentAssigningBlock').style.display='block';
-  setTimeout(()=>{
-    const agent=AGENT_POOL[Math.floor(Math.random()*AGENT_POOL.length)];
-    (S.schemeApplications=S.schemeApplications||[]).push({scheme:agentFormScheme,agent:agent.name,mobile,address,time,formData:data});
-    document.getElementById('agentAssigningBlock').style.display='none';
-    document.getElementById('agentAssignedText').textContent='Application started for '+agentFormScheme+'. '+agent.name+' ('+agent.phone+') will contact you during your preferred time slot.';
-    document.getElementById('agentAssignedBlock').style.display='block';
-    addNotification('Agent '+agent.name+' assigned to help with your '+agentFormScheme+' application.', true);
-  },1400);
+  document.getElementById('agentAddedText').textContent=agentFormScheme+' is in your cart.'
+    +(cartApps().length>1?' You have '+cartApps().length+' schemes in your cart.':'');
+  document.getElementById('agentAddedBlock').style.display='block';
+  renderSchemes();
 }
+
+// ===== Scheme cart (Amazon-style): ₹49 per scheme, one payment for all =====
+function updateCartBadge(){
+  const n=cartApps().length, el=document.getElementById('schemeCartBadge');
+  if(el){ el.textContent=n; el.style.display=n?'grid':'none'; }
+}
+function openSchemeCart(){
+  closeAgentForm();
+  renderSchemeCart();
+  go('s-scheme-cart');
+}
+function renderSchemeCart(){
+  const items=cartApps();
+  document.getElementById('cartResult').style.display='none';
+  document.getElementById('cartMain').style.display='block';
+  document.getElementById('cartItems').innerHTML=items.length?items.map(a=>{
+    const sch=findScheme(a.scheme)||{icon:'📄'};
+    return '<div class="card" style="display:flex;gap:12px;align-items:flex-start;">'
+      +'<div class="scheme-ic">'+sch.icon+'</div><div style="flex:1;"><b style="font-size:14px;">'+a.scheme+'</b>'
+      +'<p style="font-size:12px;margin:4px 0;color:'+(a.docsMissing.length?'var(--marigold-600)':'var(--success)')+';">'
+      +(a.docsMissing.length?'⚠️ '+a.docsMissing.length+' document'+(a.docsMissing.length>1?'s':'')+' missing: '+a.docsMissing.join(', '):'✅ All documents uploaded')+'</p>'
+      +'<div style="display:flex;gap:14px;margin-top:6px;font-size:12px;"><span class="ag-link" onclick="openAgentForm(\''+a.scheme.replace(/'/g,"\\'")+'\')">Edit</span>'
+      +'<span class="ag-link" style="color:var(--danger);" onclick="removeFromCart(\''+a.id+'\')">Remove</span></div></div>'
+      +'<b style="font-size:14px;">₹'+SCHEME_FEE+'</b></div>';
+  }).join(''):'<div class="card center-col" style="padding:24px;"><div style="font-size:30px;">🛒</div><p class="muted" style="margin-top:6px;">Your cart is empty. Add schemes from your eligible list.</p></div>';
+  const total=items.length*SCHEME_FEE;
+  document.getElementById('cartTotal').textContent='₹'+total;
+  document.getElementById('cartCount').textContent=items.length+' scheme'+(items.length!==1?'s':'')+' × ₹'+SCHEME_FEE;
+  const btn=document.getElementById('cartPayBtn');
+  btn.textContent='Pay ₹'+total+' via UPI'; btn.disabled=!items.length; btn.style.opacity=items.length?'1':'0.5';
+  updateCartBadge();
+}
+function removeFromCart(id){
+  const a=schemeApps().find(x=>x.id===id);
+  if(a) a.status='draft';
+  saveCurrentProfile();
+  renderSchemeCart();
+}
+function payForCart(){
+  const items=cartApps(); if(!items.length) return;
+  const btn=document.getElementById('cartPayBtn');
+  btn.disabled=true; btn.textContent='Processing payment…';
+  setTimeout(()=>{
+    const now=new Date().toISOString(), ref='NEEVSCH'+Date.now().toString().slice(-8);
+    items.forEach(a=>Object.assign(a,{status:'paid',paidAt:now,amount:SCHEME_FEE,paymentRef:ref}));
+    trackFunnel('paid');
+    saveCurrentProfile();
+    const pending=items.filter(a=>a.docsMissing.length);
+    document.getElementById('cartMain').style.display='none';
+    document.getElementById('cartResult').style.display='block';
+    document.getElementById('cartResultTitle').textContent='Payment successful · ₹'+items.length*SCHEME_FEE;
+    document.getElementById('cartResultRef').textContent='Ref: '+ref;
+    document.getElementById('cartResultList').innerHTML=items.map(a=>'<div class="ag-row"><span>'+a.scheme+'</span><b style="color:'
+      +(a.docsMissing.length?'var(--marigold-600)':'var(--success)')+';">'+(a.docsMissing.length?'Pending · documents missing':'Complete')+'</b></div>').join('');
+    document.getElementById('cartResultNote').textContent=pending.length
+      ?'Upload the missing documents to move '+(pending.length>1?'these applications':'this application')+' forward. Our team will contact you.'
+      :'Our team will file your applications and keep you updated.';
+    addNotification('Payment of ₹'+items.length*SCHEME_FEE+' received for '+items.length+' scheme application'+(items.length>1?'s':'')+'. Ref: '+ref,true);
+    updateCartBadge();
+  },1500);
+}
+

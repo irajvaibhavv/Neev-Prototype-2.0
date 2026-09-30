@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/* Saralya design tokens (light theme), taken from bank-branch-dashboard.vercel.app.
+   ink-2 / ink-3 / sidebar text darkened for readability: all >= 5.8:1 on white, page and sidebar. */
+@theme {
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: "DM Sans", "Plus Jakarta Sans", sans-serif;
+
+  --color-page: #f8f7fc;
+  --color-card: #ffffff;
+  --color-card-hover: #faf9fd;
+  --color-input: #f3f1f9;
+  --color-line: #e2dff0;
+  --color-line-strong: #cdd5e2;
+
+  --color-brand: #8b5cf6;
+  --color-brand-dark: #46237a;
+  --color-brand-darker: #351a63;
+  --color-brand-tint: #ede5ff;
+  --color-brand-tint-2: #ede9fe;
+
+  --color-ink: #1a0f2e;
+  --color-ink-2: #3d3354;
+  --color-ink-3: #5f5680;
+
+  --color-side: #f1edf9;
+  --color-side-text: #3d3354;
+  --color-side-group: #5f5680;
+  --color-side-active: #6d4fc4;
+
+  --color-ok: #15803d;
+  --color-ok-tint: #dcfce7;
+  --color-warn: #b45309;
+  --color-warn-tint: #fef3c7;
+  --color-bad: #b91c1c;
+  --color-bad-tint: #fee2e2;
+  --color-info: #1d4ed8;
+  --color-info-tint: #dbeafe;
+
+  /* Chart series (dataviz reference palette, validated all-pairs on white): one hue per measure */
+  --color-c-users: #2a78d6;
+  --color-c-apps: #eb6834;
+  --color-c-paid: #199e70;
+
+  --radius-card: 10px;
+  --shadow-card: 0 1px 3px #46237a0a, 0 1px 2px #46237a0f;
+  --shadow-card-hover: 0 4px 12px #46237a14, 0 2px 4px #46237a0f;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-weight: 500; /* Plus Jakarta at 400 reads too thin on screens (user feedback) */
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { font-family: var(--font-heading); }

@@ -143,6 +143,7 @@ function completeSignup(){
 }
 
 function finishSignup(){
+  S.signupAt=S.signupAt||new Date().toISOString(); // "downloaded the app" step for the manager funnel
   var nameStr=S.name||'User';
   document.getElementById('homeName').textContent=nameStr.split(' ')[0];
   document.getElementById('profileName').textContent=nameStr;
