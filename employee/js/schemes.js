@@ -1,4 +1,5 @@
-// Neev Employee App — Government Schemes with state selector.
+// Neev Employee App — Government Schemes: Aadhaar + common questions → eligibility-matched schemes.
+// Scheme list + rules come from research (Sep 2026) — see research_notes/Indian welfare schemes eligibility/.
 const AGENT_POOL=[
   { name:'Rajesh Kumar', phone:'98XXXXXX21' },
   { name:'Sunita Sharma', phone:'98XXXXXX47' },
@@ -7,137 +8,353 @@ const AGENT_POOL=[
 let agentFormScheme=null;
 const AGENT_FORM_MOCK={rationCard:'DL-01-023-004567',category:'general',familySize:4,familyIncome:'₹1,50,000'};
 
-// Central schemes available in all states
+// Each scheme: rule(p) → 'yes' (criteria fully covered by our questions),
+// 'maybe' (official list / unverified criteria decide it — user must confirm), or false.
+// `check` = criteria we can't ask simply; shown as "Also check" text. p is built in buildEligProfile().
 const CENTRAL_SCHEMES=[
-  {name:'Ayushman Bharat (PM-JAY)',icon:'🏥',desc:'Free health cover up to ₹5 lakh per family per year.',url:'https://pmjay.gov.in',tag:'Health'},
-  {name:'PM Shram Yogi Maandhan',icon:'👷',desc:'Monthly pension of ₹3,000 after age 60 for unorganised workers.',url:'https://labour.gov.in/pmsym',tag:'Pension'},
-  {name:'PM Awas Yojana',icon:'🏠',desc:'Subsidy towards owning your first home.',url:'https://pmay-urban.gov.in',tag:'Housing'},
+  {name:'Construction Workers Welfare Board',icon:'🔧',desc:'Registration with your state BOCW board — pension, accident, maternity, children\'s education and daughter\'s marriage aid.',url:'https://labour.gov.in',tag:'Labour',
+   rule:p=>p.construction&&p.age>=18&&p.age<=60&&'yes',
+   check:'90+ days of construction work in the last 12 months (certificate from employer, contractor or union). Registration fee about ₹20–50.',
+   docs:['Aadhaar card','90-day work certificate','Bank passbook','Passport-size photo']},
+  {name:'PM Shram Yogi Maandhan',icon:'👷',desc:'₹3,000/month pension from age 60. You pay ₹55–200/month, the government matches it.',url:'https://maandhan.in',tag:'Pension',
+   rule:p=>p.age>=18&&p.age<=40&&p.monthlyIncome<15000&&!p.pf&&!p.tax&&'yes',
+   check:'You are not in NPS.',
+   docs:['Aadhaar card','Savings / Jan Dhan bank account','Mobile number']},
+  {name:'e-Shram Card',icon:'🪪',desc:'National ID for unorganised workers — gateway to welfare schemes and disaster relief.',url:'https://eshram.gov.in',tag:'Labour',
+   rule:p=>p.age>=16&&p.age<=59&&!p.pf&&'yes',
+   check:'Mobile number linked to Aadhaar (or register with biometrics at a CSC).',
+   docs:['Aadhaar card','Aadhaar-linked mobile','Bank account details']},
+  {name:'Atal Pension Yojana',icon:'👴',desc:'Guaranteed pension of ₹1,000–5,000/month from age 60.',url:'https://www.npscra.nsdl.co.in/scheme-details.php',tag:'Pension',
+   rule:p=>p.age>=18&&p.age<=40&&!p.tax&&'yes',
+   check:'You have never paid income tax. Needs a savings bank or post office account.',
+   docs:['Aadhaar card','Savings bank account','Mobile number']},
+  {name:'PM Suraksha Bima Yojana',icon:'🛡️',desc:'₹2 lakh accident cover for just ₹20 a year.',url:'https://jansuraksha.gov.in',tag:'Insurance',
+   rule:p=>p.age>=18&&p.age<=70&&'yes',
+   check:'Needs a bank account with auto-debit.',
+   docs:['Aadhaar card','Bank account']},
+  {name:'PM Jeevan Jyoti Bima Yojana',icon:'💙',desc:'₹2 lakh life cover for ₹436 a year.',url:'https://jansuraksha.gov.in',tag:'Insurance',
+   rule:p=>p.age>=18&&p.age<=50&&'yes',
+   check:'Needs a bank account with auto-debit.',
+   docs:['Aadhaar card','Bank account']},
+  {name:'PM Awas Yojana (Urban 2.0)',icon:'🏠',desc:'Up to ₹2.5 lakh help to build or buy your first pucca house.',url:'https://pmaymis.gov.in',tag:'Housing',
+   rule:p=>!p.ownHome&&p.familyIncome<=900000&&'yes',
+   check:'No housing benefit from any government scheme in the last 20 years. House in the woman\'s name or joint name.',
+   docs:['Aadhaar of all family members','Income certificate','Self-declaration of no pucca house','Bank account details']},
+  {name:'Sukanya Samriddhi Yojana',icon:'👧',desc:'High-interest savings account for your daughter\'s education and marriage.',url:'https://www.indiapost.gov.in',tag:'Savings',
+   rule:p=>p.daughterU10&&'yes',
+   check:'Up to 2 daughters per family.',
+   docs:["Daughter's birth certificate",'Parent Aadhaar & PAN','Address proof']},
+  {name:'Ayushman Bharat (PM-JAY)',icon:'🏥',desc:'Free hospital treatment up to ₹5 lakh per family per year.',url:'https://beneficiary.nha.gov.in',tag:'Health',
+   rule:p=>p.age>=70?'yes':((p.lowCard||p.construction||p.occupation==='Domestic')&&'maybe'),
+   check:'Below 70, eligibility depends on the SECC-2011 / state list — check your name on beneficiary.nha.gov.in or at a CSC.',
+   docs:['Aadhaar card','Ration card','Mobile number']},
+  {name:'PM-KISAN',icon:'🌾',desc:'₹6,000/year to farmer families in three instalments.',url:'https://pmkisan.gov.in',tag:'Agriculture',
+   rule:p=>p.farmer&&!p.tax&&!p.govt&&'maybe',
+   check:'Farm land must be in your name. No family member gets a pension of ₹10,000+/month or is a doctor, lawyer, engineer or CA.',
+   docs:['Aadhaar card','Land records','Bank passbook']},
+  {name:'PM SVANidhi',icon:'🛒',desc:'Collateral-free loans of ₹15,000 → ₹25,000 → ₹50,000 for street vendors.',url:'https://pmsvanidhi.mohua.gov.in',tag:'Loan',
+   rule:p=>p.occupation==='Vendor'&&'maybe',
+   check:'Need a Certificate of Vending or recommendation letter from your municipality.',
+   docs:['Aadhaar card','Vending certificate / LoR','Bank account']},
+  {name:'PM Ujjwala Yojana',icon:'🔥',desc:'Free LPG connection with first refill for poor households.',url:'https://pmuy.gov.in',tag:'Welfare',
+   rule:p=>p.female&&p.age>=18&&p.lowCard&&'maybe',
+   check:'No LPG connection in the household already.',
+   docs:['Aadhaar card','Ration card','Bank account']},
+  {name:'Ration Card (NFSA)',icon:'🍚',desc:'Free food grains — 5 kg per person per month (35 kg for Antyodaya families).',url:'https://nfsa.gov.in',tag:'Food',
+   rule:p=>p.ration==='None'&&!p.tax&&!p.govt&&!p.car&&'maybe',
+   check:'Your state decides who is a priority household — apply at the food & supply office or CSC.',
+   docs:['Aadhaar of all family members','Income certificate','Residence proof','Passport-size photo']},
 ];
 
-// State-specific schemes
 const STATE_SCHEMES={
   'Delhi':[
-    {name:'Delhi Majdoor Sahayata',icon:'🔧',desc:'₹5,000 one-time aid for registered construction workers.',url:'https://labourcis.nic.in',tag:'Labour'},
-    {name:'Ladli Yojana',icon:'👧',desc:'Financial assistance for girl child education.',url:'https://wcddel.in',tag:'Education'},
+    {name:'Delhi Lakshmi Yojana',icon:'👩',desc:'₹2,500/month for women.',url:'https://wcd.delhi.gov.in',tag:'Welfare',
+     rule:p=>p.female&&p.age>=21&&p.age<=60&&p.familyIncome<=250000&&!p.tax&&!p.govt&&!p.car&&p.children<=3&&'yes',
+     check:'Eldest eligible woman in the family, Delhi voter, you/husband/parent living in Delhi 10+ years, electricity under 2,400 units/year, no govt pension.',
+     docs:['Aadhaar card','Delhi voter ID','10-year residence proof','MP/MLA recommendation']},
   ],
   'Bihar':[
-    {name:'Mukhyamantri Kanya Utthan',icon:'👩‍🎓',desc:'Up to ₹50,000 for girl child from birth to graduation.',url:'https://ekalyan.bih.nic.in',tag:'Education'},
-    {name:'Bihar Ration Card (EPDS)',icon:'🍚',desc:'Subsidised food grains for BPL families.',url:'https://epds.bihar.gov.in',tag:'Food'},
+    {name:'Mukhyamantri Mahila Rojgar Yojana',icon:'👩',desc:'₹10,000 to start a livelihood, up to ₹2 lakh more later.',url:'https://brlps.in',tag:'Livelihood',
+     rule:p=>p.female&&p.age>=18&&p.age<=60&&'maybe',
+     check:'Must be a JEEViKA self-help group member (you can join one). One woman per family.',
+     docs:['Aadhaar card','Bank account in own name','JEEViKA SHG details']},
+    {name:'Mukhyamantri Kanya Utthan',icon:'👩‍🎓',desc:'₹25,000 on passing Class 12, ₹50,000 on graduation for daughters.',url:'https://medhasoft.bihar.gov.in',tag:'Education',
+     rule:p=>p.daughter10to18&&!p.govt&&'maybe',
+     check:'Up to 2 daughters per family. Amount depends on exam result and passing year.',
+     docs:['Marksheet','Aadhaar card','Bihar residence certificate','Bank account']},
   ],
   'Uttar Pradesh':[
-    {name:'Kanya Sumangala Yojana',icon:'👧',desc:'₹15,000 in stages for girl child welfare.',url:'https://mksy.up.gov.in',tag:'Welfare'},
-    {name:'UP Shramik Majdoor Card',icon:'🪪',desc:'Labour card for construction workers — access to 17 schemes.',url:'https://upbocw.in',tag:'Labour'},
+    {name:'Kanya Sumangala Yojana',icon:'👧',desc:'₹25,000 in 6 stages from birth to graduation for daughters.',url:'https://mksy.up.gov.in',tag:'Welfare',
+     rule:p=>(p.daughterU10||p.daughter10to18)&&p.familyIncome<=300000&&p.children<=2&&'yes',
+     check:'UP resident family. Max 2 children (twins exception).',
+     docs:["Daughter's birth certificate",'Parent Aadhaar card','UP residence proof','Income certificate']},
   ],
   'Maharashtra':[
-    {name:'Mahatma Phule Jan Arogya',icon:'🏥',desc:'Free treatment up to ₹1.5 lakh for BPL families in empanelled hospitals.',url:'https://www.jeevandayee.gov.in',tag:'Health'},
-    {name:'Gharkul Yojana',icon:'🏠',desc:'Housing for economically weaker sections in rural Maharashtra.',url:'https://mhada.gov.in',tag:'Housing'},
+    {name:'Majhi Ladki Bahin Yojana',icon:'👩',desc:'₹1,500/month for women.',url:'https://ladakibahin.maharashtra.gov.in',tag:'Welfare',
+     rule:p=>p.female&&p.age>=21&&p.age<=65&&p.familyIncome<250000&&!p.tax&&!p.car&&!p.govt&&'yes',
+     check:'Only one unmarried woman per family; max two women per family. Annual e-KYC required.',
+     docs:['Aadhaar card','Maharashtra domicile / ration card','Income certificate or yellow/orange ration card','Bank passbook']},
+    {name:'Mahatma Jyotiba Phule Jan Arogya',icon:'🏥',desc:'Cashless treatment up to ₹5 lakh per family per year.',url:'https://www.jeevandayee.gov.in',tag:'Health',
+     rule:p=>'yes',
+     check:'Maharashtra resident with ration card or domicile certificate.',
+     docs:['Aadhaar card','Ration card or domicile certificate']},
   ],
   'Rajasthan':[
-    {name:'Chiranjeevi Yojana',icon:'🏥',desc:'Free health insurance up to ₹25 lakh per family per year.',url:'https://chiranjeevi.rajasthan.gov.in',tag:'Health'},
-    {name:'Indira Rasoi Yojana',icon:'🍛',desc:'Meals at ₹8 for low-income workers across Rajasthan.',url:'https://indirarasoi.rajasthan.gov.in',tag:'Food'},
+    {name:'MAA Yojana (formerly Chiranjeevi)',icon:'🏥',desc:'Health cover up to ₹25 lakh per family per year.',url:'https://maayojana.rajasthan.gov.in',tag:'Health',
+     rule:p=>!p.govt&&'yes',
+     check:'Free for NFSA ration card families, small farmers and contract workers; others pay ₹850/year. Needs Jan Aadhaar.',
+     docs:['Jan Aadhaar card','Aadhaar card']},
+    {name:'Shri Annapurna Rasoi',icon:'🍛',desc:'Full meal for ₹8.',url:'https://rajasthan.gov.in',tag:'Food',
+     rule:p=>'yes',
+     check:'Open to everyone — just visit a Rasoi.',
+     docs:['None needed']},
   ],
   'Madhya Pradesh':[
-    {name:'Ladli Bahna Yojana',icon:'👩',desc:'₹1,250/month direct transfer to women aged 21–60.',url:'https://ladlibahna.mp.gov.in',tag:'Welfare'},
-    {name:'Sambal Yojana',icon:'🔧',desc:'Accident insurance & education support for unorganised workers.',url:'https://sambal.mp.gov.in',tag:'Labour'},
-  ],
-  'Karnataka':[
-    {name:'Gruha Lakshmi',icon:'👩',desc:'₹2,000/month to women head of household.',url:'https://sevasindhu.karnataka.gov.in',tag:'Welfare'},
-    {name:'Anna Bhagya',icon:'🍚',desc:'10 kg free rice per person per month for BPL families.',url:'https://ahara.kar.nic.in',tag:'Food'},
-  ],
-  'Tamil Nadu':[
-    {name:'Kalaignar Magalir Urimai Thogai',icon:'👩',desc:'₹1,000/month for women head of family.',url:'https://tnpds.gov.in',tag:'Welfare'},
-    {name:'TN Construction Workers Welfare',icon:'🔧',desc:'Pension, marriage aid, maternity benefit for registered workers.',url:'https://tnlabour.gov.in',tag:'Labour'},
-  ],
-  'West Bengal':[
-    {name:'Lakshmir Bhandar',icon:'👩',desc:'₹500–1,000/month for women aged 25–60.',url:'https://socialsecurity.wb.gov.in',tag:'Welfare'},
-    {name:'Swasthya Sathi',icon:'🏥',desc:'₹5 lakh health cover per family — cashless at empanelled hospitals.',url:'https://swasthyasathi.gov.in',tag:'Health'},
-  ],
-  'Gujarat':[
-    {name:'Mukhyamantri Amrutum (MA)',icon:'🏥',desc:'Free treatment for BPL families at empanelled hospitals.',url:'https://maguj.org',tag:'Health'},
-    {name:'Manav Garima Yojana',icon:'🔧',desc:'Tool kits for self-employment in manual trades.',url:'https://sje.gujarat.gov.in',tag:'Labour'},
+    {name:'Ladli Bahna Yojana',icon:'👩',desc:'₹1,500/month for married women.',url:'https://cmladlibahna.mp.gov.in',tag:'Welfare',
+     rule:p=>p.female&&p.marital!=='Unmarried'&&p.age>=21&&p.age<60&&p.familyIncome<=250000&&!p.tax&&!p.govt&&!p.car&&'maybe',
+     check:'New registrations open only in special windows. Family land up to 5 acres; not getting ₹1,250+/month from another scheme. Needs Samagra ID.',
+     docs:['Samagra ID','Aadhaar card (linked to bank)','Bank passbook']},
+    {name:'Ladli Laxmi Yojana',icon:'👧',desc:'About ₹1.43 lakh over school years and at age 21 for daughters.',url:'https://ladlilaxmi.mp.gov.in',tag:'Welfare',
+     rule:p=>(p.daughterU10||p.daughter10to18)&&!p.tax&&'maybe',
+     check:'First two daughters; family planning after the second child. Register early — usually before age 5.',
+     docs:["Daughter's birth certificate",'Samagra ID','Parent Aadhaar']},
   ],
   'Jharkhand':[
-    {name:'Mukhyamantri Sukanya Yojana',icon:'👧',desc:'₹40,000 on reaching 18 for girls enrolled since birth.',url:'https://jharsewa.jharkhand.gov.in',tag:'Education'},
-    {name:'Universal PDS (Jharkhand)',icon:'🍚',desc:'1 kg dal + 5 kg rice free per person per month.',url:'https://aahar.jharkhand.gov.in',tag:'Food'},
+    {name:'Maiyan Samman Yojana',icon:'👩',desc:'₹2,500/month for women.',url:'https://mmmsy.jharkhand.gov.in',tag:'Welfare',
+     rule:p=>p.female&&p.age>=18&&p.age<50&&p.anyCard&&!p.tax&&!p.govt&&!p.pf&&'yes',
+     check:'Single Aadhaar-linked bank account in your name. Not already getting a Social Security pension.',
+     docs:['Aadhaar card','Ration card','Bank passbook']},
+  ],
+  'Karnataka':[
+    {name:'Gruha Lakshmi',icon:'👩',desc:'₹2,000/month to the woman head of family.',url:'https://sevasindhugs.karnataka.gov.in',tag:'Welfare',
+     rule:p=>p.female&&p.anyCard&&!p.tax&&!p.govt&&'yes',
+     check:'You must be named head of family on the ration card.',
+     docs:['Aadhaar card','Ration card (you as head)','Bank passbook linked to Aadhaar']},
+    {name:'Anna Bhagya',icon:'🍚',desc:'Free rice + Indira food kit every month.',url:'https://ahara.kar.nic.in',tag:'Food',
+     rule:p=>p.lowCard&&'yes',
+     check:'Automatic for AAY/BPL card holders — collect at your ration shop.',
+     docs:['AAY/BPL ration card','Aadhaar of family members']},
+  ],
+  'Tamil Nadu':[
+    {name:'Kalaignar Magalir Urimai Thogai',icon:'👩',desc:'₹1,000/month for women head of family.',url:'https://kmut.tn.gov.in',tag:'Welfare',
+     rule:p=>p.female&&p.age>=21&&p.familyIncome<250000&&p.anyCard&&!p.car&&!p.tax&&!p.govt&&'yes',
+     check:'Named head of family on ration card. Land within limits (5 acres wet / 10 acres dry). No professional-tax payer in family.',
+     docs:['Aadhaar card','Family ration card','Bank passbook','Electricity bill']},
+    {name:"CM's Comprehensive Health Insurance (CMCHIS)",icon:'🏥',desc:'Cashless treatment at empanelled hospitals.',url:'https://www.cmchistn.com',tag:'Health',
+     rule:p=>p.familyIncome<=120000&&'yes',
+     check:'Income certificate from VAO.',
+     docs:['Ration card','VAO income certificate','Aadhaar card']},
+  ],
+  'West Bengal':[
+    {name:'Annapurna Bhandar',icon:'👩',desc:'₹3,000/month for women aged 25–60 (replaced Lakshmir Bhandar).',url:'https://wb.gov.in',tag:'Welfare',
+     rule:p=>p.female&&p.age>=25&&p.age<=60&&!p.tax&&!p.govt&&'yes',
+     check:'On the WB electoral roll; Aadhaar-seeded bank account in your name.',
+     docs:['Aadhaar card','Voter ID','Bank passbook']},
+  ],
+  'Gujarat':[
+    {name:'PMJAY-MA (Mukhyamantri Amrutum)',icon:'🏥',desc:'Health cover up to ₹10 lakh per family per year.',url:'https://pmjay.gov.in',tag:'Health',
+     rule:p=>(p.lowCard||p.familyIncome<=400000)&&'yes',
+     check:'Gujarat resident.',
+     docs:['Aadhaar card','Income certificate or NFSA ration card']},
+    {name:'Namo Lakshmi Yojana',icon:'👩‍🎓',desc:'₹50,000 for daughters studying in Class 9–12.',url:'https://www.digitalgujarat.gov.in',tag:'Education',
+     rule:p=>p.daughter10to18&&p.familyIncome<600000&&'maybe',
+     check:'Daughter must be in Class 9–12 — confirm with her school (private-school rules unclear).',
+     docs:['School ID / bonafide certificate','Aadhaar card','Income certificate','Bank account']},
   ],
   'Odisha':[
-    {name:'KALIA Yojana',icon:'🌾',desc:'₹4,000/year for small and marginal farmers.',url:'https://kalia.odisha.gov.in',tag:'Agriculture'},
-    {name:'Biju Swasthya Kalyan Yojana',icon:'🏥',desc:'₹5 lakh health cover for 96 lakh families.',url:'https://bsky.odisha.gov.in',tag:'Health'},
+    {name:'Subhadra Yojana',icon:'👩',desc:'₹10,000/year for women (two ₹5,000 instalments).',url:'https://subhadra.odisha.gov.in',tag:'Welfare',
+     rule:p=>p.female&&p.age>=21&&p.age<=60&&(p.anyCard||p.familyIncome<=250000)&&!p.tax&&!p.govt&&!p.car&&'yes',
+     check:'Not getting ₹1,500+/month from another scheme; family land within limits.',
+     docs:['Aadhaar card','Ration card / income certificate','Bank passbook']},
+    {name:'Gopabandhu Jan Arogya Yojana',icon:'🏥',desc:'₹5 lakh health cover per family (+₹5 lakh for women).',url:'https://health.odisha.gov.in',tag:'Health',
+     rule:p=>p.anyCard&&'yes',
+     check:'Needs an NFSA / SFSS ration card.',
+     docs:['Aadhaar card','NFSA/SFSS ration card']},
   ],
   'Punjab':[
-    {name:'Sarbat Sehat Bima Yojana',icon:'🏥',desc:'₹5 lakh health cover per family — extends Ayushman Bharat.',url:'https://sha.punjab.gov.in',tag:'Health'},
-    {name:'Atta Dal Scheme',icon:'🍚',desc:'Free wheat flour & dal for BPL families.',url:'https://punjab.gov.in',tag:'Food'},
+    {name:'Mukh Mantri Sehat Yojana',icon:'🏥',desc:'₹10 lakh cashless health cover for every Punjab family.',url:'https://sha.punjab.gov.in',tag:'Health',
+     rule:p=>'yes',
+     check:'Punjab resident with Punjab voter ID (for Sehat Card).',
+     docs:['Aadhaar card','Punjab voter ID']},
+    {name:'Smart Ration Card (Atta-Dal)',icon:'🍚',desc:'Free wheat every month for NFSA families.',url:'https://epos.punjab.gov.in',tag:'Food',
+     rule:p=>p.lowCard&&'yes',
+     check:'Collect at your ration depot with the smart card.',
+     docs:['Smart ration card','Aadhaar of family members']},
   ],
   'Haryana':[
-    {name:'Ayushman Bharat - Chirayu',icon:'🏥',desc:'₹5 lakh health cover — Haryana extension of PM-JAY.',url:'https://nha.gov.in',tag:'Health'},
-    {name:'Mukhyamantri Parivar Samman Nidhi',icon:'🌾',desc:'₹6,000/year for farmer families with ≤5 acres.',url:'https://fasal.haryana.gov.in',tag:'Agriculture'},
+    {name:'Deen Dayal Lado Lakshmi Yojana',icon:'👩',desc:'₹2,100/month for women (₹1,100 cash + ₹1,000 deposit).',url:'https://meraparivar.haryana.gov.in',tag:'Welfare',
+     rule:p=>p.female&&p.age>=23&&p.familyIncome<=100000&&!p.tax&&'yes',
+     check:'Family income as verified in Parivar Pehchan Patra (PPP); you or husband living in Haryana 15+ years; not on another state pension.',
+     docs:['Parivar Pehchan Patra (PPP)','Aadhaar card','Bank passbook']},
+    {name:'Chirayu Ayushman Bharat',icon:'🏥',desc:'₹5 lakh health cover — free up to ₹1.8 lakh income, ₹1,500/year up to ₹3 lakh.',url:'https://chirayu.haryana.gov.in',tag:'Health',
+     rule:p=>p.familyIncome<=300000&&'yes',
+     check:'Income as verified in Parivar Pehchan Patra (PPP).',
+     docs:['Parivar Pehchan Patra (PPP)','Aadhaar card']},
   ],
 };
 
 function getStateFromAddress(){
-  const addr=(S.currentAddress||S.address||'').toLowerCase();
-  const states=Object.keys(STATE_SCHEMES);
-  for(const st of states){
+  const addr=(S.address||S.currentAddress||'').toLowerCase();
+  for(const st of Object.keys(STATE_SCHEMES)){
     if(addr.includes(st.toLowerCase())) return st;
   }
   return 'Delhi';
 }
 
-function initSchemes(){
-  const sel=document.getElementById('schemeStateSelect');
-  const userState=getStateFromAddress();
-  sel.value=userState;
-  renderSchemes(userState);
-  updateSchemeHint(userState);
+function ageFromDob(dob){
+  const m=(dob||'').match(/(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+  if(!m) return 30;
+  const now=new Date(), b=new Date(+m[3],+m[2]-1,+m[1]);
+  let age=now.getFullYear()-b.getFullYear();
+  if(now<new Date(now.getFullYear(),b.getMonth(),b.getDate())) age--;
+  return age;
 }
 
-function onSchemeStateChange(){
-  const state=document.getElementById('schemeStateSelect').value;
-  renderSchemes(state);
-  updateSchemeHint(state);
+// Question ids in the Part B form (value stored in S.schemeProfile under the key after 'sp').
+const SP_FIELDS=['LiveState','MonthlyIncome','FamilyIncome','Pf','Tax','Govt','Ration','OwnHome','Car','Occupation','Marital','Children','DaughterU10','Daughter10to18'];
+
+// Home tile entry: users with Aadhaar data + a complete saved profile go straight to results.
+function openSchemes(){
+  if(S.aadhaar&&S.gender&&S.dob&&S.schemeProfile&&S.schemeProfile.Marital){ renderSchemes(); go('s-schemes'); return; }
+  openSchemeProfile();
 }
 
-function updateSchemeHint(state){
-  const hint=document.getElementById('schemeStateHint');
-  const userState=getStateFromAddress();
-  if(state===userState){
-    hint.textContent='Based on your Aadhaar address';
+// Part A (Aadhaar) is skipped when KYC already gave us aadhaar/gender/dob; Part B is prefilled on edit.
+function openSchemeProfile(){
+  const hasAadhaar=S.aadhaar&&S.gender&&S.dob;
+  document.getElementById('spAadhaarInputBlock').style.display=hasAadhaar?'none':'block';
+  document.getElementById('spVerifyBtn').style.display='block';
+  document.getElementById('spVerifying').style.display='none';
+  document.getElementById('spAadhaarInput').value=S.aadhaar||'';
+  if(hasAadhaar){
+    showSchemeAadhaarDetails();
   } else {
-    hint.textContent='You changed from '+userState;
+    document.getElementById('spAadhaarDoneBlock').style.display='none';
+    document.getElementById('spDetailsBlock').style.display='none';
   }
+  const p=S.schemeProfile||{};
+  SP_FIELDS.filter(f=>f!=='LiveState').forEach(f=>{
+    const v=p[f]!==undefined?p[f]:(f==='MonthlyIncome'?S.salary:'');
+    document.getElementById('sp'+f).value=(v===undefined||v===null)?'':v;
+  });
+  go('s-scheme-profile');
 }
 
-function renderSchemes(state){
-  const container=document.getElementById('schemesList');
-  const stateList=STATE_SCHEMES[state]||[];
-  const all=[...CENTRAL_SCHEMES.map(s=>({...s,scope:'Central'})),...stateList.map(s=>({...s,scope:state}))];
+function verifySchemeAadhaar(){
+  const num=document.getElementById('spAadhaarInput').value.replace(/\s/g,'');
+  if(!/^\d{12}$/.test(num)){toast('Enter a valid 12-digit Aadhaar number');return;}
+  document.getElementById('spVerifyBtn').style.display='none';
+  document.getElementById('spVerifying').style.display='block';
+  setTimeout(()=>{
+    S.aadhaar=num.replace(/(\d{4})(?=\d)/g,'$1 ');
+    if(!S.name||S.name==='User') S.name='Ramesh Kumar';
+    S.gender='Male';
+    S.dob='15-03-1992';
+    S.schemeState=getStateFromAddress();
+    applyProfileFields();
+    document.getElementById('spAadhaarInputBlock').style.display='none';
+    showSchemeAadhaarDetails();
+    toast('Aadhaar verified');
+  },1500);
+}
 
-  document.getElementById('schemeCountText').textContent=CENTRAL_SCHEMES.length+' central + '+stateList.length+' '+state+' scheme'+(stateList.length!==1?'s':'')+' available';
+// Shows the verified Aadhaar card + Part B. "State you live in" defaults to the Aadhaar state
+// (client ask: e.g. Aadhaar from Bihar but working in Delhi — user can switch).
+function showSchemeAadhaarDetails(){
+  if(!S.schemeState) S.schemeState=getStateFromAddress();
+  document.getElementById('spName').value=S.name||'Ramesh Kumar';
+  document.getElementById('spGender').value=S.gender;
+  document.getElementById('spDob').value=S.dob;
+  document.getElementById('spState').value=S.schemeState;
+  const sel=document.getElementById('spLiveState');
+  sel.innerHTML=Object.keys(STATE_SCHEMES).map(st=>'<option value="'+st+'">'+st+(st===S.schemeState?' (Aadhaar)':'')+'</option>').join('');
+  sel.value=(S.schemeProfile&&S.schemeProfile.LiveState)||S.schemeState;
+  document.getElementById('spAadhaarDoneBlock').style.display='block';
+  document.getElementById('spDetailsBlock').style.display='block';
+}
+
+function findMySchemes(){
+  const p={};
+  for(const f of SP_FIELDS){
+    const v=document.getElementById('sp'+f).value;
+    if(v===''){toast('Please answer all questions');return;}
+    p[f]=v;
+  }
+  for(const f of ['MonthlyIncome','FamilyIncome','Children']){
+    p[f]=+p[f];
+    if(!(p[f]>=0)){toast('Please enter a valid number');return;}
+  }
+  S.schemeProfile=p;
+  renderSchemes();
+  go('s-schemes');
+}
+
+function buildEligProfile(){
+  const sp=S.schemeProfile;
+  return {
+    age:ageFromDob(S.dob), female:S.gender==='Female',
+    monthlyIncome:sp.MonthlyIncome, familyIncome:sp.FamilyIncome,
+    pf:sp.Pf==='yes', tax:sp.Tax==='yes', govt:sp.Govt==='yes',
+    ration:sp.Ration, lowCard:sp.Ration==='Antyodaya'||sp.Ration==='Priority', anyCard:sp.Ration!=='None',
+    ownHome:sp.OwnHome==='yes', car:sp.Car==='yes',
+    occupation:sp.Occupation, construction:sp.Occupation==='Construction', farmer:sp.Occupation==='Farmer',
+    marital:sp.Marital, children:sp.Children,
+    daughterU10:sp.DaughterU10==='yes', daughter10to18:sp.Daughter10to18==='yes',
+  };
+}
+
+function eligibleSchemes(){
+  const p=buildEligProfile(), state=S.schemeProfile.LiveState;
+  const out=[];
+  const add=(list,scope)=>list.forEach(s=>{ const r=s.rule(p); if(r) out.push({...s,scope,status:r}); });
+  add(CENTRAL_SCHEMES,'Central');
+  add(STATE_SCHEMES[state]||[],state);
+  return out.sort((a,b)=>(a.status==='yes'?0:1)-(b.status==='yes'?0:1));
+}
+
+function renderSchemes(){
+  const all=eligibleSchemes();
+  const state=S.schemeProfile.LiveState;
+  const yes=all.filter(s=>s.status==='yes').length, maybe=all.length-yes;
+  document.getElementById('schemeCountText').textContent="You're eligible for "+yes+" scheme"+(yes!==1?'s':'');
+  document.getElementById('schemeStateHint').textContent=(maybe?'+ '+maybe+' more you may qualify for · ':'')+'Central + '+state;
 
   let html='';
+  if(!all.length){
+    html='<div class="card center-col" style="padding:20px;"><div style="font-size:28px;">🔍</div><p class="muted" style="margin-top:6px;text-align:center;">No matching schemes right now. Try updating your profile.</p></div>';
+  }
   all.forEach(s=>{
+    const badge=s.status==='yes'
+      ?'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:#E6F6EC;color:var(--success);">✅ Eligible</span>'
+      :'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--marigold-100);color:var(--marigold-600);">🔎 May be eligible — confirm</span>';
     html+=`<div class="card" style="display:flex;gap:12px;align-items:flex-start;">
       <div class="scheme-ic">${s.icon}</div>
       <div style="flex:1;">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
           <b style="font-size:14px;">${s.name}</b>
-          <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:${s.scope==='Central'?'var(--marigold-100);color:var(--marigold-600)':'var(--teal-100);color:var(--teal-700)'};">${s.scope==='Central'?'Central':s.scope}</span>
+          <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--teal-100);color:var(--teal-700);">${s.scope}</span>
         </div>
-        <p class="muted" style="font-size:13px;margin:4px 0 10px;">${s.desc}</p>
+        <div style="margin-top:4px;">${badge}</div>
+        <p class="muted" style="font-size:13px;margin:6px 0;">${s.desc}</p>
+        <p style="font-size:12px;margin:0 0 8px;color:var(--teal-900);"><b>Also check:</b> ${s.check}</p>
+        <div style="background:var(--teal-100);border-radius:8px;padding:8px 10px;margin-bottom:10px;">
+          <b style="font-size:11px;color:var(--teal-900);">📄 Documents needed</b>
+          <ul style="margin:4px 0 0 16px;padding:0;font-size:12px;color:var(--teal-900);">${s.docs.map(d=>'<li>'+d+'</li>').join('')}</ul>
+        </div>
         <div style="display:flex;gap:8px;">
           <div style="flex:1;text-align:center;">
             <button class="btn btn-outline btn-sm" style="width:100%;" onclick="openScheme('${s.url}')">Apply Yourself</button>
             <p class="muted" style="font-size:11px;margin-top:4px;">Free of cost</p>
           </div>
           <div style="flex:1;text-align:center;">
-            <button class="btn btn-primary btn-sm" style="width:100%;" onclick="openAgentForm('${s.name}')">Apply with Agent</button>
+            <button class="btn btn-primary btn-sm" style="width:100%;" onclick="openAgentForm('${s.name.replace(/'/g,"\\'")}')">Apply with Agent</button>
             <p class="muted" style="font-size:11px;margin-top:4px;">₹49</p>
           </div>
         </div>
       </div>
     </div>`;
   });
-  container.innerHTML=html;
+  document.getElementById('schemesList').innerHTML=html;
 }
 
 function openAgentForm(schemeName){

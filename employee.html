@@ -665,7 +665,7 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
   </div>
 
   <div class="quick-grid">
-    <div class="quick-tile" onclick="initSchemes();go('s-schemes')">
+    <div class="quick-tile" onclick="openSchemes()">
       <div class="quick-ic" style="background:linear-gradient(135deg,#E6F4EE,#D0EBE0);">🎯</div>
       <b>Govt Schemes</b><p>Check what you qualify for</p>
     </div>
@@ -1581,37 +1581,111 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
 </div>
 
 <!-- ===== SCHEMES ===== -->
+<!-- ===== GOVT SCHEMES: ELIGIBILITY PROFILE ===== -->
+<div class="screen" id="s-scheme-profile">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Check your eligibility</h2></div><button class="icon-btn" onclick="speakScreen('s-scheme-profile')">🔊</button></div>
+  <p class="muted" style="font-size:13px;margin-bottom:12px;">Answer a few questions and we'll show the schemes you qualify for.</p>
+
+  <!-- Part A: Aadhaar -->
+  <div class="card" id="spAadhaarInputBlock">
+    <b style="font-size:14px;">Step 1 · Verify Aadhaar</b>
+    <div class="field-row" style="margin-top:10px;">
+      <label class="field-label">Aadhaar number</label>
+      <input type="tel" id="spAadhaarInput" maxlength="14" placeholder="XXXX XXXX XXXX" style="letter-spacing:1.5px;">
+    </div>
+    <button class="btn btn-primary" id="spVerifyBtn" onclick="verifySchemeAadhaar()">Verify Aadhaar</button>
+    <div id="spVerifying" class="center-col" style="display:none;padding:14px;">
+      <div style="font-size:22px;">⏳</div>
+      <p class="muted" style="margin-top:6px;">Fetching details from UIDAI…</p>
+    </div>
+  </div>
+  <div class="card" id="spAadhaarDoneBlock" style="display:none;border-color:var(--success);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <b style="font-size:14px;">Your details</b>
+      <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#E6F6EC;color:var(--success);">✅ Verified via Aadhaar</span>
+    </div>
+    <div class="field-row"><label class="field-label">Name</label><input type="text" id="spName" readonly></div>
+    <div style="display:flex;gap:8px;">
+      <div class="field-row" style="flex:1;"><label class="field-label">Gender</label><input type="text" id="spGender" readonly></div>
+      <div class="field-row" style="flex:1;"><label class="field-label">Date of birth</label><input type="text" id="spDob" readonly></div>
+    </div>
+    <div class="field-row" style="margin-bottom:0;"><label class="field-label">State (as per Aadhaar)</label><input type="text" id="spState" readonly></div>
+  </div>
+
+  <!-- Part B: common questions (chosen from research on most-used schemes; see research_notes/) -->
+  <div class="card" id="spDetailsBlock" style="display:none;">
+    <b style="font-size:14px;">Step 2 · A few more details</b>
+    <div class="field-row" style="margin-top:10px;">
+      <label class="field-label">State you live in</label>
+      <select id="spLiveState"></select>
+      <p class="muted" style="font-size:11px;margin-top:4px;">Defaulted to your Aadhaar state. Change it if you now live elsewhere.</p>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Your own monthly income (₹)</label>
+      <input type="number" id="spMonthlyIncome" min="0" placeholder="e.g. 14000">
+    </div>
+    <div class="field-row">
+      <label class="field-label">Total yearly income of your whole family (₹)</label>
+      <input type="number" id="spFamilyIncome" min="0" placeholder="e.g. 180000">
+    </div>
+    <div class="field-row">
+      <label class="field-label">Is PF or ESIC cut from your salary?</label>
+      <select id="spPf"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Does anyone in your family pay income tax or file GST?</label>
+      <select id="spTax"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Does anyone in your family have a government / PSU job (even contract) or government pension?</label>
+      <select id="spGovt"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Ration card</label>
+      <select id="spRation"><option value="">Select</option><option value="Antyodaya">Antyodaya (AAY)</option><option value="Priority">Priority household / BPL</option><option value="Other">Other card (APL / state card)</option><option value="None">No ration card</option></select>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Does anyone in your family own a pucca house?</label>
+      <select id="spOwnHome"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Does your family own a car or jeep? (tractor does not count)</label>
+      <select id="spCar"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Your work</label>
+      <select id="spOccupation"><option value="">Select</option><option value="Construction">Construction worker</option><option value="Delivery">Delivery / gig work</option><option value="Domestic">Domestic help</option><option value="Factory">Factory / security staff</option><option value="Farmer">Farmer</option><option value="Vendor">Street vendor</option><option value="Other">Other</option></select>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Marital status</label>
+      <select id="spMarital"><option value="">Select</option><option value="Married">Married</option><option value="Unmarried">Unmarried</option><option value="Single">Widowed / divorced / separated</option></select>
+    </div>
+    <div class="field-row">
+      <label class="field-label">How many children do you have?</label>
+      <input type="number" id="spChildren" min="0" max="15" placeholder="e.g. 2">
+    </div>
+    <div class="field-row">
+      <label class="field-label">Do you have a daughter below 10 years?</label>
+      <select id="spDaughterU10"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Do you have a daughter aged 10–18 years?</label>
+      <select id="spDaughter10to18"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select>
+    </div>
+    <button class="btn btn-primary" onclick="findMySchemes()">Find my schemes</button>
+  </div>
+</div>
+
 <div class="screen" id="s-schemes">
   <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Government schemes</h2></div><button class="icon-btn" onclick="speakScreen('s-schemes')">🔊</button></div>
 
-  <!-- State selector -->
-  <div class="card" style="padding:12px 14px;margin-bottom:6px;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-      <span style="font-size:18px;">📍</span>
-      <div style="flex:1;">
-        <b style="font-size:13px;color:var(--teal-900);">Showing schemes for</b>
-        <p class="muted" style="font-size:11px;margin-top:1px;" id="schemeStateHint">Based on your Aadhaar address</p>
-      </div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;">
+    <div>
+      <b style="font-size:16px;color:var(--teal-900);" id="schemeCountText">You're eligible for 0 schemes</b>
+      <p class="muted" style="font-size:12px;margin-top:2px;" id="schemeStateHint">Based on your profile</p>
     </div>
-    <select id="schemeStateSelect" onchange="onSchemeStateChange()" style="margin-bottom:0;">
-      <option value="Delhi">Delhi</option>
-      <option value="Bihar">Bihar</option>
-      <option value="Uttar Pradesh">Uttar Pradesh</option>
-      <option value="Maharashtra">Maharashtra</option>
-      <option value="Rajasthan">Rajasthan</option>
-      <option value="Madhya Pradesh">Madhya Pradesh</option>
-      <option value="Karnataka">Karnataka</option>
-      <option value="Tamil Nadu">Tamil Nadu</option>
-      <option value="West Bengal">West Bengal</option>
-      <option value="Gujarat">Gujarat</option>
-      <option value="Jharkhand">Jharkhand</option>
-      <option value="Odisha">Odisha</option>
-      <option value="Punjab">Punjab</option>
-      <option value="Haryana">Haryana</option>
-    </select>
+    <span style="font-size:12px;font-weight:700;color:var(--teal-700);cursor:pointer;white-space:nowrap;" onclick="openSchemeProfile()">✏️ Update profile</span>
   </div>
-
-  <p class="muted" style="font-size:12px;margin-bottom:10px;" id="schemeCountText">3 central + 1 state scheme available</p>
 
   <!-- Scheme cards rendered by JS -->
   <div id="schemesList"></div>
@@ -1996,7 +2070,7 @@ function toggleKfsSection(toggle){
 <script src="employee/js/notifications.js"></script>
 <script src="employee/js/referral.js"></script>
 <script src="employee/js/grievance.js"></script>
-<script src="employee/js/schemes.js?v=3"></script>
+<script src="employee/js/schemes.js?v=6"></script>
 <script src="employee/js/main.js"></script>
 </body>
 </html>

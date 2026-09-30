@@ -100,7 +100,7 @@ Global state stored in `S` (defined in `core.js`). Key fields added/used:
 | `i18n.js` | Language selection (Hindi, English, Voice only), translation, voice/TTS | `?v=3` |
 | `insurance.js` | Insurance products flow | — |
 | `investment.js` | FD/investment flow | — |
-| `schemes.js` | Government schemes with state selector, agent form | `?v=3` |
+| `schemes.js` | Govt schemes: Aadhaar + profile (`s-scheme-profile`) → eligibility-matched list (eligible / may be eligible) with docs, agent form | `?v=6` |
 | `ledger.js` | Loan list, loan detail, repayment timeline | — |
 | Others | `loyalty.js`, `referral.js`, `bbps.js`, `grievance.js`, etc. | — |
 
@@ -423,3 +423,10 @@ Two distinct scenarios:
 2. **Function name conflicts**: `signup.js` and the identity-verify section both have address-related functions. Use unique names (e.g. `toggleSignupAddress` vs `toggleCurrentAddress`).
 3. **Null references after refactoring**: When converting inline elements to modals, update ALL functions that reference the old inline elements (e.g. `continueFromBankStatement()` referenced deleted inline e-sign elements).
 4. **Phone mockup overflow**: Content below 812px is clipped by the phone frame. Test by scrolling or checking DOM directly.
+
+### CF-14. Government schemes eligibility flow (replaces state selector)
+- Home tile → `openSchemes()`. Aadhaar data + complete `S.schemeProfile` → straight to results; else `s-scheme-profile`.
+- `s-scheme-profile`: Part A Aadhaar verify (1.5s mock; skipped if KYC gave aadhaar/gender/dob) → Part B common questions (ids `sp` + `SP_FIELDS` in `schemes.js`): state you live in (defaults to Aadhaar state — client ask), own monthly income, family yearly income, PF/ESIC, income tax/GST in family, govt job/pension in family, ration card, pucca house, car, occupation, marital status, no. of children, daughter <10, daughter 10–18.
+- Questions + scheme list chosen from deep research (Sep 2026): `research_notes/Indian welfare schemes eligibility/`. 13 central schemes + 1–2 most-used per state (14 states).
+- Each scheme `rule(p)` returns `'yes'` (criteria fully covered by questions), `'maybe'` (official list / unverified rule decides — badge "May be eligible — confirm"), or false. `check` = criteria we can't ask, shown as "Also check". Accuracy over generosity (client requirement).
+- Check: `node tests/schemes.check.js`. File: `schemes.js` `?v=6`
