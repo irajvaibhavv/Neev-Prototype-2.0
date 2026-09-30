@@ -223,6 +223,7 @@ function openSchemes(){
 function openSchemeProfile(){
   const hasAadhaar=S.aadhaar&&S.gender&&S.dob;
   document.getElementById('spAadhaarInputBlock').style.display=hasAadhaar?'none':'block';
+  document.getElementById('spScanChoice').style.display='block';
   document.getElementById('spVerifyBtn').style.display='block';
   document.getElementById('spVerifying').style.display='none';
   document.getElementById('spAadhaarInput').value=S.aadhaar||'';
@@ -240,22 +241,52 @@ function openSchemeProfile(){
   go('s-scheme-profile');
 }
 
+function setSchemeAadhaarBusy(icon,text){
+  document.getElementById('spScanChoice').style.display='none';
+  document.getElementById('spVerifyBtn').style.display='none';
+  document.getElementById('spVerifyingIcon').textContent=icon;
+  document.getElementById('spVerifyingText').textContent=text;
+  document.getElementById('spVerifying').style.display='block';
+}
+
+function finishSchemeAadhaar(badge,msg){
+  S.schemeState=getStateFromAddress();
+  applyProfileFields();
+  document.getElementById('spAadhaarInputBlock').style.display='none';
+  document.getElementById('spVerifiedBadge').textContent=badge;
+  showSchemeAadhaarDetails();
+  toast(msg);
+}
+
 function verifySchemeAadhaar(){
   const num=document.getElementById('spAadhaarInput').value.replace(/\s/g,'');
   if(!/^\d{12}$/.test(num)){toast('Enter a valid 12-digit Aadhaar number');return;}
-  document.getElementById('spVerifyBtn').style.display='none';
-  document.getElementById('spVerifying').style.display='block';
+  setSchemeAadhaarBusy('⏳','Fetching details from UIDAI…');
   setTimeout(()=>{
     S.aadhaar=num.replace(/(\d{4})(?=\d)/g,'$1 ');
     if(!S.name||S.name==='User') S.name='Ramesh Kumar';
     S.gender='Male';
     S.dob='15-03-1992';
-    S.schemeState=getStateFromAddress();
-    applyProfileFields();
-    document.getElementById('spAadhaarInputBlock').style.display='none';
-    showSchemeAadhaarDetails();
-    toast('Aadhaar verified');
+    finishSchemeAadhaar('✅ Verified via Aadhaar','Aadhaar verified');
   },1500);
+}
+
+// OCR path: shared camera-permission modal (signup.js) calls runSchemeAadhaarScan() when S._camForScheme is set.
+function scanSchemeAadhaar(){
+  S._camForScheme=true;
+  document.getElementById('cameraPermModal').classList.add('show');
+}
+function runSchemeAadhaarScan(){
+  setSchemeAadhaarBusy('📷','Reading your Aadhaar card…');
+  setTimeout(()=>{
+    // Mock OCR result (AADHAAR_SAMPLE from signup.js)
+    S.aadhaar=AADHAAR_SAMPLE.number;
+    if(!S.name||S.name==='User') S.name=AADHAAR_SAMPLE.name;
+    S.gender=AADHAAR_SAMPLE.gender;
+    S.dob=AADHAAR_SAMPLE.dob;
+    if(!S.address) S.address=AADHAAR_SAMPLE.addr;
+    finishSchemeAadhaar('✅ Read from Aadhaar card','Aadhaar card scanned');
+  },1600);
 }
 
 // Shows the verified Aadhaar card + Part B. "State you live in" defaults to the Aadhaar state

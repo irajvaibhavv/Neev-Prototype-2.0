@@ -1589,20 +1589,24 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
   <!-- Part A: Aadhaar -->
   <div class="card" id="spAadhaarInputBlock">
     <b style="font-size:14px;">Step 1 · Verify Aadhaar</b>
+    <div id="spScanChoice">
+      <button class="btn btn-primary" style="margin-top:10px;" onclick="scanSchemeAadhaar()">📷 Scan your Aadhaar card</button>
+      <p class="muted" style="font-size:12px;text-align:center;margin:10px 0 2px;">— or enter the number —</p>
+    </div>
     <div class="field-row" style="margin-top:10px;">
       <label class="field-label">Aadhaar number</label>
       <input type="tel" id="spAadhaarInput" maxlength="14" placeholder="XXXX XXXX XXXX" style="letter-spacing:1.5px;">
     </div>
-    <button class="btn btn-primary" id="spVerifyBtn" onclick="verifySchemeAadhaar()">Verify Aadhaar</button>
+    <button class="btn btn-outline" id="spVerifyBtn" onclick="verifySchemeAadhaar()">Verify Aadhaar</button>
     <div id="spVerifying" class="center-col" style="display:none;padding:14px;">
-      <div style="font-size:22px;">⏳</div>
-      <p class="muted" style="margin-top:6px;">Fetching details from UIDAI…</p>
+      <div style="font-size:22px;" id="spVerifyingIcon">⏳</div>
+      <p class="muted" style="margin-top:6px;" id="spVerifyingText">Fetching details from UIDAI…</p>
     </div>
   </div>
   <div class="card" id="spAadhaarDoneBlock" style="display:none;border-color:var(--success);">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <b style="font-size:14px;">Your details</b>
-      <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#E6F6EC;color:var(--success);">✅ Verified via Aadhaar</span>
+      <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#E6F6EC;color:var(--success);" id="spVerifiedBadge">✅ Verified via Aadhaar</span>
     </div>
     <div class="field-row"><label class="field-label">Name</label><input type="text" id="spName" readonly></div>
     <div style="display:flex;gap:8px;">
@@ -2051,7 +2055,7 @@ function toggleKfsSection(toggle){
 <script src="employee/js/permissions.js?v=3"></script>
 <script src="employee/js/loyalty.js?v=2"></script>
 <script src="employee/js/i18n.js?v=3"></script>
-<script src="employee/js/signup.js?v=5"></script>
+<script src="employee/js/signup.js?v=6"></script>
 <script src="employee/js/pin.js"></script>
 <script src="employee/js/login.js"></script>
 <script src="employee/js/onboarding.js"></script>
@@ -2070,7 +2074,7 @@ function toggleKfsSection(toggle){
 <script src="employee/js/notifications.js"></script>
 <script src="employee/js/referral.js"></script>
 <script src="employee/js/grievance.js"></script>
-<script src="employee/js/schemes.js?v=6"></script>
+<script src="employee/js/schemes.js?v=7"></script>
 <script src="employee/js/main.js"></script>
 </body>
 </html>

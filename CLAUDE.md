@@ -88,7 +88,7 @@ Global state stored in `S` (defined in `core.js`). Key fields added/used:
 |------|---------|-----------------|
 | `core.js` | `go()`, `toast()`, `fmt()`, state `S`, nav helpers | — |
 | `main.js` | Init, bottom nav, profile rendering | — |
-| `signup.js` | Phone OTP → straight to home; existing number → redirects to login | `?v=5` |
+| `signup.js` | Phone OTP → straight to home; existing number → redirects to login; camera modal also serves schemes OCR | `?v=6` |
 | `login.js` | Returning user login | — |
 | `home.js` | Home screen, banner carousel, Sakhi, Loans Hub with interactive slider | `?v=6` |
 | `employer-setup.js` | Name prompt (if missing) → Company select (with badge scan) → ECN verify → phone OTP; BuildRight always resolves to Ramesh Kumar (demo) | `?v=11` |
@@ -100,7 +100,7 @@ Global state stored in `S` (defined in `core.js`). Key fields added/used:
 | `i18n.js` | Language selection (Hindi, English, Voice only), translation, voice/TTS | `?v=3` |
 | `insurance.js` | Insurance products flow | — |
 | `investment.js` | FD/investment flow | — |
-| `schemes.js` | Govt schemes: Aadhaar + profile (`s-scheme-profile`) → eligibility-matched list (eligible / may be eligible) with docs, agent form | `?v=6` |
+| `schemes.js` | Govt schemes: Aadhaar + profile (`s-scheme-profile`) → eligibility-matched list (eligible / may be eligible) with docs, agent form | `?v=7` |
 | `ledger.js` | Loan list, loan detail, repayment timeline | — |
 | Others | `loyalty.js`, `referral.js`, `bbps.js`, `grievance.js`, etc. | — |
 
@@ -426,7 +426,7 @@ Two distinct scenarios:
 
 ### CF-14. Government schemes eligibility flow (replaces state selector)
 - Home tile → `openSchemes()`. Aadhaar data + complete `S.schemeProfile` → straight to results; else `s-scheme-profile`.
-- `s-scheme-profile`: Part A Aadhaar verify (1.5s mock; skipped if KYC gave aadhaar/gender/dob) → Part B common questions (ids `sp` + `SP_FIELDS` in `schemes.js`): state you live in (defaults to Aadhaar state — client ask), own monthly income, family yearly income, PF/ESIC, income tax/GST in family, govt job/pension in family, ration card, pucca house, car, occupation, marital status, no. of children, daughter <10, daughter 10–18.
+- `s-scheme-profile`: Part A Aadhaar: scan card (OCR mock via shared `cameraPermModal`, `S._camForScheme` flag) or enter number (1.5s mock; skipped if KYC gave aadhaar/gender/dob) → Part B common questions (ids `sp` + `SP_FIELDS` in `schemes.js`): state you live in (defaults to Aadhaar state — client ask), own monthly income, family yearly income, PF/ESIC, income tax/GST in family, govt job/pension in family, ration card, pucca house, car, occupation, marital status, no. of children, daughter <10, daughter 10–18.
 - Questions + scheme list chosen from deep research (Sep 2026): `research_notes/Indian welfare schemes eligibility/`. 13 central schemes + 1–2 most-used per state (14 states).
 - Each scheme `rule(p)` returns `'yes'` (criteria fully covered by questions), `'maybe'` (official list / unverified rule decides — badge "May be eligible — confirm"), or false. `check` = criteria we can't ask, shown as "Also check". Accuracy over generosity (client requirement).
-- Check: `node tests/schemes.check.js`. File: `schemes.js` `?v=6`
+- Check: `node tests/schemes.check.js`. File: `schemes.js` `?v=7`, `signup.js` `?v=6`

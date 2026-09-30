@@ -65,6 +65,7 @@ function captureSignupAadhaar(){
 }
 function grantCameraPermission(){
   document.getElementById('cameraPermModal').classList.remove('show');
+  if(S._camForScheme){ S._camForScheme=false; runSchemeAadhaarScan(); return; } // opened from Govt schemes (schemes.js)
   document.getElementById('signupAadhaarCapture').style.display='none';
   document.getElementById('signupAadhaarScanning').style.display='block';
   setTimeout(()=>{
@@ -87,6 +88,7 @@ function grantCameraPermission(){
 }
 function denyCameraPermission(){
   document.getElementById('cameraPermModal').classList.remove('show');
+  if(S._camForScheme){ S._camForScheme=false; document.getElementById('spAadhaarInput').focus(); return; }
   showSignupAadhaarManual();
 }
 
