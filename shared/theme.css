@@ -1,0 +1,17 @@
+/* Neev prototype — shared design tokens.
+   One place to change the palette; every screen (employee/company/admin) reads from here. */
+:root{
+  /* canonical names */
+  --teal-900:#0B4F45;--teal-700:#12695A;--teal-500:#1B8570;--teal-100:#DCEEE8;
+  --marigold-500:#F5A623;--marigold-600:#DB8E0C;--marigold-100:#FFF4DE;
+  --bg:#F4F7F5;--ink:#122420;--muted:#5C6E68;--success:#2E7D5B;--danger:#C1442B;
+  --card:#FFFFFF;--border:#DDE7E1;
+
+  /* short aliases used by company.html / admin.html — same palette, kept so those
+     files didn't need every var(--x) usage rewritten during extraction */
+  --t9:var(--teal-900);--t7:var(--teal-700);--t5:var(--teal-500);--t1:var(--teal-100);
+  --m5:var(--marigold-500);--m6:var(--marigold-600);--m1:var(--marigold-100);
+  --mu:var(--muted);--ok:var(--success);--err:var(--danger);--brd:var(--border);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;color:var(--ink);}

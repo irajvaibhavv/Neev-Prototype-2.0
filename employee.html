@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neev — Salary Advance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="shared/theme.css" rel="stylesheet">
+<link href="employee/style.css" rel="stylesheet">
+<style>
+:root{--bg:#F1F6F3;} /* employee app uses a slightly cooler background than the dashboards */
+body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;color:var(--ink);}
+.reason-tile.selected{border-color:var(--teal-700)!important;background:var(--teal-100)!important;}
+.kfs-section-toggle{cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.kfs-section-toggle .kfs-arrow{transition:transform .2s;font-size:12px;color:var(--muted);}
+.kfs-section-toggle .kfs-arrow.open{transform:rotate(180deg);}
+.kfs-section-body{overflow:hidden;transition:max-height .3s ease;}
+</style>
+</head>
+<body>
+<div class="rig">
+<div class="side-note"><b>Neev · Employee App</b>Progressive onboarding: language → phone + OTP → Aadhaar scan → home in under a minute. Employer link, bank statement, and loan consents happen just-in-time at first advance request. Employee ID fetches phone from HR for OTP auth. Aadhaar name is cross-checked with employer records. Try end to end.</div>
+
+<div class="phone">
+<div class="notch"></div>
+<div class="screen-wrap">
+<div class="statusbar">
+  <span id="clock">9:41</span>
+  <div style="display:flex;gap:5px;align-items:center;"><span>●●●●</span><span>Wi-Fi</span><span>🔋</span></div>
+</div>
+<div class="app-body" id="appBody">
+
+<!-- ===== SPLASH ===== -->
+<div class="screen active" id="s-splash">
+  <div style="height:60px"></div>
+  <div class="center-col">
+    <div style="width:72px;height:72px;border-radius:20px;background:var(--teal-900);display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 8px 24px rgba(11,79,69,0.18);">
+      <span style="color:var(--marigold-500);font-family:'Baloo 2';font-weight:800;font-size:30px;">न</span>
+    </div>
+    <h1 style="font-size:28px;color:var(--teal-900);letter-spacing:-0.3px;">Neev</h1>
+    <p class="muted" style="margin-top:6px;font-size:14px;">Your earned salary, when you need it</p>
+  </div>
+  <div style="height:44px"></div>
+  <div class="onb-card" onclick="openLangModal()" style="cursor:pointer;">
+    <div class="onb-card-icon">🌐</div>
+    <div style="flex:1;"><b id="langSummaryName">English</b><p class="muted" style="font-size:12px;">Voice &amp; language</p></div>
+    <span style="color:var(--teal-700);font-weight:600;font-size:13px;">Change →</span>
+  </div>
+  <div style="height:20px"></div>
+  <button class="btn btn-primary" onclick="go('s-signup')" style="font-size:16px;padding:16px;">Get started</button>
+</div>
+
+<!-- ===== LOAN PERMISSIONS (only 4 loan-relevant consents, shown at loan time) ===== -->
+<div class="screen" id="s-permissions">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-pan-capture')">←</button><h2>Loan Consents</h2></div></div>
+
+  <div class="card" style="background:linear-gradient(135deg,var(--teal-900),var(--teal-700));border:none;color:#fff;margin-bottom:16px;">
+    <div style="display:flex;gap:12px;align-items:center;">
+      <span style="font-size:24px;">🔐</span>
+      <div><b style="font-size:15px;">Required for your advance</b><p style="font-size:12px;opacity:.8;margin-top:2px;">Allow these to process your salary advance</p></div>
+    </div>
+  </div>
+
+  <div class="dp-counter">
+    <div class="dp-counter-top"><span>🛡️ <span id="permGrantedCount">0</span> of <span id="permTotalCount">3</span> allowed</span></div>
+    <div class="wiz-bar"><div class="wiz-bar-fill" id="permCounterBar" style="width:0%;"></div></div>
+  </div>
+
+  <div class="dp-grant-all" onclick="toggleAllPermissions()" id="permGrantAllBtn">Allow All</div>
+
+  <div class="dp-card">
+    <span class="ic">📊</span>
+    <div class="body">
+      <div class="head"><b>Credit Score (CIBIL)</b></div>
+      <p>Better rates and higher advance limit</p>
+    </div>
+    <div class="dp-toggle" id="permToggle-cibil" onclick="togglePermission('cibil')"></div>
+  </div>
+
+  <div class="dp-card">
+    <span class="ic">🏛️</span>
+    <div class="body">
+      <div class="head"><b>EPFO</b></div>
+      <p>Verify employment and provident fund</p>
+    </div>
+    <div class="dp-toggle" id="permToggle-epfo" onclick="togglePermission('epfo')"></div>
+  </div>
+
+  <div class="dp-card">
+    <span class="ic">🏥</span>
+    <div class="body">
+      <div class="head"><b>ESIC</b></div>
+      <p>Verify employment and insurance coverage</p>
+    </div>
+    <div class="dp-toggle" id="permToggle-esic" onclick="togglePermission('esic')"></div>
+  </div>
+
+  <div style="height:6px"></div>
+  <button class="btn btn-primary" onclick="continueFromPermissions()">Continue</button>
+</div>
+
+<!-- ===== SET UP PIN (optional, from profile nudge or settings) ===== -->
+<div class="screen" id="s-setup-pin">
+  <div class="auth-hero">
+    <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Create your PIN</h2></div><button class="icon-btn" onclick="speakScreen('s-setup-pin')">🔊</button></div>
+    <div class="auth-hero-icon">🔒</div>
+    <p class="muted">You'll use this PIN with your mobile number to log in from now on.</p>
+  </div>
+  <div class="auth-card">
+    <label class="field-label">Enter a 4-digit PIN</label>
+    <div class="otp-row" id="createPinRow">
+      <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+      <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+      <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+      <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+    </div>
+    <div style="height:16px"></div>
+    <label class="field-label">Confirm PIN</label>
+    <div class="otp-row" id="confirmPinRow">
+      <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+      <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+      <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+      <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+    </div>
+    <div style="height:16px"></div>
+    <button class="btn btn-primary" onclick="savePin()">Set PIN &amp; continue</button>
+  </div>
+</div>
+
+<!-- ===== SIGN UP: SUCCESS ===== -->
+<div class="screen" id="s-signup-success">
+  <div class="center-col">
+    <div class="success-tick"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2 style="font-size:20px;">Successfully signed up!</h2>
+    <p class="muted" style="margin-top:6px;">Your identity is verified. Log in to start using Neev.</p>
+  </div>
+  <button class="btn btn-primary" onclick="go('s-login')">Continue to login</button>
+</div>
+
+<!-- ===== SIGN UP: PHONE + OTP + NAME (lightweight, then straight to home) ===== -->
+<div class="screen" id="s-signup">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-splash')">←</button><h2></h2></div><button class="icon-btn" onclick="speakScreen('s-signup')">🔊</button></div>
+  <div style="height:8px"></div>
+  <div class="center-col" style="margin-bottom:24px;">
+    <div style="font-size:36px;margin-bottom:8px;">📱</div>
+    <h2 style="font-size:20px;color:var(--teal-900);">Enter your mobile number</h2>
+  </div>
+  <div class="onb-input-card">
+    <label class="field-label">Mobile number</label>
+    <input type="tel" id="signupMobileInput" placeholder="98XXXXXXXX" maxlength="10" style="font-size:18px;letter-spacing:1.5px;text-align:center;">
+    <div style="height:12px"></div>
+    <button class="btn btn-primary" id="signupSendOtpBtn" onclick="sendSignupOtp()">Send OTP</button>
+    <div id="signupOtpBlock" style="display:none;">
+      <div style="height:16px"></div>
+      <label class="field-label" style="text-align:center;">Enter 4-digit OTP</label>
+      <div class="otp-row">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+      </div>
+      <p class="muted" id="signupResendTxt" style="text-align:center;">Resend OTP in <b id="signupResendTimer">30</b>s</p>
+      <div style="height:12px"></div>
+      <button class="btn btn-dark" onclick="verifySignupOtp()">Verify</button>
+    </div>
+  </div>
+
+  <!-- Company step (shown after OTP verified — capture employer name for lead gen) -->
+  <div id="signupCompanyBlock" style="display:none;">
+    <div style="height:16px"></div>
+    <div class="onb-input-card">
+      <div class="center-col" style="margin-bottom:12px;">
+        <div style="font-size:28px;margin-bottom:4px;">🏢</div>
+        <b style="font-size:15px;color:var(--teal-900);">Where do you work?</b>
+        <p class="muted" style="font-size:12px;margin-top:4px;">Select your company or type it in</p>
+      </div>
+      <label class="field-label">Company name</label>
+      <select id="signupCompanySelect" onchange="onSignupCompanyChange()" style="margin-bottom:10px;">
+        <option value="">— Select your company —</option>
+        <option value="BuildRight Constructions">BuildRight Constructions</option>
+        <option value="QuickServe Logistics">QuickServe Logistics</option>
+        <option value="SecureGuard Facilities">SecureGuard Facilities</option>
+        <option value="Zomato">Zomato</option>
+        <option value="Swiggy">Swiggy</option>
+        <option value="Urban Company">Urban Company</option>
+        <option value="BigBasket">BigBasket</option>
+        <option value="Dunzo">Dunzo</option>
+        <option value="Porter">Porter</option>
+        <option value="Rapido">Rapido</option>
+        <option value="other">Other (type below)</option>
+      </select>
+      <div id="signupCompanyOtherRow" style="display:none;">
+        <label class="field-label">Enter your company name</label>
+        <input type="text" id="signupCompanyOther" placeholder="e.g. ABC Pvt. Ltd.">
+      </div>
+      <div style="height:12px"></div>
+      <button class="btn btn-primary" onclick="continueFromSignupCompany()">Continue</button>
+    </div>
+  </div>
+
+  <div style="height:16px"></div>
+  <p class="muted" style="text-align:center;font-size:13px;">Already have an account? <span style="color:var(--teal-700);font-weight:700;cursor:pointer;" onclick="go('s-login')">Log in</span></p>
+  <p class="muted" style="text-align:center;font-size:12px;margin-top:16px;">Demo device? <span style="color:var(--danger);font-weight:700;cursor:pointer;" onclick="resetAllDemoData()">Clear all data &amp; start fresh</span></p>
+</div>
+
+<!-- ===== SIGN UP: AADHAAR SCAN (separate screen after company select) ===== -->
+<div class="screen" id="s-signup-aadhaar">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-signup')">←</button><h2>Aadhaar Verification</h2></div><button class="icon-btn" onclick="speakScreen('s-signup-aadhaar')">🔊</button></div>
+  <div style="height:8px"></div>
+  <div class="onb-input-card">
+    <div class="center-col" style="margin-bottom:12px;">
+      <div style="font-size:28px;margin-bottom:4px;">🪪</div>
+      <b style="font-size:15px;color:var(--teal-900);">Scan your Aadhaar card</b>
+      <p class="muted" style="font-size:12px;margin-top:4px;">We'll read your name and details from it</p>
+    </div>
+    <div id="signupAadhaarCapture">
+      <div class="card center-col" style="padding:24px 18px;border-style:dashed;cursor:pointer;" onclick="captureSignupAadhaar()">
+        <div style="font-size:30px;margin-bottom:6px;">📷</div>
+        <b style="font-size:14px;">Take Aadhaar photo</b>
+      </div>
+      <p style="text-align:center;font-size:13px;margin-top:8px;">or <span style="color:var(--teal-700);font-weight:700;cursor:pointer;" onclick="showSignupAadhaarManual()">enter number manually</span></p>
+    </div>
+    <div id="signupAadhaarScanning" style="display:none;">
+      <div class="card center-col" style="padding:22px;">
+        <div style="font-size:24px;">⏳</div>
+        <p class="muted" style="margin-top:8px;">Reading Aadhaar card…</p>
+      </div>
+    </div>
+    <div id="signupAadhaarConfirm" style="display:none;">
+      <div class="card" style="background:var(--teal-100);border:none;margin-bottom:12px;">
+        <p style="font-size:13px;color:var(--teal-900);font-weight:600;">✅ Details read from your Aadhaar</p>
+      </div>
+      <div class="field-row"><label class="field-label">Name (as on Aadhaar)</label><input type="text" id="signupAadhaarName" readonly style="background:var(--bg);"></div>
+      <div class="field-row"><label class="field-label">Aadhaar number</label><input type="text" id="signupAadhaarNum" readonly style="background:var(--bg);"></div>
+      <div id="signupAddressBlock" style="display:none;">
+        <div style="height:12px"></div>
+        <div class="card" style="border-color:var(--teal-300);">
+          <p style="font-size:13px;font-weight:600;color:var(--teal-700);margin-bottom:6px;">📍 Address on Aadhaar</p>
+          <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px;" id="signupAadhaarAddr"></p>
+          <label style="display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink);cursor:pointer;">
+            <input type="checkbox" id="sameAddressCheck" onclick="toggleSignupAddress()" checked style="margin-top:2px;width:20px;height:20px;flex-shrink:0;">
+            <span style="font-size:13px;line-height:1.5;">This is my current address</span>
+          </label>
+        </div>
+        <div id="currentAddressFields" style="display:none;">
+          <p style="font-size:13px;font-weight:600;color:var(--teal-700);margin:12px 0 8px;">Current address</p>
+          <div class="field-row"><label class="field-label">Address line</label><input type="text" id="currentAddrLine" placeholder="e.g. Room 3, Chawl No. 12, Dharavi"></div>
+          <div class="field-row"><label class="field-label">City</label><input type="text" id="currentAddrCity" placeholder="e.g. Mumbai"></div>
+          <div style="display:flex;gap:10px;">
+            <div class="field-row" style="flex:1;"><label class="field-label">State</label><input type="text" id="currentAddrState" placeholder="e.g. Maharashtra"></div>
+            <div class="field-row" style="flex:1;"><label class="field-label">PIN code</label><input type="text" id="currentAddrPin" placeholder="e.g. 400017" maxlength="6"></div>
+          </div>
+        </div>
+      </div>
+      <div style="height:12px"></div>
+      <button class="btn btn-primary" onclick="completeSignup()">Continue</button>
+    </div>
+    <div id="signupAadhaarManual" style="display:none;">
+      <div class="field-row"><label class="field-label">Aadhaar number</label><input type="text" id="signupAadhaarManualNum" placeholder="e.g. 1234 5678 9012" maxlength="14"></div>
+      <button class="btn btn-primary" onclick="completeSignupManualAadhaar()">Verify &amp; continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== IDENTITY VERIFICATION: PAN + Aadhaar + Photo (triggered from loans or profile nudge) ===== -->
+<div class="screen" id="s-identity-verify">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Verify your identity</h2></div><button class="icon-btn" onclick="speakScreen('s-identity-verify')">🔊</button></div>
+
+  <div class="voice-bar">
+    <span class="voice-lang-chip">🇬🇧 EN</span>
+    <button class="voice-play-btn" onclick="speakScreen('s-identity-verify')">▶</button>
+    <span class="voice-label" id="idvVoiceLabel">PAN capture</span>
+    <span class="voice-speaker" onclick="speakScreen('s-identity-verify')">🔊</span>
+  </div>
+
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <p style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;">🔒 Identity Verification <span class="muted" style="font-weight:500;font-size:11.5px;margin-left:auto;">Aadhaar required · PAN optional</span></p>
+      <div class="idv-tracker">
+        <div class="idv-node active" id="idvNodePan"><div class="ring">○</div><b>PAN</b><span id="idvStatusPan">In progress</span></div>
+        <div class="idv-connector"></div>
+        <div class="idv-node pending" id="idvNodeAadhaar"><div class="ring">○</div><b>Aadhaar</b><span id="idvStatusAadhaar">Pending</span></div>
+        <div class="idv-connector"></div>
+        <div class="idv-node pending" id="idvNodePhoto"><div class="ring">○</div><b>Photo</b><span id="idvStatusPhoto">Pending</span></div>
+      </div>
+    </div>
+
+    <!-- 1. PAN -->
+    <div id="idvPanSection">
+      <div class="step-section-head"><span class="step-num-badge">1</span><b style="font-size:15px;">PAN Card</b></div>
+      <div id="panCaptureBlock">
+        <div class="card center-col" style="padding:28px 18px;border-style:dashed;cursor:pointer;" onclick="capturePan()">
+          <div style="font-size:34px;margin-bottom:8px;">📷</div>
+          <b style="font-size:14px;">Take PAN card photo</b>
+          <p class="muted" style="font-size:12px;margin-top:4px;">Tap to open camera</p>
+        </div>
+        <p style="text-align:center;font-size:13px;margin-top:10px;">or <span style="color:var(--teal-700);font-weight:700;cursor:pointer;" onclick="showPanManual()">enter details manually</span></p>
+        <p style="text-align:center;font-size:13px;margin-top:6px;"><span style="color:var(--muted);font-weight:700;cursor:pointer;" onclick="skipPan()">Skip for now</span></p>
+      </div>
+      <div id="panScanBlock" style="display:none;">
+        <div class="card center-col" style="padding:22px;">
+          <div style="font-size:26px;">⏳</div>
+          <p class="muted" style="margin-top:8px;">Reading PAN card…</p>
+        </div>
+      </div>
+      <div id="panFormBlock" style="display:none;">
+        <div class="card" id="panOcrNote" style="display:none;background:var(--teal-100);border:none;">
+          <p style="font-size:13px;color:var(--teal-900);font-weight:600;">✅ Details read from your PAN card. Check and edit if needed.</p>
+        </div>
+        <div class="field-row">
+          <label class="field-label">Full name (as on PAN)</label>
+          <input type="text" id="panName" placeholder="e.g. Ramesh Kumar">
+        </div>
+        <div class="field-row">
+          <label class="field-label">PAN number</label>
+          <input type="text" id="panNumber" placeholder="e.g. ABCDE1234F" maxlength="10" style="text-transform:uppercase;">
+        </div>
+        <div class="field-row">
+          <label class="field-label">Date of birth</label>
+          <input type="text" id="panDob" placeholder="DD/MM/YYYY">
+        </div>
+        <button class="btn btn-primary" onclick="confirmPan()">Confirm &amp; continue</button>
+        <p style="text-align:center;font-size:13px;margin-top:10px;"><span style="color:var(--muted);font-weight:700;cursor:pointer;" onclick="skipPan()">Skip for now</span></p>
+      </div>
+      <div id="panDoneBlock" style="display:none;">
+        <div class="card" id="panDoneCard" style="border-color:var(--success);display:flex;align-items:center;gap:10px;"><span style="font-size:20px;" id="panDoneIcon">✅</span><div><b style="font-size:13.5px;" id="panDoneTitle">PAN verified</b><p class="muted" style="font-size:12px;" id="panDoneSummary">—</p></div></div>
+      </div>
+    </div>
+
+    <!-- 2. Aadhaar -->
+    <div id="idvAadhaarSection" style="display:none;">
+      <div class="step-section-head"><span class="step-num-badge">2</span><b style="font-size:15px;">Aadhaar Card</b></div>
+      <div id="aadhaarCaptureBlock">
+        <div class="card center-col" style="padding:28px 18px;border-style:dashed;cursor:pointer;" onclick="captureAadhaar()">
+          <div style="font-size:34px;margin-bottom:8px;">📷</div>
+          <b style="font-size:14px;">Take Aadhaar card photo</b>
+          <p class="muted" style="font-size:12px;margin-top:4px;">Tap to open camera</p>
+        </div>
+        <p style="text-align:center;font-size:13px;margin-top:10px;">or <span style="color:var(--teal-700);font-weight:700;cursor:pointer;" onclick="showAadhaarManual()">enter details manually</span></p>
+      </div>
+      <div id="aadhaarScanBlock" style="display:none;">
+        <div class="card center-col" style="padding:22px;">
+          <div style="font-size:26px;">⏳</div>
+          <p class="muted" style="margin-top:8px;">Reading Aadhaar card…</p>
+        </div>
+      </div>
+      <div id="aadhaarFormBlock" style="display:none;">
+        <div class="card" id="aadhaarOcrNote" style="display:none;background:var(--teal-100);border:none;">
+          <p style="font-size:13px;color:var(--teal-900);font-weight:600;">✅ Details read from your Aadhaar card. Check and edit if needed.</p>
+        </div>
+        <div class="field-row">
+          <label class="field-label">Aadhaar number</label>
+          <input type="text" id="aadhaarNumber" placeholder="e.g. 1234 5678 9012" maxlength="14">
+        </div>
+        <div class="field-row">
+          <label class="field-label">Full name (as on Aadhaar)</label>
+          <input type="text" id="aadhaarName" placeholder="e.g. Ramesh Kumar">
+        </div>
+        <div class="field-row">
+          <label class="field-label">Father's name</label>
+          <input type="text" id="aadhaarFatherName" placeholder="e.g. Suresh Kumar">
+        </div>
+        <div class="field-row">
+          <label class="field-label">Date of birth</label>
+          <input type="text" id="aadhaarDob" placeholder="DD/MM/YYYY">
+        </div>
+        <div class="field-row">
+          <label class="field-label">Gender</label>
+          <div class="readonly-field" id="aadhaarGenderDisplay">—</div>
+        </div>
+        <div class="field-row">
+          <label class="field-label">Address (from Aadhaar)</label>
+          <input type="text" id="aadhaarAddr" placeholder="Permanent address">
+        </div>
+        <div class="field-row">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="sameAsAadhaarAddr" checked onchange="toggleCurrentAddress()" style="width:18px;height:18px;min-height:0;">
+            <span style="font-size:13.5px;">Current address is same as Aadhaar address</span>
+          </label>
+        </div>
+        <div class="field-row" id="currentAddrBlock" style="display:none;">
+          <label class="field-label">Current address</label>
+          <input type="text" id="currentAddr" placeholder="Where you currently live">
+        </div>
+        <button class="btn btn-primary" onclick="confirmAadhaar()">Confirm &amp; continue</button>
+      </div>
+      <div id="aadhaarDoneBlock" style="display:none;">
+        <div class="card" style="border-color:var(--success);display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">✅</span><div><b style="font-size:13.5px;">Aadhaar verified</b><p class="muted" style="font-size:12px;" id="aadhaarDoneSummary">—</p></div></div>
+      </div>
+    </div>
+
+    <!-- 3. Photo -->
+    <div id="idvPhotoSection" style="display:none;">
+      <div class="step-section-head"><span class="step-num-badge">3</span><b style="font-size:15px;">Live Photo</b></div>
+      <div id="photoCaptureBlock">
+        <div class="card center-col" style="padding:28px 18px;border-style:dashed;cursor:pointer;" onclick="capturePhoto()">
+          <div style="font-size:34px;margin-bottom:8px;">🤳</div>
+          <b style="font-size:14px;">Take a live selfie</b>
+          <p class="muted" style="font-size:12px;margin-top:4px;">Used to match your face with your PAN &amp; Aadhaar photos</p>
+        </div>
+      </div>
+      <div id="photoScanBlock" style="display:none;">
+        <div class="card center-col" style="padding:22px;">
+          <div style="font-size:26px;">⏳</div>
+          <p class="muted" style="margin-top:8px;">Matching face with ID photos…</p>
+        </div>
+      </div>
+      <div id="photoDoneBlock" style="display:none;">
+        <div class="card center-col" style="padding:22px;border-color:var(--success);">
+          <div style="font-size:28px;">✅</div>
+          <b style="margin-top:8px;">Face matched!</b>
+          <p class="muted" style="font-size:13px;margin-top:4px;">Identity verification complete</p>
+        </div>
+        <button class="btn btn-primary" onclick="finishIdentityVerify()">Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EMPLOYER SETUP (triggered from loans flow, not signup) ===== -->
+<div class="screen" id="s-employer-setup">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Verify employment details</h2></div><button class="icon-btn" onclick="speakScreen('s-employer-setup')">🔊</button></div>
+
+  <div id="esCompanyRow">
+    <label class="field-label">Where do you work?</label>
+    <select id="esCompanySelect" onchange="onEsCompanyChange()" style="margin-bottom:12px;">
+      <option value="">Select your company</option>
+      <option value="BuildRight Constructions">BuildRight Constructions</option>
+      <option value="QuickServe Logistics">QuickServe Logistics</option>
+      <option value="SecureGuard Facilities">SecureGuard Facilities</option>
+      <option value="Zomato">Zomato</option>
+      <option value="Swiggy">Swiggy</option>
+      <option value="Urban Company">Urban Company</option>
+      <option value="BigBasket">BigBasket</option>
+      <option value="Dunzo">Dunzo</option>
+      <option value="Porter">Porter</option>
+      <option value="Rapido">Rapido</option>
+      <option value="other">Other (add company name)</option>
+    </select>
+  </div>
+
+  <!-- Shown when company isn't listed -->
+  <div id="esNotTiedUp" style="display:none;">
+    <div class="card" style="background:#FCEBE3;border-color:var(--danger);">
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <span style="font-size:20px;">🏢</span>
+        <div>
+          <b style="font-size:13.5px;color:var(--danger);">Your company has not tied up with Neev yet</b>
+          <p style="font-size:12px;color:var(--muted);margin-top:4px;">Add your company name or scan your employee badge.</p>
+          <button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="go('s-not-partnered')">Add company name →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badge scan option -->
+  <div id="esBadgeScanBlock" style="display:none;">
+    <div class="card" style="display:flex;gap:12px;align-items:center;cursor:pointer;border-color:var(--teal-500);background:var(--teal-100);" onclick="scanEmployeeBadge()">
+      <span style="font-size:24px;">📷</span>
+      <div style="flex:1;"><b style="font-size:14px;color:var(--teal-900);">Scan your employee badge</b><p class="muted" style="font-size:12px;margin-top:2px;">Auto-fetch your company and employee details</p></div>
+      <span style="color:var(--teal-700);font-size:18px;font-weight:700;">→</span>
+    </div>
+  </div>
+
+  <!-- ECN + verification (shown inline when a known company is selected) -->
+  <div id="esEcnBlock" style="display:none;">
+    <div class="card" style="display:flex;align-items:center;gap:12px;padding:12px 14px;">
+      <div class="company-logo" id="esEcnLogo" style="width:36px;height:36px;font-size:14px;">B</div>
+      <div><b style="font-size:14px;" id="esEcnCompanyName">BuildRight Constructions</b><p class="muted" style="font-size:11px;">Enter your Employee ID</p></div>
+    </div>
+    <label class="field-label">Employee ID</label>
+    <input type="text" id="esEcnInput" placeholder="e.g. ECN-48213" style="margin-bottom:10px;">
+    <button class="btn btn-primary" id="esEcnBtn" onclick="verifyEmployerSetupEcn()">Verify</button>
+    <div id="esEcnResult" style="display:none;margin-top:10px;"></div>
+
+    <!-- Phone OTP auth (shown after ECN found — fraud prevention) -->
+    <div id="esPhoneAuthBlock" style="display:none;">
+      <div id="esPhoneMismatchNote" class="card" style="display:none;border-color:var(--marigold-600);margin-top:10px;padding:12px;background:var(--marigold-100);">
+        <p style="font-size:12px;color:var(--marigold-900);margin:0;">⚠️ Your login number doesn't match employer records. Please verify with the OTP sent to the number on file.</p>
+      </div>
+      <div class="card" style="border-color:var(--teal-500);margin-top:10px;padding:14px;">
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:18px;">📱</span>
+          <div style="flex:1;">
+            <b style="font-size:13px;">Verify it's you</b>
+            <p class="muted" style="font-size:11px;margin-top:3px;">OTP sent to ****<b id="esPhoneLast4">XXXX</b> (from employer records)</p>
+          </div>
+        </div>
+        <div class="otp-row" style="margin:10px 0 6px;">
+          <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+          <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+          <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+          <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+        </div>
+        <button class="btn btn-primary" onclick="verifyEcnPhoneOtp()">Verify OTP</button>
+      </div>
+    </div>
+
+    <!-- Name mismatch -->
+    <div id="esNameMismatch" style="display:none;margin-top:10px;">
+      <div class="card" style="background:#FCEBE3;border-color:var(--danger);">
+        <b style="font-size:13px;color:var(--danger);">⚠️ Name mismatch</b>
+        <p style="font-size:12px;color:var(--muted);margin-top:4px;">Aadhaar: <b id="esMismatchAadhaar">—</b> vs Employer: <b id="esMismatchEmp">—</b>. Contact your HR.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOGIN (returning user) ===== -->
+<div class="screen" id="s-login">
+  <div class="auth-hero">
+    <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-signup')">←</button><h2>Log in</h2></div><button class="icon-btn" onclick="speakScreen('s-login')">🔊</button></div>
+    <div class="auth-hero-icon">🔐</div>
+    <p class="muted">Enter your mobile number and PIN, or use face/fingerprint.</p>
+  </div>
+  <div class="auth-card">
+  <button class="btn-bio" onclick="showComingSoon('Face ID login is coming soon. Please use your PIN for now.')">
+    <span class="bio-ic" style="background:var(--teal-100);">😊</span> Log in with Face
+  </button>
+  <button class="btn-bio" onclick="showComingSoon('Fingerprint login is coming soon. Please use your PIN for now.')">
+    <span class="bio-ic" style="background:var(--marigold-100);">👆</span> Log in with Fingerprint
+  </button>
+  <div style="display:flex;align-items:center;gap:12px;margin:6px 0 14px;"><div style="flex:1;height:1px;background:var(--border);"></div><span class="muted" style="font-size:12px;">or use PIN</span><div style="flex:1;height:1px;background:var(--border);"></div></div>
+  <label class="field-label">Mobile number</label>
+  <input type="tel" id="mobileInput" placeholder="98XXXXXXXX" maxlength="10">
+  <div style="height:16px"></div>
+  <label class="field-label">Enter 4-digit PIN</label>
+  <div class="otp-row" id="loginPinRow">
+    <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+    <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+    <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+    <input type="password" maxlength="1" class="otpd" inputmode="numeric" pattern="[0-9]*" oninput="otpMove(this)">
+  </div>
+  <div style="height:16px"></div>
+  <button class="btn btn-primary" onclick="completeLogin()">Log in</button>
+  <div style="height:6px"></div>
+  </div>
+</div>
+
+<!-- ===== COMPANY + ECN (combined) ===== -->
+
+<!-- ===== BANK SETUP ===== -->
+<div class="screen" id="s-bank">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Bank account</h2></div><button class="icon-btn" onclick="speakScreen('s-bank')">🔊</button></div>
+  <p class="muted">This is where we send your money. We verify by sending Re.1 to your account.</p>
+  <div style="height:14px"></div>
+  <label class="field-label">Account number</label>
+  <input type="text" id="accInput" placeholder="Enter account number" style="margin-bottom:12px;">
+  <label class="field-label">IFSC code</label>
+  <input type="text" id="ifscInput" placeholder="e.g. SBIN0001234" maxlength="11" style="text-transform:uppercase;margin-bottom:16px;">
+  <label style="display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--muted);margin-bottom:16px;cursor:pointer;">
+    <input type="checkbox" id="pennyDropCheck" onclick="checkPennyDrop()" style="margin-top:3px;width:20px;height:20px;flex-shrink:0;">
+    <span>Allow penny drop verification — we'll send ₹1 to confirm this account is valid.</span>
+  </label>
+  <button class="btn btn-primary" id="bankBtn" disabled onclick="verifyBank()">Verify account (penny drop)</button>
+  <div id="bankResult" style="display:none;margin-top:14px;"></div>
+</div>
+
+<!-- ===== HOME ===== -->
+<div class="screen" id="s-home">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div id="homeAvatar" onclick="go('s-profile')" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--teal-700),var(--teal-500));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Baloo 2';font-size:16px;flex-shrink:0;cursor:pointer;">R</div>
+      <div><p class="muted" style="font-size:11px;" id="homeGreeting">Good afternoon</p><h2 id="homeName" style="margin-top:-2px;">Ramesh</h2></div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="go('s-notifs')" style="position:relative;">🔔<span class="notif-dot" id="notifDot"></span></button>
+      <button class="icon-btn" onclick="speakScreen('s-home')">🔊</button>
+    </div>
+  </div>
+
+  <!-- Swipeable banner carousel -->
+  <div class="banner-carousel" id="bannerCarousel">
+    <div class="banner-track" id="bannerTrack">
+
+      <!-- Slide 0: Profile completion (hidden when 100%) -->
+      <div class="banner-slide" id="bannerProfile" data-type="profile">
+        <div class="banner-card banner-card--profile">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="banner-profile-ring"><span id="profileNudgePct">30</span>%</div>
+            <div style="flex:1;">
+              <b class="banner-title">Complete your profile</b>
+              <p class="banner-sub" id="profileNudgeText">Add KYC to unlock salary advances</p>
+            </div>
+            <span class="banner-cta" onclick="go('s-identity-verify')">Do it →</span>
+          </div>
+          <div class="banner-progress"><div class="banner-progress-fill" id="profileNudgeBar" style="width:30%;"></div></div>
+        </div>
+      </div>
+
+      <!-- Slide 1: Gold investment -->
+      <div class="banner-slide" data-type="promo">
+        <div class="banner-card banner-card--gold" onclick="go('s-invest')">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="banner-icon-wrap banner-icon--gold">🪙</div>
+            <div style="flex:1;">
+              <b class="banner-title" style="color:#7B5C00;">Invest in Digital Gold</b>
+              <p class="banner-sub" style="color:#9E7B1A;">Zero making charges. Start from ₹10</p>
+            </div>
+            <span class="banner-arrow" style="color:#B8860B;">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2: Insurance -->
+      <div class="banner-slide" data-type="promo">
+        <div class="banner-card banner-card--insurance" onclick="go('s-insurance')">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="banner-icon-wrap banner-icon--insurance">🛡️</div>
+            <div style="flex:1;">
+              <b class="banner-title" style="color:#1B5E20;">Health cover @ ₹1/day</b>
+              <p class="banner-sub" style="color:#388E3C;">Protect your family. ₹5L cover, instant claim</p>
+            </div>
+            <span class="banner-arrow" style="color:#2E7D32;">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3: Referral -->
+      <div class="banner-slide" data-type="promo">
+        <div class="banner-card banner-card--referral" onclick="go('s-referral')">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="banner-icon-wrap banner-icon--referral">🎁</div>
+            <div style="flex:1;">
+              <b class="banner-title" style="color:#4A2FA8;">Refer & Earn ₹50</b>
+              <p class="banner-sub" style="color:#6A5ACD;">Your friend gets ₹50 too. Win-win!</p>
+            </div>
+            <span class="banner-arrow" style="color:#5B3DC4;">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 4: Salary advance promo -->
+      <div class="banner-slide" data-type="promo">
+        <div class="banner-card banner-card--advance" onclick="openLoansEntry()">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="banner-icon-wrap banner-icon--advance">💸</div>
+            <div style="flex:1;">
+              <b class="banner-title" style="color:#fff;">Need cash before payday?</b>
+              <p class="banner-sub" style="color:rgba(255,255,255,0.8);">Get up to 70% of earned salary instantly</p>
+            </div>
+            <span class="banner-arrow" style="color:#FFD76E;">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 5: Bill payments -->
+      <div class="banner-slide" data-type="promo">
+        <div class="banner-card banner-card--bills" onclick="go('s-bbps')">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="banner-icon-wrap banner-icon--bills">⚡</div>
+            <div style="flex:1;">
+              <b class="banner-title" style="color:#B45309;">Pay bills & recharge</b>
+              <p class="banner-sub" style="color:#D97706;">Electricity, mobile, DTH — all in one place</p>
+            </div>
+            <span class="banner-arrow" style="color:#F59E0B;">→</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- Dot indicators -->
+    <div class="banner-dots" id="bannerDots"></div>
+  </div>
+
+  <div class="quick-grid">
+    <div class="quick-tile" onclick="initSchemes();go('s-schemes')">
+      <div class="quick-ic" style="background:linear-gradient(135deg,#E6F4EE,#D0EBE0);">🎯</div>
+      <b>Govt Schemes</b><p>Check what you qualify for</p>
+    </div>
+    <div class="quick-tile" onclick="openLoansEntry()">
+      <div class="quick-ic" style="background:linear-gradient(135deg,var(--teal-100),#C4E4DA);">💰</div>
+      <b>Loans</b><p>Salary advance</p>
+    </div>
+    <div class="quick-tile" onclick="go('s-insurance')">
+      <div class="quick-ic" style="background:linear-gradient(135deg,#FCEBE3,#F5D4C6);">🛡️</div>
+      <b>Insurance</b><p>Personal, accident, two-wheeler</p>
+    </div>
+    <div class="quick-tile" onclick="go('s-invest')">
+      <div class="quick-ic" style="background:linear-gradient(135deg,var(--marigold-100),#FFEAB8);">🪙</div>
+      <b>Investment</b><p>Gold, Silver &amp; FDs</p>
+    </div>
+  </div>
+  <!-- Cash + Referral (merged tile) -->
+  <div class="card" style="display:flex;gap:12px;align-items:center;cursor:pointer;background:linear-gradient(135deg,var(--teal-900),var(--teal-700));border:none;" onclick="go('s-loyalty')">
+    <div class="scheme-ic" style="background:rgba(255,255,255,0.18);color:#fff;">💰</div>
+    <div style="flex:1;">
+      <b style="font-size:14px;color:#fff;" id="homePointsAmt">₹0 Cash</b>
+      <p class="muted" style="font-size:12px;margin-top:2px;color:rgba(255,255,255,0.75);">Get ₹50 on successful conversion</p>
+    </div>
+    <span style="color:#FFD76E;font-size:13px;font-weight:700;">Redeem Cash →</span>
+  </div>
+</div>
+
+<!-- ===== INSURANCE ===== -->
+<div class="screen" id="s-insurance">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Insurance</h2></div><button class="icon-btn" onclick="speakScreen('s-insurance')">🔊</button></div>
+  <p class="muted">Affordable cover, deducted the same way as your advance — no separate app, no paperwork.</p>
+  <div style="height:10px"></div>
+  <div class="company-item" onclick="openInsuranceType('health')">
+    <div class="scheme-ic" style="background:#FCEBE3;">🏥</div>
+    <div style="flex:1;"><b>Health Insurance</b><p class="muted" style="font-size:12px;">Cover from ₹1L · Premium from ₹49/month</p></div>
+    <span style="color:var(--teal-700);font-size:18px;font-weight:700;">→</span>
+  </div>
+  <div class="company-item" onclick="openInsuranceType('vehicle')">
+    <div class="scheme-ic" style="background:var(--teal-100);">🏍️</div>
+    <div style="flex:1;"><b>Two-Wheeler Insurance</b><p class="muted" style="font-size:12px;">Third-party &amp; own damage cover</p></div>
+    <span style="color:var(--teal-700);font-size:18px;font-weight:700;">→</span>
+  </div>
+  <div class="company-item" onclick="openInsuranceType('accident')">
+    <div class="scheme-ic" style="background:var(--marigold-100);">🦺</div>
+    <div style="flex:1;"><b>Personal Accident Cover</b><p class="muted" style="font-size:12px;">Built for daily-wage &amp; gig work · from ₹19/month</p></div>
+    <span style="color:var(--teal-700);font-size:18px;font-weight:700;">→</span>
+  </div>
+  <div style="height:10px"></div>
+  <b style="font-size:14px;display:block;margin-bottom:10px;">My policies</b>
+  <div id="policyList"></div>
+  <div id="policyEmpty" class="card center-col" style="padding:24px;">
+    <div style="font-size:26px;margin-bottom:8px;">🛡️</div>
+    <p class="muted">No active policies yet.</p>
+  </div>
+</div>
+
+<!-- ===== INSURANCE: PLANS ===== -->
+<div class="screen" id="s-insurance-plans">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-insurance')">←</button><h2 id="ins-planTitle">Health Insurance</h2></div></div>
+  <p class="muted" style="margin-bottom:12px;">Pick a plan. Premium is deducted from your salary, just like your advance.</p>
+  <div id="ins-planList"></div>
+</div>
+
+<!-- ===== INSURANCE: CHECKOUT ===== -->
+<div class="screen" id="s-insurance-checkout">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-insurance-plans')">←</button><h2>Confirm &amp; buy</h2></div></div>
+  <div class="card">
+    <div class="breakdown-row"><span>Plan</span><span id="ins-ckPlan">Health — Basic</span></div>
+    <div class="breakdown-row"><span>Cover amount</span><span id="ins-ckCover">₹1,00,000</span></div>
+    <div class="breakdown-row total"><span>Premium (monthly)</span><span id="ins-ckPremium">₹49</span></div>
+  </div>
+  <label class="field-label">Nominee name</label>
+  <input type="text" id="ins-nominee" placeholder="e.g. spouse, parent, child" style="margin-bottom:12px;">
+  <p class="muted" style="font-size:12px;margin-bottom:16px;">Premium will be deducted from your salary along with your advance, if any.</p>
+  <button class="btn btn-primary" onclick="requireBank(confirmInsurance)">Pay first premium &amp; activate</button>
+</div>
+
+<!-- ===== INSURANCE: SUCCESS ===== -->
+<div class="screen" id="s-insurance-success">
+  <div class="center-col">
+    <div class="success-tick"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2 style="font-size:20px;">Policy activated!</h2>
+    <p class="muted" style="margin-top:6px;">You're covered from today.</p>
+  </div>
+  <div class="card">
+    <div class="breakdown-row"><span>Policy number</span><span id="ins-successPolicy">NEEV-INS-58320001</span></div>
+    <div class="breakdown-row"><span>Plan</span><span id="ins-successPlan">Health — Basic</span></div>
+  </div>
+  <button class="btn btn-primary" onclick="go('s-home')">Done</button>
+</div>
+
+<!-- ===== INVESTMENT ===== -->
+<div class="screen" id="s-invest">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Investment</h2></div><button class="icon-btn" onclick="speakScreen('s-invest')">🔊</button></div>
+  <p class="muted">Start small. Grow steadily. No minimum balance, no lock-in surprises.</p>
+  <div style="height:10px"></div>
+  <div class="company-item" onclick="go('s-invest-gold')">
+    <div class="scheme-ic" style="background:var(--marigold-100);">🪙</div>
+    <div style="flex:1;"><b>Digital Gold</b><p class="muted" style="font-size:12px;">Buy gold from ₹10. Sell anytime.</p></div>
+    <span style="color:var(--teal-700);font-size:18px;font-weight:700;">→</span>
+  </div>
+  <div class="company-item" onclick="go('s-invest-gold')">
+    <div class="scheme-ic" style="background:#E8E8E8;">🥈</div>
+    <div style="flex:1;"><b>Digital Silver</b><p class="muted" style="font-size:12px;">Buy silver from ₹10. Sell anytime.</p></div>
+    <span style="color:var(--teal-700);font-size:18px;font-weight:700;">→</span>
+  </div>
+  <div class="company-item" onclick="openMfList()">
+    <div class="scheme-ic" style="background:#E6F4EE;">📈</div>
+    <div style="flex:1;"><b>Mutual Funds</b><p class="muted" style="font-size:12px;">Start a SIP from ₹500. Pick a fund house.</p></div>
+    <span style="color:var(--teal-700);font-size:18px;font-weight:700;">→</span>
+  </div>
+  <div style="height:10px"></div>
+  <b style="font-size:14px;display:block;margin-bottom:10px;">My investments</b>
+  <div id="investList"></div>
+  <div id="investEmpty" class="card center-col" style="padding:24px;">
+    <div style="font-size:26px;margin-bottom:8px;">🪙</div>
+    <p class="muted">No investments yet.</p>
+  </div>
+</div>
+
+<!-- ===== INVESTMENT: GOLD ===== -->
+<div class="screen" id="s-invest-gold">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-invest')">←</button><h2>Buy Digital Gold</h2></div></div>
+  <div class="card center-col" style="padding:18px;">
+    <p class="muted" style="font-size:12px;">Today's rate</p>
+    <b style="font-size:22px;color:var(--teal-900);font-family:'DM Mono',monospace;">₹6,250<span style="font-size:13px;color:var(--muted);"> /gram</span></b>
+  </div>
+  <label class="field-label">Amount to invest (₹)</label>
+  <input type="number" id="goldAmount" placeholder="e.g. 500" oninput="updateGoldPreview()" style="margin-bottom:12px;">
+  <div class="card">
+    <div class="breakdown-row"><span>You will get</span><span id="goldGrams">0.000 g</span></div>
+  </div>
+  <button class="btn btn-primary" onclick="requireBank(buyGold)">Buy gold</button>
+</div>
+
+<!-- ===== INVESTMENT: FD ===== -->
+<div class="screen" id="s-invest-fd">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-invest')">←</button><h2>Create Small FD</h2></div></div>
+  <p class="muted" style="margin-bottom:12px;">Save a small amount, earn fixed interest, get it back on maturity.</p>
+  <label class="field-label">Amount (₹)</label>
+  <input type="number" id="fdAmount" placeholder="e.g. 500" oninput="updateFdPreview()" style="margin-bottom:12px;">
+  <label class="field-label">Tenure</label>
+  <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <div class="tenure-pill" onclick="pickFdTenure(this,3)">3 months</div>
+    <div class="tenure-pill selected" onclick="pickFdTenure(this,6)">6 months</div>
+    <div class="tenure-pill" onclick="pickFdTenure(this,12)">12 months</div>
+  </div>
+  <div class="card">
+    <div class="breakdown-row"><span>Interest rate</span><span>7% p.a.</span></div>
+    <div class="breakdown-row total"><span>Maturity value</span><span id="fdMaturity">₹0</span></div>
+  </div>
+  <button class="btn btn-primary" onclick="requireBank(createFd)">Create FD</button>
+</div>
+
+<!-- ===== INVESTMENT: MUTUAL FUNDS (fund house list) ===== -->
+<div class="screen" id="s-invest-mf">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-invest')">←</button><h2>Mutual Funds</h2></div></div>
+  <p class="muted" style="margin-bottom:12px;">Simple, low-risk funds picked for steady saving. Start a monthly SIP or invest one-time — withdraw anytime.</p>
+  <div id="mfList"></div>
+</div>
+
+<!-- ===== INVESTMENT: MUTUAL FUND CHECKOUT ===== -->
+<div class="screen" id="s-invest-mf-checkout">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-invest-mf')">←</button><h2>Invest</h2></div></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="scheme-ic" id="mf-ckIcon" style="background:#E6F4EE;">📈</div>
+      <div style="flex:1;"><b style="font-size:14px;" id="mf-ckScheme">—</b><p class="muted" style="font-size:12px;margin-top:2px;" id="mf-ckAmc">—</p></div>
+    </div>
+    <div class="breakdown-row" style="margin-top:10px;"><span>Risk</span><span id="mf-ckRisk">—</span></div>
+    <div class="breakdown-row"><span>Returns (last 3 yrs)</span><span id="mf-ckReturns">—</span></div>
+  </div>
+  <label class="field-label">Amount (₹)</label>
+  <input type="number" id="mfAmount" placeholder="e.g. 500" style="margin-bottom:12px;">
+  <label class="field-label">How often</label>
+  <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <div class="tenure-pill selected" onclick="pickMfMode(this,'sip')">Monthly SIP</div>
+    <div class="tenure-pill" onclick="pickMfMode(this,'onetime')">One-time</div>
+  </div>
+  <button class="btn btn-primary" onclick="requireBank(investMf)">Invest</button>
+</div>
+
+<!-- ===== INVESTMENT: SUCCESS ===== -->
+<div class="screen" id="s-invest-success">
+  <div class="center-col">
+    <div class="success-tick"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2 style="font-size:20px;" id="inv-successTitle">Investment successful!</h2>
+    <p class="muted" style="margin-top:6px;" id="inv-successNote">Your gold has been added to your locker.</p>
+  </div>
+  <button class="btn btn-primary" onclick="go('s-home')">Done</button>
+</div>
+
+<!-- ===== LOANS HUB ===== -->
+<div class="screen" id="s-loans-hub">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Loans</h2></div><button class="icon-btn" onclick="speakScreen('s-loans-hub')">🔊</button></div>
+
+  <div class="card" id="loansVerifyPrompt" style="display:none;text-align:center;padding:24px;">
+    <div style="font-size:30px;margin-bottom:8px;">🏢</div>
+    <b style="font-size:15px;">Verify your employer to get started</b>
+    <p class="muted" style="font-size:13px;margin-top:6px;">We need to confirm which company you work for before showing your salary advance eligibility.</p>
+    <div style="height:14px"></div>
+    <button class="btn btn-primary" onclick="S._fromLoans=true;startEmployerSetup()">Verify my employer</button>
+  </div>
+
+  <div id="loansDashboard" style="display:none;">
+    <div class="card" style="display:flex;align-items:center;gap:12px;">
+      <div style="width:44px;height:44px;border-radius:50%;background:var(--teal-100);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--teal-700);font-family:'Baloo 2';flex-shrink:0;" id="loansProfileInitials">—</div>
+      <div style="flex:1;">
+        <b style="font-size:14px;display:block;" id="loansProfileName">—</b>
+        <p class="muted" style="font-size:12px;margin-top:2px;" id="loansProfileDesig">—</p>
+      </div>
+      <p class="muted" style="font-size:12px;text-align:right;" id="loansProfileDate">—</p>
+    </div>
+    <div class="card" style="padding:10px 14px;">
+      <div class="meter-foot"><span id="companyNameHome">BuildRight Constructions</span><span id="meterSalary">Salary: ₹20,000/mo</span></div>
+    </div>
+    <p class="muted" style="font-size:12px;margin:-6px 0 14px;" id="loansPaydayLine">Next pay day: 30th Aug</p>
+    <!-- Quick repeat loan (shown for returning borrowers) -->
+    <div class="card" id="quickRepeatCard" style="display:none;background:var(--teal-100);border-color:var(--teal-500);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:22px;">⚡</span>
+        <div>
+          <b style="font-size:15px;color:var(--teal-900);">Quick repeat</b>
+          <p class="muted" style="font-size:12px;margin-top:2px;">Same as your last advance — one tap</p>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="quickRepeatLoan()" id="quickRepeatBtn">Get ₹5,000 again</button>
+    </div>
+
+    <div class="card" id="homeEligibleCard">
+      <p class="muted">You can withdraw up to</p>
+      <h2 style="font-size:28px;color:var(--teal-900);margin:4px 0 8px;" id="eligibleAmt">₹7,000</h2>
+      <div style="text-align:center;margin-bottom:8px;">
+        <span style="font-family:'DM Mono',monospace;font-size:22px;color:var(--teal-900);font-weight:600;" id="loansWithdrawAmt">₹5,000</span>
+      </div>
+      <div class="slider-wrap" style="margin:8px 0;">
+        <input type="range" id="loansWithdrawSlider" min="1000" max="7000" step="1000" value="5000">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label class="field-label" style="font-size:12px;">Or enter amount manually</label>
+        <input type="number" id="loansWithdrawInput" placeholder="e.g. 5000" style="text-align:center;font-size:16px;">
+      </div>
+      <button class="btn btn-primary" onclick="getAdvanceFromHub()">Get advance</button>
+    </div>
+    <!-- Remaining amount after active withdrawal -->
+    <div class="card" id="loansRemainingCard" style="display:none;background:var(--teal-100);border-color:var(--teal-500);">
+      <p class="muted" style="font-size:12px;">Remaining amount you can still withdraw</p>
+      <b style="font-size:18px;color:var(--teal-900);" id="loansRemainingAmt">₹0</b>
+    </div>
+    <div class="card" id="homeNotEligible" style="display:none;">
+      <div class="center-col">
+        <div style="font-size:28px;margin-bottom:8px;">🔒</div>
+        <b style="font-size:15px;">No advance available right now</b>
+        <p class="muted" style="font-size:13px;margin-top:6px;">You already have an active advance covering your eligible amount.</p>
+      </div>
+    </div>
+    <div class="card" id="homeActiveLoan" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><p class="muted" style="font-size:12px;">Next repayment</p><b style="font-size:18px;" id="homeRepayAmt">₹5,000</b></div>
+        <div class="badge due" id="homeRepayDate">30th Aug</div>
+      </div>
+      <p class="muted" style="font-size:12px;margin-top:8px;">Auto-deducted from your salary. No action needed.</p>
+    </div>
+    <div class="company-item" onclick="go('s-history')">
+      <div class="scheme-ic">🏅</div>
+      <div style="flex:1;"><b style="font-size:14px;">My repayment history</b><p class="muted" style="font-size:12px;margin-top:2px;" id="homeHistNote">Build your track record, unlock higher limits</p></div>
+      <span style="color:var(--teal-700);font-size:18px;font-weight:700;">→</span>
+    </div>
+    <div class="company-item" onclick="navTo('s-ledger')">
+      <div class="scheme-ic" style="background:var(--marigold-100);">📋</div>
+      <div style="flex:1;"><b>My loans</b><p class="muted" style="font-size:12px;">View active &amp; past advances</p></div>
+      <span style="color:var(--teal-700);font-size:18px;font-weight:700;">→</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BBPS: BILL PAYMENTS + SCAN & PAY ===== -->
+<div class="screen" id="s-bbps">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Bill Payments</h2></div><button class="icon-btn" onclick="speakScreen('s-bbps')">🔊</button></div>
+  <div class="card center-col" style="padding:20px;cursor:pointer;background:linear-gradient(135deg,var(--teal-900),var(--teal-700));border:none;" onclick="requireBank(openScanner)">
+    <div style="font-size:34px;margin-bottom:6px;">📷</div>
+    <b style="color:#fff;font-size:15px;">Scan &amp; Pay</b>
+    <p style="color:rgba(255,255,255,0.75);font-size:12px;margin-top:4px;">Scan any UPI QR code to pay instantly</p>
+  </div>
+  <div style="height:10px"></div>
+  <b style="font-size:14px;display:block;margin-bottom:12px;">Recharges &amp; bill payments</b>
+  <div class="icon-grid">
+    <div class="icon-tile" onclick="openBiller('mobile')"><div class="icon-circle" style="background:var(--teal-100);">📱</div><span>Mobile</span></div>
+    <div class="icon-tile" onclick="openBiller('dth')"><div class="icon-circle" style="background:#FCEBE3;">📺</div><span>DTH</span></div>
+    <div class="icon-tile" onclick="openBiller('movie')"><div class="icon-circle" style="background:#F0E6FB;">🎬</div><span>Movies</span></div>
+    <div class="icon-tile" onclick="openBiller('electricity')"><div class="icon-circle" style="background:var(--marigold-100);">💡</div><span>Electricity</span></div>
+    <div class="icon-tile" onclick="openBiller('gas')"><div class="icon-circle" style="background:#FFE3D9;">🔥</div><span>Gas</span></div>
+    <div class="icon-tile" onclick="openBiller('water')"><div class="icon-circle" style="background:#DDEEFB;">💧</div><span>Water</span></div>
+    <div class="icon-tile" onclick="openBiller('broadband')"><div class="icon-circle" style="background:var(--teal-100);">🌐</div><span>Broadband</span></div>
+    <div class="icon-tile" onclick="openBiller('emi')"><div class="icon-circle" style="background:#E6F4EE;">💳</div><span>Loan EMI</span></div>
+  </div>
+  <b style="font-size:14px;display:block;margin-bottom:10px;">Recent payments</b>
+  <div id="bbpsList"></div>
+  <div id="bbpsEmpty" class="card center-col" style="padding:24px;">
+    <div style="font-size:26px;margin-bottom:8px;">🧾</div>
+    <p class="muted">No bill payments yet.</p>
+  </div>
+</div>
+
+<!-- ===== BBPS: PAY BILL ===== -->
+<div class="screen" id="s-bbps-pay">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-bbps')">←</button><h2 id="bbps-payTitle">Mobile Recharge</h2></div></div>
+  <label class="field-label" id="bbps-numberLabel">Mobile number</label>
+  <input type="text" id="bbps-number" placeholder="e.g. 98XXXXXXXX" style="margin-bottom:12px;">
+  <label class="field-label">Amount (₹)</label>
+  <input type="number" id="bbps-amount" placeholder="e.g. 299" style="margin-bottom:16px;">
+  <button class="btn btn-primary" onclick="requireBank(payBill)">Pay via UPI</button>
+</div>
+
+<!-- ===== BBPS: SCAN & PAY ===== -->
+<div class="screen" id="s-bbps-scan">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-bbps')">←</button><h2>Scan &amp; Pay</h2></div></div>
+  <div class="scan-frame" id="scanFrame">📷</div>
+  <p class="muted" style="text-align:center;" id="scanStatus">Point your camera at any UPI QR code…</p>
+  <div id="scanResult" style="display:none;">
+    <div class="card center-col" style="padding:16px;">
+      <div style="font-size:26px;">🏪</div>
+      <b style="margin-top:6px;" id="scanMerchant">Raju General Store</b>
+      <p class="muted" style="font-size:12px;" id="scanUpiId">rajustore@upi</p>
+    </div>
+    <label class="field-label">Amount (₹)</label>
+    <input type="number" id="scanAmount" placeholder="e.g. 150" style="margin-bottom:16px;">
+    <button class="btn btn-primary" onclick="requireBank(payScan)">Pay</button>
+  </div>
+</div>
+
+<!-- ===== BBPS: SUCCESS ===== -->
+<div class="screen" id="s-bbps-success">
+  <div class="center-col">
+    <div class="success-tick"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2 style="font-size:20px;">Payment successful!</h2>
+    <p class="muted" style="margin-top:6px;" id="bbps-successNote">₹299 paid for mobile recharge.</p>
+  </div>
+  <div class="card">
+    <div class="breakdown-row"><span>UPI reference</span><span id="bbps-successRef">NEEVUPI58320001</span></div>
+  </div>
+  <button class="btn btn-primary" onclick="go('s-bbps')">Done</button>
+</div>
+
+<!-- ===== KYC via DigiLocker (Aadhaar + PAN + consents + selfie) ===== -->
+<div class="screen" id="s-pan-capture">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-loans-hub')">←</button><h2>KYC Verification</h2></div><button class="icon-btn" onclick="speakScreen('s-pan-capture')">🔊</button></div>
+
+  <!-- DigiLocker connect -->
+  <div id="digilockerArea">
+    <div class="center-col" style="margin-bottom:16px;">
+      <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#1A237E,#3949AB);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;">🔐</div>
+      <h3 style="font-size:16px;color:var(--teal-900);margin-top:10px;">Connect via DigiLocker</h3>
+      <p class="muted" style="font-size:12px;margin-top:4px;">Fetch your Aadhaar &amp; PAN instantly. No photos needed.</p>
+    </div>
+    <div class="card center-col" style="padding:30px;border-color:var(--teal-500);cursor:pointer;" onclick="openDigiLocker()">
+      <div style="font-size:36px;margin-bottom:8px;">📲</div>
+      <b style="font-size:14px;color:var(--teal-900);">Open DigiLocker</b>
+      <p class="muted" style="font-size:12px;margin-top:4px;">Government of India digital document wallet</p>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 0;">
+      <span style="font-size:11px;">🛡️</span>
+      <p class="muted" style="font-size:10.5px;">Secured by DigiLocker &nbsp;·&nbsp; Ministry of Electronics &amp; IT</p>
+    </div>
+  </div>
+
+  <!-- Fetching from DigiLocker -->
+  <div id="digilockerFetchingBlock" style="display:none;">
+    <div class="card center-col" style="padding:24px;">
+      <div style="font-size:24px;">⏳</div>
+      <p class="muted" style="margin-top:8px;">Fetching documents from DigiLocker…</p>
+    </div>
+  </div>
+
+  <!-- DigiLocker details fetched — confirm -->
+  <div id="digilockerDetailsBlock" style="display:none;">
+    <div class="card" style="border-color:var(--success);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:20px;">✅</span>
+        <b style="font-size:14px;">Documents fetched via DigiLocker</b>
+      </div>
+      <div class="breakdown-row"><span>Name</span><b id="dlFetchedName">—</b></div>
+      <div class="breakdown-row"><span>PAN</span><b id="dlFetchedPan">—</b></div>
+      <div class="breakdown-row"><span>Aadhaar</span><b id="dlFetchedAadhaar">—</b></div>
+      <div class="breakdown-row"><span>Date of birth</span><b id="dlFetchedDob">—</b></div>
+    </div>
+    <button class="btn btn-primary" onclick="confirmDigiLockerDetails()" style="margin-top:12px;">Confirm &amp; continue</button>
+    <button class="btn btn-outline" onclick="retakePanPhoto()" style="margin-top:8px;">Try again</button>
+  </div>
+
+  <!-- KYC Consents (CKYC, CIBIL, EPFO, ESIC) -->
+  <div id="kycConsentsBlock" style="display:none;">
+    <div class="card" style="background:linear-gradient(135deg,var(--teal-900),var(--teal-700));border:none;color:#fff;margin-bottom:12px;">
+      <div style="display:flex;gap:12px;align-items:center;">
+        <span style="font-size:24px;">🔐</span>
+        <div><b style="font-size:15px;">Consents required</b><p style="font-size:12px;opacity:.8;margin-top:2px;">Allow these to process your salary advance</p></div>
+      </div>
+    </div>
+    <div class="dp-grant-all" onclick="toggleAllKycConsents()" id="kycAllowAllBtn">Allow All</div>
+    <div id="kycConsentsList"></div>
+    <div style="height:10px"></div>
+    <button class="btn btn-primary" onclick="continueFromKycConsents()">Continue</button>
+  </div>
+
+  <!-- Selfie capture for face match -->
+  <div id="kycSelfieBlock" style="display:none;">
+    <div class="center-col" style="margin-bottom:16px;">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--teal-100);display:flex;align-items:center;justify-content:center;font-size:28px;">🤳</div>
+      <h3 style="font-size:16px;color:var(--teal-900);margin-top:10px;">Take a selfie</h3>
+      <p class="muted" style="font-size:12px;margin-top:4px;">For face match with your Aadhaar photo</p>
+    </div>
+    <div class="card center-col" style="padding:30px;border-style:dashed;border-width:2px;cursor:pointer;" onclick="captureKycSelfie()">
+      <div style="font-size:36px;margin-bottom:8px;">📸</div>
+      <b style="font-size:14px;">Tap to capture selfie</b>
+    </div>
+  </div>
+
+  <!-- Selfie done -->
+  <div id="kycSelfieDoneBlock" style="display:none;">
+    <div class="card" style="border-color:var(--success);">
+      <div class="center-col" style="padding:12px;">
+        <span style="font-size:28px;">✅</span>
+        <b style="margin-top:8px;">Face match successful!</b>
+        <p class="muted" style="font-size:12px;margin-top:4px;">Your identity has been verified</p>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="finishKycFlow()" style="margin-top:12px;">Continue</button>
+  </div>
+</div>
+
+<!-- ===== APPLY ===== -->
+<div class="screen" id="s-apply">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-loans-hub')">←</button><h2>Get advance</h2></div><button class="icon-btn" onclick="speakScreen('s-apply')">🔊</button></div>
+  <div class="loan-user-strip"><div class="loan-user-avatar" id="loanAvatar1"></div><div><b class="loan-user-name" id="loanName1"></b><p class="loan-user-company" id="loanCompany1"></p></div></div>
+
+  <p class="muted" style="font-size:13px;">Choose amount. Repaid from salary on pay day.</p>
+  <div class="center-col">
+    <div style="font-family:'DM Mono',monospace;font-size:38px;color:var(--teal-900);font-weight:600;" id="applyAmtDisplay">₹3,000</div>
+    <p class="muted" style="font-size:12px;margin-top:4px;">Max: <span id="applyMaxLabel">₹7,000</span> (70% of accrued salary)</p>
+  </div>
+  <div class="slider-wrap" style="margin:16px 0;">
+    <input type="range" id="applySlider" min="1000" max="7000" step="1000" value="3000" oninput="updateApply()">
+  </div>
+  <div class="field-row">
+    <label class="field-label">Why do you need this advance?</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
+      <div class="reason-tile" onclick="selectReasonTile('medical',this)" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border:1.6px solid var(--border);border-radius:14px;cursor:pointer;background:#fff;transition:all .2s;">
+        <span style="font-size:24px;">🏥</span><b style="font-size:13px;">Medical</b>
+      </div>
+      <div class="reason-tile" onclick="selectReasonTile('personal',this)" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border:1.6px solid var(--border);border-radius:14px;cursor:pointer;background:#fff;transition:all .2s;">
+        <span style="font-size:24px;">👤</span><b style="font-size:13px;">Personal</b>
+      </div>
+      <div class="reason-tile" onclick="selectReasonTile('education',this)" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border:1.6px solid var(--border);border-radius:14px;cursor:pointer;background:#fff;transition:all .2s;">
+        <span style="font-size:24px;">📚</span><b style="font-size:13px;">Education</b>
+      </div>
+      <div class="reason-tile" onclick="selectReasonTile('other',this)" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border:1.6px solid var(--border);border-radius:14px;cursor:pointer;background:#fff;transition:all .2s;">
+        <span style="font-size:24px;">📝</span><b style="font-size:13px;">Others</b>
+      </div>
+    </div>
+  </div>
+  <div class="field-row" id="loanReasonOtherRow" style="display:none;">
+    <label class="field-label">Please specify</label>
+    <input type="text" id="loanReasonOther" placeholder="Tell us in a few words">
+  </div>
+  <div class="card">
+    <div class="breakdown-row"><span>Advance amount</span><span id="bkAmount">₹3,000</span></div>
+    <div class="breakdown-row"><span>Service charge (<span id="bkRateLabel">₹15/1000 x 2 wks</span>)</span><span id="bkCharge">-₹90</span></div>
+    <div class="breakdown-row"><span>GST (18%)</span><span id="bkGst">-₹16</span></div>
+    <div class="breakdown-row"><span>Effective interest (annualised)</span><span id="bkApr">78% p.a.</span></div>
+    <div class="breakdown-row total"><span>You will receive</span><span id="bkNet">₹2,894</span></div>
+  </div>
+  <div id="lowBalanceWarn" style="display:none;background:#FCEBE3;border:1.6px solid var(--danger);border-radius:14px;padding:14px;margin-bottom:10px;">
+    <b style="font-size:13px;color:var(--danger);">⚠️ Low take-home warning</b>
+    <p style="font-size:13px;color:var(--danger);margin-top:4px;" id="lowBalanceMsg">After this deduction, your take-home will be very low. Are you sure?</p>
+  </div>
+  <p class="muted" style="font-size:12px;text-align:center;">Repaid from your salary on pay day. No separate payment.</p>
+  <button class="btn btn-primary" onclick="goToConfirm()" style="margin-top:8px;">Continue</button>
+</div>
+
+<!-- ===== BANK STATEMENT UPLOAD + QUICK VERIFICATION (after choosing amount, before KFS) ===== -->
+<div class="screen" id="s-bank-statement">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-permissions')">←</button><h2>Bank verification</h2></div><button class="icon-btn" onclick="speakScreen('s-bank-statement')">🔊</button></div>
+  <div class="loan-user-strip"><div class="loan-user-avatar" id="loanAvatar2"></div><div><b class="loan-user-name" id="loanName2"></b><p class="loan-user-company" id="loanCompany2"></p></div></div>
+  <!-- AA Consent + OTP (RBI requires OTP consent for Account Aggregator) -->
+  <div id="aaConsentBlock">
+    <!-- Header illustration -->
+    <div style="text-align:center;padding:18px 0 14px;">
+      <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--teal-100),#E0F5EF);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;">
+        <span style="font-size:28px;">🏦</span>
+      </div>
+      <h3 style="font-size:16px;color:var(--teal-900);margin-bottom:4px;">Link your bank account</h3>
+      <p class="muted" style="font-size:12px;max-width:260px;margin:0 auto;">We use RBI's Account Aggregator to securely fetch your bank details. Your data stays encrypted.</p>
+    </div>
+
+    <!-- Consent card -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 16px;background:linear-gradient(135deg,#F8FFFE,#F0FAF7);border-bottom:1px solid var(--border);">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:14px;">🔒</span>
+          <b style="font-size:12.5px;color:var(--teal-900);">Account Aggregator consent</b>
+        </div>
+      </div>
+      <div style="padding:14px 16px;">
+        <div id="aaConsentCheckRow">
+          <label style="display:flex;gap:12px;align-items:flex-start;font-size:13px;color:var(--ink);cursor:pointer;">
+            <input type="checkbox" id="bsAaConsentCheck" onclick="toggleBsAaConsentOtp()" style="margin-top:2px;width:20px;height:20px;flex-shrink:0;accent-color:var(--teal-700);">
+            <span style="line-height:1.55;">I agree to share my financial data via Account Aggregator</span>
+          </label>
+        </div>
+        <div id="aaOtpSection" style="display:none;">
+          <div style="height:14px"></div>
+          <p class="muted" style="font-size:12px;margin-bottom:8px;">Enter OTP sent to ****<span id="aaPhoneLast4">XXXX</span></p>
+          <div class="otp-row" style="margin-bottom:10px;">
+            <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+            <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+            <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+            <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="verifyAaConsent()">Verify &amp; fetch accounts</button>
+        </div>
+        <div id="aaVerifiedBadge" style="display:none;text-align:center;padding:6px 0;">
+          <span style="color:var(--success);font-size:13px;font-weight:600;">✓ Consent verified</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trust footer -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:4px 0 8px;">
+      <span style="font-size:11px;">🛡️</span>
+      <p class="muted" style="font-size:10.5px;">Regulated by RBI &nbsp;·&nbsp; 256-bit encrypted &nbsp;·&nbsp; Read-only access</p>
+    </div>
+  </div>
+
+  <!-- Bank accounts (shown after AA consent verified) -->
+  <div id="bsFetchingAccountsBlock" style="display:none;">
+    <div class="card center-col" style="padding:24px;">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--teal-100);display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:18px;">🔗</span>
+      </div>
+      <p style="margin-top:10px;font-size:13px;font-weight:600;color:var(--teal-900);">Fetching bank accounts…</p>
+      <p class="muted" style="font-size:11px;margin-top:2px;">This usually takes a few seconds</p>
+    </div>
+  </div>
+
+  <div id="bsAccountSelectBlock" style="display:none;">
+    <b style="font-size:14px;display:block;margin-bottom:4px;">Select your salary account</b>
+    <p class="muted" style="font-size:11.5px;margin-bottom:8px;" id="bsAccountsFoundText">Choose the account your salary is credited to.</p>
+    <div id="bsSalaryHint" class="card" style="display:none;background:linear-gradient(135deg,#FFF8E1,#FFF4DE);border-color:var(--marigold-500);padding:12px 14px;margin-bottom:10px;">
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <span style="font-size:18px;">💡</span>
+        <p style="font-size:12.5px;color:#7B5C00;margin:0;line-height:1.5;"><b>Which account does your salary get credited to?</b> Select that account below.</p>
+      </div>
+    </div>
+    <div id="bsAccountCards"></div>
+    <div style="height:10px"></div>
+    <button class="btn btn-primary" id="bsContinueBtn" disabled onclick="finishBankStatementStep()">Continue</button>
+  </div>
+</div>
+
+<!-- ===== NOT PARTNERED — HR referral for unknown companies ===== -->
+<div class="screen" id="s-not-partnered">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="go('s-home')">←</button><h2>Salary advance</h2></div><button class="icon-btn" onclick="speakScreen('s-not-partnered')">🔊</button></div>
+
+  <div style="text-align:center;padding:20px 0 16px;">
+    <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+      <span style="font-size:28px;">🏢</span>
+    </div>
+    <h3 style="font-size:17px;color:var(--teal-900);margin-bottom:6px;">We're not with <span id="npCompanyName">your company</span> yet</h3>
+    <p class="muted" style="font-size:12.5px;max-width:280px;margin:0 auto;line-height:1.55;">To offer salary advances, we need to partner with your employer first. Share your HR or manager's details and we'll reach out.</p>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="padding:12px 16px;background:linear-gradient(135deg,#F8FFFE,#F0FAF7);border-bottom:1px solid var(--border);">
+      <b style="font-size:13px;color:var(--teal-900);">Manager / HR details</b>
+    </div>
+    <div style="padding:16px;">
+      <label class="field-label">Name *</label>
+      <input type="text" id="npHrName" placeholder="e.g. Priya Sharma" style="margin-bottom:12px;">
+      <label class="field-label">Phone number *</label>
+      <input type="tel" id="npHrPhone" placeholder="10-digit mobile number" maxlength="10" style="margin-bottom:12px;">
+      <label class="field-label">Email <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+      <input type="text" id="npHrEmail" placeholder="hr@company.com">
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="submitHrReferral()" style="margin-top:8px;">Submit &amp; notify my company</button>
+
+  <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 0 8px;">
+    <span style="font-size:11px;">💡</span>
+    <p class="muted" style="font-size:11px;">You can still use insurance, investments &amp; government schemes</p>
+  </div>
+</div>
+
+<!-- ===== KEY FACT STATEMENT (KFS) — RBI-mandated cost disclosure, shown before every sanction ===== -->
+<div class="screen" id="s-kfs">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-bank-statement')">←</button><h2>Key Fact Statement</h2></div><button class="icon-btn" onclick="speakScreen('s-kfs')">🔊</button></div>
+  <div class="loan-user-strip"><div class="loan-user-avatar" id="loanAvatar3"></div><div><b class="loan-user-name" id="loanName3"></b><p class="loan-user-company" id="loanCompany3"></p></div></div>
+  <p class="muted" style="font-size:12px;margin-bottom:10px;">As per RBI's digital lending rules, please review the full cost and terms before you continue.</p>
+  <div class="card">
+    <div class="kfs-section-toggle" onclick="toggleKfsSection(this)">
+      <p style="font-size:13px;font-weight:600;color:var(--teal-700);margin:0;">Loan details</p>
+      <span class="kfs-arrow open">▼</span>
+    </div>
+    <div class="kfs-section-body">
+      <div style="margin-top:8px;">
+        <div class="breakdown-row"><span>Advance amount</span><span id="kfsAmount">₹3,000</span></div>
+        <div class="breakdown-row"><span>Tenure</span><span id="kfsTenure">2 weeks</span></div>
+        <div class="breakdown-row"><span>Repayment date</span><span id="kfsDueDate">30th Aug</span></div>
+        <div class="breakdown-row"><span>Interest (1.5% per week)</span><span id="kfsInterest">-₹90</span></div>
+        <div class="breakdown-row"><span>Service charge</span><span id="kfsCharge">-₹90</span></div>
+        <div class="breakdown-row"><span>GST (18%)</span><span id="kfsGst">-₹16</span></div>
+        <div class="breakdown-row"><span>Annualised cost (APR)</span><span id="kfsApr">78% p.a.</span></div>
+        <div class="breakdown-row total"><span>You will receive</span><span id="kfsNet">₹2,894</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="kfs-section-toggle" onclick="toggleKfsSection(this)">
+      <p style="font-size:13px;font-weight:600;color:var(--teal-700);margin:0;">Repayment</p>
+      <span class="kfs-arrow">▼</span>
+    </div>
+    <div class="kfs-section-body" style="max-height:0;overflow:hidden;">
+      <p style="font-size:13px;line-height:1.7;margin-top:8px;">This entire amount (<b id="kfsAmount2">₹3,000</b>) is deducted directly from your salary by <span id="kfsCompany">your employer</span> on your pay day and paid to Neev. You don't need to make any separate payment.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="kfs-section-toggle" onclick="toggleKfsSection(this)">
+      <p style="font-size:13px;font-weight:600;color:var(--teal-700);margin:0;">If repayment is delayed</p>
+      <span class="kfs-arrow">▼</span>
+    </div>
+    <div class="kfs-section-body" style="max-height:0;overflow:hidden;">
+      <p style="font-size:13px;line-height:1.7;margin-top:8px;">A late fee of ₹15 per ₹1,000 per week continues to apply until the amount is recovered, plus any bank bounce charges if a payment attempt fails.</p>
+    </div>
+  </div>
+  <div class="card" style="border-color:var(--teal-500);">
+    <div class="kfs-section-toggle" onclick="toggleKfsSection(this)">
+      <p style="font-size:13px;font-weight:600;color:var(--teal-700);margin:0;">Your right to cancel (cooling-off period)</p>
+      <span class="kfs-arrow">▼</span>
+    </div>
+    <div class="kfs-section-body" style="max-height:0;overflow:hidden;">
+      <p style="font-size:13px;line-height:1.7;margin-top:8px;">You can cancel this advance within <b>24 hours</b> of receiving it. If you do, you only need to repay the ₹<span id="kfsAmount3">3,000</span> principal — no service charge or GST.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="kfs-section-toggle" onclick="toggleKfsSection(this)">
+      <p style="font-size:13px;font-weight:600;color:var(--teal-700);margin:0;">Lender &amp; grievance contact</p>
+      <span class="kfs-arrow">▼</span>
+    </div>
+    <div class="kfs-section-body" style="max-height:0;overflow:hidden;">
+      <div style="margin-top:8px;">
+        <div class="breakdown-row"><span>Regulated entity</span><span>Neev NBFC Pvt. Ltd.</span></div>
+        <div class="breakdown-row"><span>Grievance officer</span><span>Aarti Nair</span></div>
+        <div class="breakdown-row"><span>Contact</span><span>grievance@neev.in</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="kfs-section-toggle" onclick="toggleKfsSection(this)">
+      <p style="font-size:13px;font-weight:600;color:var(--teal-700);margin:0;">Disbursement account</p>
+      <span class="kfs-arrow open">▼</span>
+    </div>
+    <div class="kfs-section-body">
+      <div id="kfsSalaryAccountDisplay" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--teal-100);border-radius:12px;margin-top:8px;">
+        <span style="font-size:22px;">🏦</span>
+        <div style="flex:1;">
+          <b style="font-size:14px;" id="kfsSalaryBank">—</b>
+          <p class="muted" style="font-size:12px;margin-top:2px;">Salary account</p>
+        </div>
+        <span style="color:var(--success);font-weight:700;font-size:13px;">✓</span>
+      </div>
+    </div>
+  </div>
+  <!-- Agreement checkbox — opens T&C modal, then reveals e-NACH + e-Sign when accepted -->
+  <div class="card" style="border-color:var(--teal-500);">
+    <label style="display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink);cursor:pointer;">
+      <input type="checkbox" id="agreeCheck" onclick="onAgreeCheckClick()" style="margin-top:2px;width:20px;height:20px;flex-shrink:0;">
+      <span style="font-size:13px;line-height:1.5;">I agree to the loan terms, E-NACH mandate, and repayment plan.</span>
+    </label>
+  </div>
+  <!-- E-Sign + E-NACH (hidden until checkbox above is checked) -->
+  <div id="kfsAgreeReveal" style="display:none;">
+    <!-- E-Sign section — opens a modal like E-NACH -->
+    <div class="card" id="kfsEsignBlock" style="padding:12px 14px;">
+      <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--teal-700);cursor:pointer;margin:0;">
+        <span id="kfsEsignTitle" style="flex:1;">E-Sign (Loan agreement)</span>
+        <input type="checkbox" id="esignCheck" onclick="onEsignCheckClick(this)" style="width:20px;height:20px;flex-shrink:0;">
+      </label>
+    </div>
+    <div class="card" style="padding:12px 14px;">
+      <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--teal-700);cursor:pointer;margin:0;">
+        <span style="flex:1;">E-NACH mandate</span>
+        <input type="checkbox" id="enachCheck" onclick="onEnachCheckClick(this)" style="width:20px;height:20px;flex-shrink:0;">
+      </label>
+    </div>
+    <button class="btn btn-dark" id="kfsEsignBtn" disabled onclick="requireBank(confirmLoan)">E-sign &amp; get money</button>
+  </div>
+</div>
+
+<!-- ===== SUCCESS ===== -->
+<div class="screen" id="s-success">
+  <div class="center-col">
+    <div class="success-tick"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2 style="font-size:20px;">Money is on its way!</h2>
+    <p class="muted" style="margin-top:6px;"><span id="successAmt">₹2,894</span> will reach your bank <span id="successBank">SBIN ****4021</span> within a few minutes.</p>
+  </div>
+  <div class="van-card">
+    <p class="muted" style="font-size:12px;">Your Virtual Account Number (VAN)</p>
+    <div class="van-num" id="successVan">NEEV00583201</div>
+    <p class="muted" style="font-size:11px;margin-top:6px;">Your employer will use this VAN to send repayment</p>
+  </div>
+  <div class="card">
+    <div class="breakdown-row"><span>Loan Account Number (LAN)</span><span id="successLan">5832012026</span></div>
+    <div class="breakdown-row"><span>Customer ID</span><span id="successCustId">5832</span></div>
+  </div>
+  <button class="btn btn-primary" onclick="navTo('s-ledger')">View my ledger</button>
+  <div style="height:10px"></div>
+  <button class="btn btn-outline" onclick="openLoansHub()">Back to loans</button>
+</div>
+
+<!-- ===== LEDGER ===== -->
+<div class="screen" id="s-ledger">
+  <div class="topbar"><h2>My loans</h2><button class="icon-btn" onclick="speakScreen('s-ledger')">🔊</button></div>
+  <div id="ledgerList"></div>
+  <div id="ledgerEmpty" class="card center-col" style="padding:30px 18px;">
+    <div style="font-size:28px;margin-bottom:8px;">📋</div>
+    <p class="muted">No advances taken yet. Once you apply, it shows here.</p>
+  </div>
+</div>
+
+<!-- ===== LOAN DETAIL ===== -->
+<div class="screen" id="s-loan-detail">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-ledger')">←</button><h2>Loan details</h2></div><button class="icon-btn" onclick="speakScreen('s-loan-detail')">🔊</button></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div><p class="muted" style="font-size:11px;">LAN</p><b style="font-size:16px;" id="ld-lan">5832012026</b></div>
+      <span class="badge" id="ld-status">Active</span>
+    </div>
+    <div class="breakdown-row"><span>Reason</span><span id="ld-reason">Medical emergency</span></div>
+    <div class="breakdown-row"><span>Advance amount</span><span id="ld-amount">₹3,000</span></div>
+    <div class="breakdown-row"><span>Service charge</span><span id="ld-charge">₹90</span></div>
+    <div class="breakdown-row"><span>GST (18%)</span><span id="ld-gst">₹16</span></div>
+    <div class="breakdown-row total"><span>You received</span><span id="ld-net">₹2,894</span></div>
+  </div>
+  <div class="van-card">
+    <p class="muted" style="font-size:12px;">Employer pays to VAN</p>
+    <div class="van-num" id="ld-van">NEEV00583201</div>
+  </div>
+  <b style="font-size:14px;display:block;margin-bottom:12px;">Repayment timeline</b>
+  <div id="ld-timeline"></div>
+</div>
+
+<!-- ===== REPAYMENT HISTORY / CREDIT TRACK ===== -->
+<div class="screen" id="s-history">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-loans-hub')">←</button><h2>My repayment history</h2></div><button class="icon-btn" onclick="speakScreen('s-history')">🔊</button></div>
+  <div class="card center-col" style="padding:22px;background:linear-gradient(135deg,var(--teal-900),var(--teal-700));border:none;">
+    <div style="font-size:32px;margin-bottom:8px;">🏅</div>
+    <b style="font-size:18px;color:#fff;" id="hist-badge">Good borrower</b>
+    <p style="font-size:13px;color:rgba(255,255,255,0.75);margin-top:6px;" id="hist-subtext">0 of 0 advances repaid on time</p>
+    <div style="margin-top:14px;background:rgba(255,255,255,0.15);border-radius:12px;padding:12px 16px;width:100%;">
+      <div style="display:flex;justify-content:space-between;color:#fff;">
+        <div class="center-col"><b style="font-size:20px;" id="hist-total">0</b><p style="font-size:11px;opacity:.75;">Total</p></div>
+        <div class="center-col"><b style="font-size:20px;color:#7FFFD4;" id="hist-ontime">0</b><p style="font-size:11px;opacity:.75;">On time</p></div>
+        <div class="center-col"><b style="font-size:20px;color:#F5A623;" id="hist-active">0</b><p style="font-size:11px;opacity:.75;">Active</p></div>
+      </div>
+    </div>
+  </div>
+  <b style="font-size:14px;display:block;margin:12px 0;">History</b>
+  <div id="historyList"></div>
+  <div id="historyEmpty" class="card center-col" style="padding:22px;">
+    <div style="font-size:28px;margin-bottom:8px;">📋</div>
+    <p class="muted">No repayment history yet.</p>
+  </div>
+  <div style="height:10px"></div>
+  <button class="btn btn-outline" onclick="downloadStatement()">📄 Download statement</button>
+</div>
+
+<!-- ===== REFERRAL ===== -->
+<div class="screen" id="s-referral">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Refer a colleague</h2></div><button class="icon-btn" onclick="speakScreen('s-referral')">🔊</button></div>
+  <div class="card center-col" style="padding:26px;background:linear-gradient(135deg,#F5A623,#DB8E0C);border:none;">
+    <div style="font-size:34px;margin-bottom:8px;">🎁</div>
+    <b style="font-size:18px;color:#1A1200;">Invite a colleague</b>
+    <p style="font-size:14px;color:#3D2A00;margin-top:8px;text-align:center;">Both of you get <b>₹50 cashback</b> on your next advance when your colleague takes their first loan.</p>
+  </div>
+  <div style="height:6px"></div>
+  <div class="card">
+    <p class="muted" style="font-size:12px;margin-bottom:8px;">Your referral code</p>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;background:var(--teal-100);border-radius:10px;padding:14px;font-family:'DM Mono',monospace;font-size:18px;font-weight:600;color:var(--teal-900);text-align:center;" id="refCode">NEEV5832</div>
+      <button class="icon-btn" onclick="copyRef()" style="width:48px;height:48px;">📋</button>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="shareRef()">Share via WhatsApp</button>
+  <div style="height:10px"></div>
+  <button class="btn btn-outline" onclick="shareLink()">Share link via SMS</button>
+  <div style="height:16px"></div>
+  <div class="card">
+    <b style="font-size:14px;display:block;margin-bottom:10px;">Your referrals</b>
+    <div id="referralList">
+      <p class="muted" style="font-size:13px;">No referrals yet. Share your code with a colleague to get started.</p>
+    </div>
+  </div>
+  <div style="height:10px"></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <div class="scheme-ic" style="background:var(--teal-100);">👭</div>
+      <div><b style="font-size:14px;">Neev Sakhi Community</b><p class="muted" style="font-size:12px;">Colleagues helping colleagues get ahead</p></div>
+    </div>
+    <p class="muted" style="font-size:13px;margin-bottom:10px;" id="sakhiCompanyNote">Join workers already using Neev across companies.</p>
+    <div id="sakhiLeaderboard"></div>
+  </div>
+  <div style="height:10px"></div>
+  <div class="card" style="background:var(--teal-100);border-color:var(--teal-500);">
+    <b style="font-size:13px;color:var(--teal-900);">Also helps your company get onboarded faster</b>
+    <p class="muted" style="font-size:12px;margin-top:4px;">When many colleagues from the same company apply, we use that to approach your employer directly.</p>
+  </div>
+</div>
+
+<!-- ===== LOYALTY POINTS ===== -->
+<div class="screen" id="s-loyalty">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Loyalty points</h2></div><button class="icon-btn" onclick="speakScreen('s-loyalty')">🔊</button></div>
+  <div class="meter-card">
+    <div class="meter-top">
+      <div><span class="lbl">Total points</span><div class="amt" id="loyTotal">0</div></div>
+      <span class="badge" id="loyTierBadge">Bronze</span>
+    </div>
+    <div id="loyProgressWrap" style="display:none;">
+      <div class="meter-track"><div class="meter-fill" id="loyProgressFill" style="width:0%;"></div></div>
+      <p class="meter-foot" id="loyProgressNote" style="justify-content:flex-start;"></p>
+    </div>
+  </div>
+
+  <b style="font-size:14px;display:block;margin-bottom:10px;">Ways to earn points</b>
+  <div class="card">
+    <div class="breakdown-row"><span>Take a salary advance</span><b>+10 pts</b></div>
+    <div class="breakdown-row"><span>Pay a bill / recharge</span><b>+5 pts</b></div>
+    <div class="breakdown-row"><span>UPI scan &amp; pay</span><b>+5 pts</b></div>
+    <div class="breakdown-row"><span>Buy insurance</span><b>+15 pts</b></div>
+    <div class="breakdown-row"><span>Invest in gold / FD</span><b>+10 pts</b></div>
+    <div class="breakdown-row total"><span>Refer a colleague who joins</span><b>+25 pts</b></div>
+  </div>
+
+  <div class="card" style="background:var(--teal-100);border-color:var(--teal-500);">
+    <b style="font-size:13px;color:var(--teal-900);">🎁 Redeem — coming soon</b>
+    <p class="muted" style="font-size:12px;margin-top:4px;">Trade points for fee waivers and cashback. We'll notify you when redemption opens.</p>
+  </div>
+
+  <b style="font-size:14px;display:block;margin:16px 0 10px;">Points history</b>
+  <div id="loyHistoryList"></div>
+  <div id="loyHistoryEmpty" class="card center-col" style="padding:24px;">
+    <div style="font-size:26px;margin-bottom:8px;">🏅</div>
+    <p class="muted">No points earned yet. Take an advance, pay a bill, or invest to start earning.</p>
+  </div>
+</div>
+
+<!-- ===== GRIEVANCE ===== -->
+<div class="screen" id="s-grievance">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-profile')">←</button><h2>Chat with us</h2></div><button class="icon-btn" onclick="speakScreen('s-grievance')">🔊</button></div>
+  <p class="muted" style="margin-bottom:14px;">Tell us what went wrong. Every complaint gets a ticket number and response within 2 working days.</p>
+  <label class="field-label">Type of complaint</label>
+  <select id="grievanceType" style="margin-bottom:12px;">
+    <option value="">Select a category</option>
+    <option value="wrong_deduction">Wrong amount deducted from salary</option>
+    <option value="delayed_credit">Money not credited to my bank</option>
+    <option value="wrong_charge">Incorrect charges applied</option>
+    <option value="employer_issue">Employer did not transfer salary</option>
+    <option value="kyc_issue">KYC verification problem</option>
+    <option value="other">Something else</option>
+  </select>
+  <label class="field-label">Describe the issue</label>
+  <textarea id="grievanceDesc" placeholder="Tell us what happened in simple words..." style="width:100%;padding:14px 16px;border-radius:12px;border:1.6px solid var(--border);background:#fff;font-size:14px;font-family:'Inter';color:var(--ink);outline:none;min-height:120px;resize:none;margin-bottom:12px;"></textarea>
+  <label class="field-label">Loan ID (if applicable)</label>
+  <input type="text" id="grievanceLan" placeholder="e.g. 5832012026" style="margin-bottom:16px;">
+  <button class="btn btn-primary" onclick="submitGrievance()">Submit complaint</button>
+  <div style="height:16px"></div>
+  <div class="card" id="grievanceList">
+    <b style="font-size:14px;display:block;margin-bottom:10px;">Past complaints</b>
+    <div id="grievanceItems"><p class="muted" style="font-size:13px;">No complaints raised yet.</p></div>
+  </div>
+</div>
+
+<!-- ===== DOCUMENTS ===== -->
+<div class="screen" id="s-documents">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-profile')">←</button><h2>My documents</h2></div><button class="icon-btn" onclick="speakScreen('s-documents')">🔊</button></div>
+  <p class="muted" style="margin-bottom:14px;">Download your loan agreements, statements, and repayment schedules.</p>
+  <div class="card" style="cursor:pointer;" onclick="downloadDoc('T2E Agreement')">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="scheme-ic" style="background:var(--teal-100);">📄</div>
+      <div style="flex:1;"><b style="font-size:14px;">Loan Agreement</b><p class="muted" style="font-size:12px;margin-top:2px;">Signed agreement between you and Neev</p></div>
+      <span style="color:var(--teal-700);font-weight:700;font-size:13px;">PDF</span>
+    </div>
+  </div>
+  <div class="card" style="cursor:pointer;" onclick="downloadDoc('Account Statement')">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="scheme-ic" style="background:var(--marigold-100);">📊</div>
+      <div style="flex:1;"><b style="font-size:14px;">Loan Account Statement</b><p class="muted" style="font-size:12px;margin-top:2px;">Full history of advances, deductions, and credits</p></div>
+      <span style="color:var(--teal-700);font-weight:700;font-size:13px;">PDF</span>
+    </div>
+  </div>
+  <div class="card" id="docsLoanList">
+    <b style="font-size:14px;display:block;margin-bottom:12px;">Per-loan documents</b>
+    <div id="docsPerLoan"><p class="muted" style="font-size:13px;">No loans yet. Documents appear after your first advance.</p></div>
+  </div>
+</div>
+
+<!-- ===== NOTIFICATIONS ===== -->
+<div class="screen" id="s-notifs">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Notifications</h2></div></div>
+  <div id="notifList"></div>
+  <div id="notifEmpty" class="card center-col" style="padding:30px 18px;">
+    <div style="font-size:28px;margin-bottom:8px;">🔕</div><p class="muted">No notifications yet.</p>
+  </div>
+</div>
+
+<!-- ===== SCHEMES ===== -->
+<div class="screen" id="s-schemes">
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Government schemes</h2></div><button class="icon-btn" onclick="speakScreen('s-schemes')">🔊</button></div>
+
+  <!-- State selector -->
+  <div class="card" style="padding:12px 14px;margin-bottom:6px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <span style="font-size:18px;">📍</span>
+      <div style="flex:1;">
+        <b style="font-size:13px;color:var(--teal-900);">Showing schemes for</b>
+        <p class="muted" style="font-size:11px;margin-top:1px;" id="schemeStateHint">Based on your Aadhaar address</p>
+      </div>
+    </div>
+    <select id="schemeStateSelect" onchange="onSchemeStateChange()" style="margin-bottom:0;">
+      <option value="Delhi">Delhi</option>
+      <option value="Bihar">Bihar</option>
+      <option value="Uttar Pradesh">Uttar Pradesh</option>
+      <option value="Maharashtra">Maharashtra</option>
+      <option value="Rajasthan">Rajasthan</option>
+      <option value="Madhya Pradesh">Madhya Pradesh</option>
+      <option value="Karnataka">Karnataka</option>
+      <option value="Tamil Nadu">Tamil Nadu</option>
+      <option value="West Bengal">West Bengal</option>
+      <option value="Gujarat">Gujarat</option>
+      <option value="Jharkhand">Jharkhand</option>
+      <option value="Odisha">Odisha</option>
+      <option value="Punjab">Punjab</option>
+      <option value="Haryana">Haryana</option>
+    </select>
+  </div>
+
+  <p class="muted" style="font-size:12px;margin-bottom:10px;" id="schemeCountText">3 central + 1 state scheme available</p>
+
+  <!-- Scheme cards rendered by JS -->
+  <div id="schemesList"></div>
+</div>
+
+<!-- ===== PROFILE ===== -->
+<div class="screen" id="s-profile">
+  <div class="topbar"><h2>Profile</h2><button class="icon-btn" onclick="speakScreen('s-profile')">🔊</button></div>
+  <div class="card center-col" style="padding:22px;">
+    <div style="width:62px;height:62px;border-radius:50%;background:var(--teal-100);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--teal-700);font-family:'Baloo 2';" id="profileInitials">RK</div>
+    <h2 style="margin-top:10px;font-size:18px;" id="profileName">Ramesh Kumar</h2>
+    <p class="muted" id="profileCompany">BuildRight Constructions</p>
+  </div>
+  <div class="card">
+    <div class="breakdown-row"><span>Customer ID</span><span id="profileCustId">5832</span></div>
+    <div class="breakdown-row"><span>ECN</span><span id="profileEcn">ECN-48213</span></div>
+    <div class="breakdown-row"><span>PAN</span><span id="profilePan">AXXXX1234X</span></div>
+    <div class="breakdown-row"><span>Aadhaar</span><span id="profileAadhaar">XXXX XXXX 9012</span></div>
+    <div class="breakdown-row"><span>Bank</span><span id="profileBank">Not added yet</span></div>
+    <div class="breakdown-row"><span>VAN</span><span id="profileVan" style="font-family:'DM Mono',monospace;">NEEV00583201</span></div>
+    <div class="breakdown-row"><span>Address</span><span>Najafgarh, Delhi</span></div>
+  </div>
+  <p class="muted" style="font-size:12px;margin-bottom:14px;">To update PAN, Aadhaar or ECN, call support.</p>
+  <div class="company-item" onclick="go('s-documents')" style="margin-bottom:9px;">
+    <div class="scheme-ic">📄</div>
+    <div style="flex:1;"><b style="font-size:14px;">My documents</b><p class="muted" style="font-size:12px;">Loan agreement, statements, repayment schedules</p></div>
+    <span style="color:var(--teal-700);font-weight:700;">→</span>
+  </div>
+  <div class="company-item" onclick="openCustomerCareModal()" style="margin-bottom:9px;">
+    <div class="scheme-ic" style="background:#FCEBE3;color:var(--danger);">🎧</div>
+    <div style="flex:1;"><b style="font-size:14px;">Customer Care</b><p class="muted" style="font-size:12px;">Wrong deduction, delayed credit, charge dispute</p></div>
+    <span style="color:var(--teal-700);font-weight:700;">→</span>
+  </div>
+  <div class="company-item" onclick="openLangModal()">
+    <div class="scheme-ic">🌐</div>
+    <div style="flex:1;"><b style="font-size:14px;" id="langSummaryName2">English</b><p class="muted" style="font-size:12px;">Voice &amp; app language</p></div>
+    <span style="color:var(--teal-700);font-weight:700;">Change</span>
+  </div>
+  <div style="height:12px"></div>
+  <button class="btn btn-outline" onclick="logoutEmployee()">Log out</button>
+</div>
+
+</div><!-- /app-body -->
+
+<button class="fab-support" onclick="showModal()" title="Call support">📞</button>
+
+<div class="bottomnav" id="bottomNav" style="display:none;">
+  <button class="navbtn active" data-target="s-home" onclick="navTo('s-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Home</span></button>
+  <button class="navbtn" data-target="s-ledger" onclick="navTo('s-ledger')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>Ledger</span></button>
+  <button class="navbtn" onclick="requireBank(openScanner)" title="Scan &amp; Pay"><span class="navbtn-scan-icon">📷</span><span>Scan</span></button>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="customerCareModal">
+  <div class="modal-box">
+    <div style="font-size:30px;">🎧</div>
+    <h2 style="margin:10px 0 6px;font-size:17px;">Customer Care</h2>
+    <p class="muted" style="margin-bottom:14px;">How would you like to reach us?</p>
+    <button class="btn btn-primary" onclick="hideCustomerCareModal();go('s-grievance')">💬 Chat with us</button>
+    <div style="height:10px"></div>
+    <button class="btn btn-outline" onclick="hideCustomerCareModal();showModal()">📞 Call support</button>
+  </div>
+</div>
+<div class="modal-bg" id="supportModal">
+  <div class="modal-box">
+    <div style="font-size:30px;">📞</div>
+    <h2 style="margin:10px 0 6px;font-size:17px;">Calling Neev Support</h2>
+    <p class="muted">1800-XXX-XXXX · Available 8 AM to 8 PM</p>
+    <div style="height:14px"></div>
+    <button class="btn btn-outline" onclick="hideModal()">Close</button>
+  </div>
+</div>
+<div class="modal-bg" id="comingSoonModal">
+  <div class="modal-box">
+    <div style="font-size:30px;">🚧</div>
+    <h2 style="margin:10px 0 6px;font-size:17px;">Feature coming soon</h2>
+    <p class="muted" id="comingSoonText">This feature isn't available yet.</p>
+    <div style="height:14px"></div>
+    <button class="btn btn-outline" onclick="hideComingSoonModal()">Close</button>
+  </div>
+</div>
+<div class="modal-bg" id="enachModal">
+  <div class="modal-box" style="text-align:left;max-height:85%;overflow-y:auto;">
+    <div style="font-size:30px;text-align:center;">🏦</div>
+    <h2 style="margin:10px 0 4px;font-size:17px;text-align:center;">Set up E-NACH</h2>
+    <p class="muted" style="text-align:center;margin-bottom:14px;">This lets Neev check your bank account is valid and auto-debit it for repayment if needed.</p>
+    <div id="enachExistingBanner" style="display:none;background:var(--teal-100);border-radius:10px;padding:10px 14px;margin-bottom:14px;align-items:center;gap:8px;">
+      <span style="font-size:18px;">✅</span>
+      <p style="font-size:13px;color:var(--teal-900);font-weight:600;" id="enachExistingText">Using your existing account</p>
+    </div>
+    <div class="field-row">
+      <label class="field-label">Account holder name</label>
+      <input type="text" id="enachName" placeholder="e.g. Ramesh Kumar">
+    </div>
+    <div class="field-row">
+      <label class="field-label">Bank account number</label>
+      <input type="text" id="enachAccNum" placeholder="Enter account number">
+    </div>
+    <div class="field-row">
+      <label class="field-label">Confirm account number</label>
+      <input type="text" id="enachAccNumConfirm" placeholder="Re-enter account number">
+    </div>
+    <div class="field-row">
+      <label class="field-label">IFSC code</label>
+      <input type="text" id="enachIfsc" placeholder="e.g. SBIN0001234" maxlength="11" style="text-transform:uppercase;">
+    </div>
+    <div class="field-row">
+      <label class="field-label">Bank name</label>
+      <input type="text" id="enachBankName" placeholder="e.g. State Bank of India">
+    </div>
+    <button class="btn btn-primary" onclick="confirmEnachForm()">OK</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-outline" onclick="cancelEnachForm()">Back</button>
+  </div>
+</div>
+<div class="modal-bg" id="profileNameModal">
+  <div class="modal-box" style="text-align:left;">
+    <div style="font-size:30px;text-align:center;">👤</div>
+    <h2 style="margin:10px 0 4px;font-size:17px;text-align:center;">Complete your profile first</h2>
+    <p class="muted" style="text-align:center;margin-bottom:14px;">We match this with your employer's records.</p>
+    <div class="field-row">
+      <label class="field-label">Full name (as on Aadhaar)</label>
+      <input type="text" id="profileNameInput" placeholder="e.g. Ramesh Kumar">
+    </div>
+    <button class="btn btn-primary" onclick="saveProfileName()">Continue</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-outline" onclick="document.getElementById('profileNameModal').classList.remove('show')">Later</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="esignModal">
+  <div class="modal-box" style="text-align:left;max-height:85%;overflow-y:auto;">
+    <div style="font-size:30px;text-align:center;">✍️</div>
+    <h2 style="margin:10px 0 4px;font-size:17px;text-align:center;">E-Sign Loan Agreement</h2>
+    <p class="muted" style="text-align:center;margin-bottom:14px;">Agreement between you and Neev.</p>
+    <div id="esignFirstTimeBanner" style="background:var(--marigold-100);border-radius:8px;padding:10px;margin-bottom:14px;">
+      <p style="font-size:12px;color:var(--marigold-600);font-weight:600;margin:0;">⚡ After this, future advances need just OTP.</p>
+    </div>
+    <div id="esignRepeatBanner" style="display:none;background:var(--teal-50);border-radius:8px;padding:10px;margin-bottom:14px;">
+      <p style="font-size:12px;color:var(--teal-700);font-weight:600;margin:0;">⚡ Agreement already signed. Confirm with OTP.</p>
+    </div>
+    <div id="esignNameRow" class="field-row">
+      <label class="field-label">Type your full name to e-sign</label>
+      <input type="text" id="esignName" placeholder="e.g. Ramesh Kumar">
+    </div>
+    <div class="field-row">
+      <label class="field-label">Enter Aadhaar OTP</label>
+      <div class="otp-row" id="esignOtpRow" style="margin-bottom:0;">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="confirmEsignForm()">Confirm E-Sign</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-outline" onclick="cancelEsignForm()">Cancel</button>
+  </div>
+</div>
+<div class="modal-bg" id="loanTcModal">
+  <div class="modal-box" style="text-align:left;max-height:85%;overflow-y:auto;padding:22px 18px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <span style="font-size:24px;">📜</span>
+      <div><b style="font-size:16px;">Terms &amp; Conditions</b><p class="muted" style="font-size:11px;margin-top:2px;">Salary Advance Facility — Neev NBFC Pvt. Ltd.</p></div>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:14px;font-size:12px;line-height:1.7;color:var(--ink);max-height:340px;overflow-y:auto;border:1px solid var(--border);">
+      <p style="font-weight:700;margin-bottom:6px;">1. Nature of Facility</p>
+      <p style="margin-bottom:10px;">This is a short-term salary advance facility provided by Neev NBFC Pvt. Ltd. (RBI-registered NBFC). The advance is against salary already earned by the borrower and is repaid via employer payroll deduction on the next pay day.</p>
+      <p style="font-weight:700;margin-bottom:6px;">2. Eligibility &amp; Verification</p>
+      <p style="margin-bottom:10px;">The borrower must be a salaried employee whose employer has an active agreement with Neev. Identity is verified via Aadhaar e-KYC, PAN verification, and employer records (Employee Code Number). Employment and salary are confirmed through the employer's HRMS system.</p>
+      <p style="font-weight:700;margin-bottom:6px;">3. Loan Amount &amp; Tenure</p>
+      <p style="margin-bottom:10px;">The advance amount is limited to a percentage of the borrower's net earned salary for the current pay cycle. Tenure is from disbursement date to the borrower's next pay day (typically 1–4 weeks). The credit limit may increase based on on-time repayment history.</p>
+      <p style="font-weight:700;margin-bottom:6px;">4. Service Charges &amp; Fees</p>
+      <p style="margin-bottom:10px;">A service charge of ₹15 per ₹1,000 per week is applicable, plus 18% GST on the service charge. The annualised percentage rate (APR) is disclosed in the Key Fact Statement before every advance. No hidden charges. No foreclosure/prepayment penalty.</p>
+      <p style="font-weight:700;margin-bottom:6px;">5. Repayment &amp; Recovery</p>
+      <p style="margin-bottom:10px;">The full advance amount (principal + charges + GST) is deducted from the borrower's salary by the employer on pay day and remitted to Neev via Virtual Account Number (VAN). In case of employer delay, E-NACH mandate serves as backup recovery. Late payment attracts continued service charge at the same rate plus any bank bounce charges.</p>
+      <p style="font-weight:700;margin-bottom:6px;">6. Loan Agreement</p>
+      <p style="margin-bottom:10px;">The loan agreement between the borrower and Neev governs the advance, repayment, and salary deduction arrangement. This is signed electronically via Aadhaar e-Sign.</p>
+      <p style="font-weight:700;margin-bottom:6px;">7. E-NACH Mandate</p>
+      <p style="margin-bottom:10px;">The borrower authorises an E-NACH (electronic auto-debit) mandate on their bank account as a backup repayment mechanism, activated only if salary deduction fails.</p>
+      <p style="font-weight:700;margin-bottom:6px;">8. Cooling-Off Period</p>
+      <p style="margin-bottom:10px;">The borrower may cancel the advance within 24 hours of disbursement. In such case, only the principal amount needs to be repaid — no service charge or GST is levied.</p>
+      <p style="font-weight:700;margin-bottom:6px;">9. Data Privacy &amp; Consent</p>
+      <p style="margin-bottom:10px;">Borrower data (Aadhaar, PAN, bank statements, employment records) is collected and processed solely for credit assessment and loan servicing, in compliance with the Information Technology Act, 2000 and RBI's Digital Lending Guidelines (Sept 2022). Data shared via Account Aggregator is encrypted end-to-end per RBI norms.</p>
+      <p style="font-weight:700;margin-bottom:6px;">10. Grievance Redressal</p>
+      <p style="margin-bottom:10px;">Complaints can be raised via the app or by emailing grievance@neev.in. The Grievance Officer (Aarti Nair) will respond within 30 days. If unresolved, the borrower may escalate to the RBI Integrated Ombudsman (https://cms.rbi.org.in).</p>
+      <p style="font-weight:700;margin-bottom:6px;">11. Governing Law</p>
+      <p>These terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in New Delhi.</p>
+    </div>
+    <div style="height:14px"></div>
+    <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink);cursor:pointer;">
+      <input type="checkbox" id="tcAgreeCheck" onclick="toggleTcAgree()" style="margin-top:2px;width:20px;height:20px;flex-shrink:0;">
+      <span style="line-height:1.5;">I have read and agree to the above Terms &amp; Conditions, E-NACH mandate, and repayment plan.</span>
+    </label>
+    <div style="height:12px"></div>
+    <button class="btn btn-primary" id="tcConfirmBtn" disabled onclick="confirmTcModal()">Accept &amp; continue</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-outline" onclick="cancelTcModal()" style="font-size:13px;">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="agentModal">
+  <div class="modal-box" style="text-align:left;max-height:85%;overflow-y:auto;">
+    <div id="agentFormBlock">
+      <div style="font-size:30px;text-align:center;">🧑‍💼</div>
+      <h2 style="margin:10px 0 4px;font-size:17px;text-align:center;">Apply with an Agent</h2>
+      <p class="muted" style="margin-bottom:14px;text-align:center;" id="agentFormScheme">—</p>
+      <div class="field-row">
+        <label class="field-label">Full name</label>
+        <input type="text" id="agentName" placeholder="e.g. Ramesh Kumar">
+      </div>
+      <div class="field-row">
+        <label class="field-label">Mobile number</label>
+        <input type="tel" id="agentMobile" placeholder="98XXXXXXXX" maxlength="10">
+      </div>
+      <div class="field-row">
+        <label class="field-label">Aadhaar number</label>
+        <input type="text" id="agentAadhaar" placeholder="e.g. 1234 5678 9012" maxlength="14">
+      </div>
+      <div class="field-row">
+        <label class="field-label">Ration card number (if any)</label>
+        <input type="text" id="agentRationCard" placeholder="e.g. DL-01-023-004567">
+      </div>
+      <div class="field-row">
+        <label class="field-label">Category</label>
+        <select id="agentCategory"><option value="general">General</option><option value="obc">OBC</option><option value="sc">SC</option><option value="st">ST</option><option value="ews">EWS</option></select>
+      </div>
+      <div class="field-row">
+        <label class="field-label">Number of family members</label>
+        <input type="number" id="agentFamilySize" placeholder="e.g. 4" min="1">
+      </div>
+      <div class="field-row">
+        <label class="field-label">Annual family income</label>
+        <input type="text" id="agentFamilyIncome" placeholder="e.g. ₹1,80,000">
+      </div>
+      <div class="field-row">
+        <label class="field-label">Address</label>
+        <input type="text" id="agentAddress" placeholder="Where the agent should visit you">
+      </div>
+      <div class="field-row">
+        <label class="field-label">Preferred time to contact</label>
+        <select id="agentTime"><option value="morning">Morning (9 AM - 12 PM)</option><option value="afternoon">Afternoon (12 PM - 4 PM)</option><option value="evening">Evening (4 PM - 8 PM)</option></select>
+      </div>
+      <div class="card" style="background:var(--teal-100);border:none;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div><b style="font-size:13.5px;">Agent service fee</b><p class="muted" style="font-size:12px;margin-top:2px;">₹49, one-time</p></div>
+        <span style="color:var(--teal-700);font-weight:700;cursor:pointer;text-decoration:underline;white-space:nowrap;" onclick="openPaymentLink()">Pay ₹49 →</span>
+      </div>
+      <button class="btn btn-primary" onclick="submitAgentForm()">Submit request</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-outline" onclick="closeAgentForm()">Cancel</button>
+    </div>
+    <div id="agentAssigningBlock" style="display:none;text-align:center;">
+      <div style="font-size:26px;">⏳</div>
+      <p class="muted" style="margin-top:8px;">Finding an agent near you…</p>
+    </div>
+    <div id="agentAssignedBlock" style="display:none;text-align:center;">
+      <div style="font-size:30px;">✅</div>
+      <h2 style="margin:10px 0 6px;font-size:17px;">Agent assigned!</h2>
+      <p class="muted" id="agentAssignedText">—</p>
+      <div style="height:14px"></div>
+      <button class="btn btn-primary" onclick="closeAgentForm()">Done</button>
+    </div>
+  </div>
+</div>
+<!-- Camera Permission Dialog -->
+<div class="modal-bg" id="cameraPermModal">
+  <div class="modal-box" style="text-align:center;padding:28px 22px;">
+    <div style="width:56px;height:56px;border-radius:16px;background:var(--teal-100);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:28px;">📷</div>
+    <h2 style="font-size:17px;margin-bottom:6px;">Allow camera access</h2>
+    <p class="muted" style="font-size:13px;line-height:1.5;">Neev needs your camera to scan your Aadhaar card and read your details automatically.</p>
+    <div style="height:18px"></div>
+    <button class="btn btn-primary" onclick="grantCameraPermission()">Allow</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-outline" onclick="denyCameraPermission()">Enter manually instead</button>
+  </div>
+</div>
+
+<!-- Loan consents bottom-sheet (CIBIL, EPFO, ESIC — shown when proceeding from amount) -->
+<div class="modal-bg" id="loanConsentModal">
+  <div class="modal-box" style="padding:22px 18px;">
+    <b style="font-size:15px;display:block;margin-bottom:4px;">Allow loan consents</b>
+    <p class="muted" style="font-size:12px;margin-bottom:14px;">Tap each to allow, then continue.</p>
+    <div id="loanConsentList"></div>
+    <button class="btn btn-primary" id="loanConsentContinueBtn" style="margin-top:14px;" onclick="confirmLoanConsents()">Continue</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="aaConsentModal">
+  <div class="modal-box" style="padding:22px 18px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <span style="font-size:24px;">🏦</span>
+      <div><b style="font-size:15px;">Account Aggregator Consent</b><p class="muted" style="font-size:11px;margin-top:2px;">RBI-regulated data sharing</p></div>
+    </div>
+    <div style="background:var(--teal-100);border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;line-height:1.6;color:var(--ink);">
+      <p style="font-weight:600;margin-bottom:6px;">By giving consent, you authorise:</p>
+      <ul style="padding-left:16px;margin:0;">
+        <li>Neev's AA (FIU) to fetch your bank account details and transaction history for the last 6 months</li>
+        <li>Data will be used only for credit assessment and loan processing</li>
+        <li>Consent is valid for 6 months and can be revoked anytime</li>
+        <li>Your data is encrypted end-to-end per RBI Account Aggregator framework</li>
+      </ul>
+      <p style="margin-top:8px;font-size:11px;color:var(--muted);">Regulated under RBI Master Direction on Account Aggregator (DoR.FIN.REC.51/03.10.124/2021-22)</p>
+    </div>
+    <label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink);cursor:pointer;margin-bottom:14px;">
+      <input type="checkbox" id="aaConsentCheck" onclick="toggleAaConsentOtp()" style="margin-top:2px;width:20px;height:20px;flex-shrink:0;">
+      <span>I have read and agree to share my financial data via Account Aggregator for loan processing</span>
+    </label>
+    <div id="aaConsentOtpBlock" style="display:none;">
+      <p class="muted" style="font-size:12px;margin-bottom:8px;">Enter OTP sent to ****<span id="aaConsentPhoneLast4">XXXX</span></p>
+      <div class="otp-row" style="margin-bottom:10px;">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+        <input type="text" maxlength="1" class="otpd" oninput="otpMove(this)">
+      </div>
+      <button class="btn btn-primary" onclick="verifyAaConsentFromModal()">Verify & give consent</button>
+    </div>
+    <div id="aaConsentDoneBadge" style="display:none;text-align:center;padding:10px 0;">
+      <span style="color:var(--success);font-size:14px;font-weight:600;">✅ AA consent verified</span>
+    </div>
+    <div style="height:8px"></div>
+    <button class="btn btn-outline" onclick="closeAaConsentModal()" style="font-size:13px;">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="langModal">
+  <div class="modal-box" style="text-align:left;max-height:78%;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+    <div style="padding:24px 20px 14px;text-align:center;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--teal-700);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px;">🗣️</div>
+      <h2 style="font-size:17px;">Choose Language</h2>
+    </div>
+    <div style="padding:14px 20px 0;flex-shrink:0;display:none;">
+      <input type="text" id="langSearch" placeholder="Search language..." oninput="renderLangList()" style="min-height:44px;padding:12px 14px;">
+    </div>
+    <div id="langList" style="overflow-y:auto;padding:10px 20px 16px;flex:1;"></div>
+  </div>
+</div>
+</div><!-- /screen-wrap -->
+</div><!-- /phone -->
+</div>
+
+<!-- KFS collapsible sections -->
+<script>
+function toggleKfsSection(toggle){
+  var body=toggle.nextElementSibling;
+  var arrow=toggle.querySelector('.kfs-arrow');
+  if(body.style.maxHeight==='0px'||body.style.maxHeight===''){
+    body.style.maxHeight=body.scrollHeight+'px';
+    body.style.overflow='visible';
+    if(arrow) arrow.classList.add('open');
+  } else {
+    body.style.maxHeight='0';
+    body.style.overflow='hidden';
+    if(arrow) arrow.classList.remove('open');
+  }
+}
+</script>
+
+<!-- Loaded in dependency order: core state/helpers and i18n first, then one file per screen,
+     main.js last since it kicks off the first render pass across all of them. -->
+<script src="employee/js/core.js"></script>
+<script src="employee/js/account.js"></script>
+<script src="employee/js/permissions.js?v=3"></script>
+<script src="employee/js/loyalty.js?v=2"></script>
+<script src="employee/js/i18n.js?v=3"></script>
+<script src="employee/js/signup.js?v=5"></script>
+<script src="employee/js/pin.js"></script>
+<script src="employee/js/login.js"></script>
+<script src="employee/js/onboarding.js"></script>
+<script src="employee/js/employer-setup.js?v=11"></script>
+<script src="employee/js/home.js?v=6"></script>
+<script src="employee/js/pan.js?v=7"></script>
+<script src="employee/js/apply.js?v=11"></script>
+<script src="employee/js/enach.js?v=4"></script>
+<script src="employee/js/bankstatement.js?v=6"></script>
+<script src="employee/js/insurance.js"></script>
+<script src="employee/js/investment.js"></script>
+<script src="employee/js/bbps.js"></script>
+<script src="employee/js/ledger.js"></script>
+<script src="employee/js/history.js?v=2"></script>
+<script src="employee/js/documents.js"></script>
+<script src="employee/js/notifications.js"></script>
+<script src="employee/js/referral.js"></script>
+<script src="employee/js/grievance.js"></script>
+<script src="employee/js/schemes.js?v=3"></script>
+<script src="employee/js/main.js"></script>
+</body>
+</html>

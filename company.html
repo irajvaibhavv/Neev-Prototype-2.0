@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neev — Employer Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="shared/theme.css" rel="stylesheet">
+<link href="shared/dashboard.css" rel="stylesheet">
+<style>
+/* company.html-only: login screen + app shell toggle (not shared — admin.html has no login screen) */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#0B4F45,#123F38);padding:24px;}
+.login-box{background:#fff;border-radius:20px;padding:36px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.app-wrap{display:none;}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div class="sb-logo" style="margin:0 auto 12px;width:48px;height:48px;font-size:22px;border-radius:14px;">न</div>
+      <h2 style="font-size:20px;color:var(--t9);">Neev — Employer Portal</h2>
+      <p style="color:var(--mu);font-size:13px;margin-top:6px;">Manage your employees' salary advances</p>
+    </div>
+    <label class="fl">Registered mobile number</label>
+    <input type="tel" id="loginMobile" placeholder="98XXXXXXXX" maxlength="10" style="margin-bottom:12px;">
+    <button class="btn btn-outline" style="width:100%;margin-bottom:16px;" id="loginSendOtpBtn" onclick="sendCompanyOtp()">Send OTP</button>
+    <div id="loginOtpBlock" style="display:none;margin-bottom:16px;">
+      <label class="fl">Enter 4-digit OTP</label>
+      <input type="text" id="loginOtp" placeholder="e.g. 1234" maxlength="4" style="margin-bottom:8px;">
+      <p style="font-size:12px;color:var(--mu);" id="loginResendTxt">Resend OTP in <b id="loginResendTimer">30</b>s</p>
+    </div>
+    <div id="loginCinRow" style="display:none;margin-bottom:12px;">
+      <label class="fl">Company ID (CIN) <span style="color:var(--mu);font-weight:400;">— optional</span></label>
+      <input type="text" id="loginCin" placeholder="e.g. U45201DL2015PTC280001" style="text-transform:uppercase;">
+    </div>
+    <div style="display:flex;gap:16px;margin-bottom:12px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--t9);cursor:pointer;"><input type="radio" name="loginRole" value="company" checked onchange="toggleLoginBranch()"> Company Admin</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--t9);cursor:pointer;"><input type="radio" name="loginRole" value="branch" onchange="toggleLoginBranch()"> Area Manager</label>
+    </div>
+    <div id="loginBranchRow" style="display:none;margin-bottom:12px;">
+      <label class="fl">Branch / area</label>
+      <select id="loginBranch">
+        <option>Delhi Hub</option><option>Mumbai Hub</option><option>Bangalore Hub</option>
+      </select>
+    </div>
+    <button class="btn btn-dark" style="width:100%;padding:14px;font-size:15px;" onclick="doLogin()">Log in</button>
+    <p style="text-align:center;font-size:12px;color:var(--mu);margin-top:14px;">Only authorised HR personnel can access this portal. Each company sees only their own data.</p>
+    <p style="text-align:center;font-size:12px;color:var(--mu);margin-top:10px;">New company? <span style="color:var(--t7);font-weight:700;cursor:pointer;" onclick="showSignup()">Register here</span></p>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--brd);">
+      <p style="font-size:11px;color:var(--mu);text-align:center;">Demo: any mobile number + OTP 1234 works · logs in as BuildRight by default</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SIGN UP ===== -->
+<div class="login-wrap" id="signupWrap" style="display:none;">
+  <div class="login-box" style="max-width:600px;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div class="sb-logo" style="margin:0 auto 12px;width:48px;height:48px;font-size:22px;border-radius:14px;">न</div>
+      <h2 style="font-size:20px;color:var(--t9);">Register your company</h2>
+      <p style="color:var(--mu);font-size:13px;margin-top:6px;">One-time setup. Verified companies get faster payroll integration.</p>
+    </div>
+
+    <label class="fl">Company name</label>
+    <input type="text" id="suName" placeholder="e.g. BuildRight Constructions" style="margin-bottom:12px;">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div><label class="fl">CIN number</label><input type="text" id="suCin" placeholder="U45201DL2015PTC123456" style="margin-bottom:12px;"></div>
+      <div><label class="fl">GST number</label><input type="text" id="suGst" placeholder="07AAACB1234C1Z5" style="margin-bottom:12px;"></div>
+      <div><label class="fl">PAN</label><input type="text" id="suPan" placeholder="AAACB1234C" style="margin-bottom:12px;"></div>
+      <div><label class="fl">TAN</label><input type="text" id="suTan" placeholder="DELB12345C" style="margin-bottom:12px;"></div>
+    </div>
+
+    <label class="fl">HRMS portal used</label>
+    <select id="suHrms" style="margin-bottom:12px;">
+      <option>Manual Excel upload</option><option>API — Keka</option><option>API — greytHR</option><option>API — Zoho People</option><option>Other / not decided yet</option>
+    </select>
+
+    <label class="fl">Whitelisted server IP address</label>
+    <input type="text" id="suIp" placeholder="e.g. 203.0.113.42" style="margin-bottom:12px;">
+
+    <label class="fl">Company address</label>
+    <textarea id="suCompanyAddr" rows="2" oninput="syncHoAddress()" placeholder="Registered office address" style="width:100%;margin-bottom:12px;padding:12px;border-radius:8px;border:1.5px solid var(--brd);font-family:inherit;font-size:13px;"></textarea>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <input type="checkbox" id="suSameAddr" onchange="toggleSameAddress()" style="width:16px;height:16px;">
+      <label style="font-size:13px;color:var(--t9);">Head office address is same as company address</label>
+    </div>
+    <label class="fl">Head office address</label>
+    <textarea id="suHoAddr" rows="2" placeholder="Head office address" style="width:100%;margin-bottom:12px;padding:12px;border-radius:8px;border:1.5px solid var(--brd);font-family:inherit;font-size:13px;"></textarea>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div><label class="fl">Contact person</label><input type="text" id="suContact" placeholder="HR manager name" style="margin-bottom:12px;"></div>
+      <div><label class="fl">Work email</label><input type="email" id="suEmail" placeholder="hr@company.in" style="margin-bottom:12px;"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div><label class="fl">Create password</label><input type="password" id="suPass" placeholder="Choose a password" style="margin-bottom:12px;"></div>
+      <div><label class="fl">Confirm password</label><input type="password" id="suPass2" placeholder="Re-enter password" style="margin-bottom:16px;"></div>
+    </div>
+
+    <button class="btn btn-dark" style="width:100%;padding:14px;font-size:15px;" onclick="submitSignup()">Create company account</button>
+    <p style="text-align:center;font-size:12px;color:var(--mu);margin-top:14px;">Already registered? <span style="color:var(--t7);font-weight:700;cursor:pointer;" onclick="showLogin()">Log in</span></p>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div class="app-wrap" id="appWrap">
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">न</div>
+    <div><div class="sb-name">Neev</div><div class="sb-company" id="sbCompany">BuildRight Constructions</div><div id="sbScope" style="font-size:10px;color:var(--mu);margin-top:2px;">Company Admin · all branches</div></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Overview</div>
+    <div class="sb-item active" data-s="dashboard" onclick="nav('dashboard')">📊 Dashboard</div>
+    <div class="sb-item" data-s="employees" onclick="nav('employees')">👥 Active employees</div>
+    <div class="sb-section">Payroll</div>
+    <div class="sb-item" data-s="payroll" onclick="nav('payroll')">💰 Salary transfers</div>
+    <div class="sb-item" data-s="prepayday" onclick="nav('prepayday')">📋 Pre-payday confirm</div>
+    <div class="sb-item" data-s="settlement" onclick="nav('settlement')">📄 Settlement report</div>
+    <div class="sb-item" data-s="recon" onclick="nav('recon')">🔍 Reconciliation</div>
+    <div class="sb-section">Management</div>
+    <div class="sb-item" data-s="policy" onclick="nav('policy')">⚙️ Policy config</div>
+    <div class="sb-item" data-s="audit" onclick="nav('audit')">📜 Audit log</div>
+    <div class="sb-section">Other</div>
+    <div class="sb-item" data-s="referral" onclick="nav('referral')">🎁 Refer a company</div>
+    <div class="sb-item" data-s="settings" onclick="nav('settings')">🔧 Settings</div>
+    <div class="sb-section">&nbsp;</div>
+    <div class="sb-item" onclick="logout()">🚪 Log out</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- DASHBOARD -->
+<div class="screen active" id="s-dashboard">
+  <div class="topbar"><h1>Dashboard</h1><div class="topbar-right"><span style="font-size:13px;color:var(--mu);" id="topDate">31 Aug 2026</span></div></div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="lbl">Active employees</div><div class="val" id="d-empCount">24</div></div>
+    <div class="stat-card"><div class="lbl">Active loans</div><div class="val" id="d-loanCount">8</div></div>
+    <div class="stat-card"><div class="lbl">Total outstanding</div><div class="val" id="d-outstanding">₹42,000</div></div>
+    <div class="stat-card"><div class="lbl">Next payday</div><div class="val" id="d-payday">30th</div></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;">
+      <div>
+        <b style="font-size:16px;display:block;margin-bottom:4px;">📅 This cycle's payouts</b>
+        <p style="color:var(--mu);font-size:12px;">What you pay out this payroll cycle, and where each part goes. Cycle: 1–31 Aug 2026.</p>
+      </div>
+      <span class="badge badge-warn" style="flex-shrink:0;">Pays on 30th Aug</span>
+    </div>
+
+    <div style="font-size:12px;color:var(--mu);">Total payroll this cycle</div>
+    <p style="font-family:'DM Mono',monospace;font-size:30px;color:var(--t9);margin:4px 0 12px;" id="pc-totalPayroll">₹1,87,000</p>
+
+    <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--brd);">
+      <div id="pc-barNeev" style="background:var(--m5);width:16%;transition:width .4s;"></div>
+      <div id="pc-barEmp" style="background:var(--t7);width:84%;transition:width .4s;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mu);margin:6px 0 16px;">
+      <span><span style="color:var(--m5);">■</span> To Neev <b id="pc-pctNeev">16%</b></span>
+      <span><span style="color:var(--t7);">■</span> To employees <b id="pc-pctEmp">84%</b></span>
+    </div>
+
+    <div class="row-flex" style="margin-bottom:0;">
+      <div style="border:1px solid var(--m5);background:var(--m1);border-radius:12px;padding:14px;">
+        <div style="font-size:12px;color:var(--m6);font-weight:600;">→ Transfer to Neev (VAN)</div>
+        <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--t9);margin:6px 0 4px;" id="pc-toNeev">₹30,000</div>
+        <p style="font-size:11px;color:var(--mu);"><span id="pc-neevCount">8</span> employees took an advance this cycle</p>
+      </div>
+      <div style="border:1px solid var(--t5);background:var(--t1);border-radius:12px;padding:14px;">
+        <div style="font-size:12px;color:var(--t7);font-weight:600;">→ Pay to employees (bank)</div>
+        <div style="font-family:'DM Mono',monospace;font-size:22px;color:var(--t9);margin:6px 0 4px;" id="pc-toEmp">₹1,57,000</div>
+        <p style="font-size:11px;color:var(--mu);">Remaining salary for <span id="pc-empCount">11</span> employees</p>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" onclick="nav('payroll')">Review salary transfers →</button>
+      <button class="btn btn-outline btn-sm" onclick="exportPayroll()">📥 Export deduction file</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleDashLoanTable()">
+      <div>
+        <b style="font-size:16px;display:block;margin-bottom:4px;">💰 Loan amount given to each employee</b>
+        <p style="color:var(--mu);font-size:12px;">Simple view — who has taken an advance, how much, and when it's due. Biggest loans shown first.</p>
+      </div>
+      <button class="btn btn-outline btn-sm" id="dashLoanToggleBtn" style="flex-shrink:0;" onclick="event.stopPropagation();toggleDashLoanTable();">Show ▾</button>
+    </div>
+    <div style="overflow-x:auto;display:none;margin-top:12px;" id="dashLoanTable"></div>
+  </div>
+
+  <div class="card">
+    <b style="font-size:14px;display:block;margin-bottom:10px;">Payroll status</b>
+    <div class="detail-row"><span>Payroll cut-off</span><b id="d-cutoff">25th Aug</b></div>
+    <div class="detail-row"><span>Cut-off status</span><b id="d-cutoffStatus" style="color:var(--err);">Locked</b></div>
+    <div class="detail-row"><span>Pre-payday confirmed</span><b id="d-preconfirm">Not yet</b></div>
+    <div class="detail-row"><span>Deduction file</span><b><a href="#" onclick="exportPayroll();return false;" style="color:var(--t7);">Download Excel</a></b></div>
+  </div>
+
+  <b style="font-size:15px;display:block;margin:22px 0 12px;">Analytics</b>
+  <p style="color:var(--mu);font-size:13px;margin-bottom:16px;">Anonymised, aggregated insights. No individual employee names shown.</p>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="lbl">Platform adoption</div><div class="val">24/120</div><p style="font-size:11px;color:var(--mu);">20% of your workforce</p></div>
+    <div class="stat-card"><div class="lbl">Avg loan size</div><div class="val">₹4,200</div></div>
+    <div class="stat-card"><div class="lbl">Avg tenure</div><div class="val">2 wks</div></div>
+    <div class="stat-card"><div class="lbl">Repayment rate</div><div class="val" style="color:var(--ok);">98%</div></div>
+  </div>
+  <div class="row-flex">
+    <div class="card"><b style="font-size:14px;">Monthly borrowing trend</b><div style="height:140px;display:flex;align-items:flex-end;gap:8px;padding-top:20px;" id="analyticsChart"></div></div>
+    <div class="card"><b style="font-size:14px;">Peak borrowing periods</b>
+      <div class="detail-row" style="margin-top:10px;"><span>Mid-month (10th-18th)</span><b>62% of loans</b></div>
+      <div class="detail-row"><span>Festival season</span><b>+40% spike</b></div>
+      <div class="detail-row"><span>Month start (1st-5th)</span><b>8% of loans</b></div>
+    </div>
+  </div>
+  <div class="card"><b style="font-size:14px;display:block;margin-bottom:10px;">Department-wise usage (anonymised)</b>
+    <div class="detail-row"><span>Site Labour</span><b>38%</b><div class="progress-bar" style="width:120px;"><div class="progress-fill" style="width:38%;"></div></div></div>
+    <div class="detail-row"><span>Delivery</span><b>28%</b><div class="progress-bar" style="width:120px;"><div class="progress-fill" style="width:28%;"></div></div></div>
+    <div class="detail-row"><span>Security</span><b>22%</b><div class="progress-bar" style="width:120px;"><div class="progress-fill" style="width:22%;"></div></div></div>
+    <div class="detail-row"><span>Housekeeping</span><b>12%</b><div class="progress-bar" style="width:120px;"><div class="progress-fill" style="width:12%;"></div></div></div>
+  </div>
+
+  <div class="card" style="background:var(--t1);border-color:var(--t5);">
+    <b style="font-size:14px;display:block;margin-bottom:4px;color:var(--t9);">📈 Employee retention impact</b>
+    <p style="color:var(--mu);font-size:12px;margin-bottom:10px;">Employees using Neev stay longer and are less likely to leave within their first year — the strongest reason to keep offering this benefit.</p>
+    <div class="row-flex">
+      <div class="detail-row"><span>Attrition rate</span><b>Neev users 8% <span style="color:var(--mu);font-weight:400;">vs</span> Non-users 22%</b></div>
+      <div class="detail-row"><span>Avg tenure</span><b>Neev users 14 mo <span style="color:var(--mu);font-weight:400;">vs</span> Non-users 7 mo</b></div>
+      <div class="detail-row"><span>Absenteeism</span><b>Neev users 3% <span style="color:var(--mu);font-weight:400;">vs</span> Non-users 9%</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <b style="font-size:14px;display:block;margin-bottom:10px;">Branch health</b>
+    <div id="branchHealthList"></div>
+  </div>
+</div>
+
+<!-- ACTIVE EMPLOYEES -->
+<div class="screen" id="s-employees">
+  <div class="topbar"><h1>Active employees</h1><div class="topbar-right"><button class="btn btn-dark btn-sm" id="addEmpBtn" style="display:none;" onclick="openAddEmployee()">+ Add employee</button><button class="btn btn-outline btn-sm" id="bulkUploadBtn" style="display:none;" onclick="nav('bulk-upload')">📤 Bulk upload</button><button class="btn btn-outline btn-sm" onclick="exportEmployees()">Export CSV</button></div></div>
+  <div class="search-bar">
+    <input type="text" id="empSearch" placeholder="Search by name, ECN, branch, or department..." oninput="renderEmployees()">
+    <select id="empBranchFilter" onchange="renderEmployees()" style="width:160px;"></select>
+    <select id="empFilter" onchange="renderEmployees()" style="width:180px;">
+      <option value="active_loan" selected>With active loan</option>
+      <option value="all">All employees</option>
+      <option value="no_loan">No loan</option>
+    </select>
+  </div>
+  <div id="empTable"></div>
+</div>
+
+<!-- ADD EMPLOYEE (admin only) -->
+<div class="screen" id="s-add-employee">
+  <div class="topbar"><h1><span style="cursor:pointer;color:var(--t7);" onclick="nav('employees')">← Employees</span> / Add employee</h1></div>
+  <p style="color:var(--mu);font-size:13px;margin-bottom:16px;">Add field staff, HR, or managers and assign them to a branch. Company Admin only.</p>
+  <div class="row-flex">
+    <div class="card">
+      <label class="fl">Full name</label>
+      <input type="text" id="ae-name" placeholder="e.g. Priya Sharma" style="margin-bottom:12px;">
+      <label class="fl">ECN (Employee Code Number)</label>
+      <input type="text" id="ae-ecn" placeholder="e.g. ECN-49501" style="margin-bottom:12px;">
+      <label class="fl">Branch</label>
+      <select id="ae-branch" style="margin-bottom:12px;">
+        <option>Delhi Hub</option><option>Mumbai Hub</option><option>Bangalore Hub</option>
+      </select>
+    </div>
+    <div class="card">
+      <label class="fl">Role / designation</label>
+      <select id="ae-desig" onchange="onAeDesigChange()" style="margin-bottom:12px;">
+        <optgroup label="Office / management">
+          <option>HR Manager</option><option>Area Manager</option><option>Branch Manager</option><option>Operations Lead</option>
+        </optgroup>
+        <optgroup label="Field staff">
+          <option>Mason</option><option>Helper</option><option>Guard</option><option>Rider</option><option>Loader</option><option>Cleaner</option><option>Supervisor</option><option>Foreman</option><option>Painter</option>
+        </optgroup>
+      </select>
+      <label class="fl">Department</label>
+      <select id="ae-dept" style="margin-bottom:12px;">
+        <option>HR</option><option>Management</option><option>Site Labour</option><option>Delivery</option><option>Security</option><option>Housekeeping</option>
+      </select>
+      <label class="fl">Employment type</label>
+      <select id="ae-type" style="margin-bottom:12px;"><option>Full-time</option><option>Contract</option></select>
+      <label class="fl">Monthly salary (₹)</label>
+      <input type="text" id="ae-salary" placeholder="e.g. 35000" style="margin-bottom:12px;">
+    </div>
+  </div>
+  <button class="btn btn-dark" onclick="addEmployee()">Add employee</button>
+</div>
+
+<!-- BULK UPLOAD (admin only) -->
+<div class="screen" id="s-bulk-upload">
+  <div class="topbar"><h1><span style="cursor:pointer;color:var(--t7);" onclick="nav('employees')">← Employees</span> / Bulk upload</h1></div>
+  <p style="color:var(--mu);font-size:13px;margin-bottom:16px;">Add many employees at once via CSV. Company Admin only.</p>
+  <div class="card">
+    <b style="font-size:14px;display:block;margin-bottom:6px;">Step 1 — Download the template</b>
+    <p style="color:var(--mu);font-size:12px;margin-bottom:10px;">Columns: name, ecn, branch, dept, desig, type, salary</p>
+    <a id="csvTemplateLink" class="btn btn-outline btn-sm" style="display:inline-flex;width:auto;text-decoration:none;" download="neev_employee_template.csv" href="#">📥 Download CSV template</a>
+  </div>
+  <div class="card">
+    <b style="font-size:14px;display:block;margin-bottom:10px;">Step 2 — Upload your filled CSV</b>
+    <input type="file" id="bulkCsvFile" accept=".csv" onchange="handleBulkCsv(event)">
+  </div>
+  <div id="bulkPreviewWrap" style="display:none;">
+    <div class="card">
+      <b style="font-size:14px;display:block;margin-bottom:6px;">Step 3 — Review &amp; confirm</b>
+      <p style="color:var(--mu);font-size:12px;margin-bottom:10px;" id="bulkSummary"></p>
+      <div style="overflow-x:auto;"><table class="tbl" id="bulkPreviewTable"></table></div>
+      <button class="btn btn-dark" style="margin-top:14px;" id="bulkConfirmBtn" onclick="confirmBulkImport()">Import valid rows</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMPLOYEE DETAIL -->
+<div class="screen" id="s-emp-detail">
+  <div class="topbar"><h1><span style="cursor:pointer;color:var(--t7);" onclick="nav('employees')">← Employees</span> / <span id="ed-name">Ramesh Kumar</span></h1></div>
+  <div class="row-flex">
+    <div class="card">
+      <b style="font-size:14px;display:block;margin-bottom:12px;">Employee info</b>
+      <div class="detail-row"><span>ECN</span><b id="ed-ecn">ECN-48213</b></div>
+      <div class="detail-row"><span>Branch</span><b id="ed-branch">Delhi Hub</b></div>
+      <div class="detail-row"><span>Department</span><b id="ed-dept">Site Labour</b></div>
+      <div class="detail-row"><span>Designation</span><b id="ed-desig">Mason</b></div>
+      <div class="detail-row"><span>Joined</span><b id="ed-joined">12 Mar 2024</b></div>
+      <div class="detail-row"><span>Type</span><b id="ed-type">Full-time</b></div>
+      <div class="detail-row"><span>Monthly salary</span><b id="ed-salary">₹20,000</b></div>
+      <div style="margin-top:12px;"><button class="btn btn-danger btn-sm" onclick="flagExit()">🚪 Flag for exit</button></div>
+    </div>
+    <div class="card">
+      <b style="font-size:14px;display:block;margin-bottom:12px;">Current loan</b>
+      <div id="ed-loanInfo"></div>
+    </div>
+  </div>
+  <div class="row-flex">
+    <div class="card">
+      <b style="font-size:14px;display:block;margin-bottom:12px;">Rate this employee</b>
+      <p style="font-size:12px;color:var(--mu);margin-bottom:10px;">Rate performance, reliability, conduct — whatever your team tracks.</p>
+      <div id="ed-starRow" style="font-size:24px;letter-spacing:6px;"></div>
+    </div>
+    <div class="card">
+      <b style="font-size:14px;display:block;margin-bottom:12px;">Loan history</b>
+      <div id="ed-loanHistory"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYROLL -->
+<div class="screen" id="s-payroll">
+  <div class="topbar"><h1>Salary transfers</h1><div class="topbar-right"><button class="btn btn-primary" onclick="exportPayroll()">📥 Export deduction file</button></div></div>
+  <p style="color:var(--mu);font-size:13px;margin-bottom:6px;">Deduct the loan amount from each employee's salary. Transfer only the deduction amount to Neev's VAN. Pay the remaining salary directly to the employee's bank.</p>
+  <div class="card" style="background:var(--m1);border-color:var(--m5);">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><b style="font-size:14px;color:var(--m6);">Total to transfer to Neev</b><p style="font-family:'DM Mono',monospace;font-size:28px;color:var(--t9);margin-top:4px;" id="payroll-total">₹42,000</p><p style="font-size:12px;color:var(--mu);margin-top:4px;">Remaining salary (₹<span id="payroll-remaining">4,38,000</span>) goes directly to employees' bank accounts</p></div>
+      <div><span class="badge badge-active" id="payroll-status">Pending</span></div>
+    </div>
+  </div>
+  <div id="payrollTable"></div>
+</div>
+
+<!-- PRE-PAYDAY CONFIRMATION -->
+<div class="screen" id="s-prepayday">
+  <div class="topbar"><h1>Pre-payday confirmation</h1></div>
+  <p style="color:var(--mu);font-size:13px;margin-bottom:16px;">Confirm that your company will transfer salary to the listed VANs on payday. This helps Neev prepare instant crediting for your employees.</p>
+  <div class="card">
+    <div class="detail-row"><span>Pay day</span><b>30th Aug 2026</b></div>
+    <div class="detail-row"><span>Employees with active loans</span><b id="pp-empCount">8</b></div>
+    <div class="detail-row"><span>Total deduction to transfer to Neev</span><b id="pp-total">₹42,000</b></div>
+    <div class="detail-row"><span>Total advance deductions</span><b id="pp-deductions">₹42,000</b></div>
+  </div>
+  <div class="card" style="text-align:center;padding:24px;" id="pp-confirmCard">
+    <p style="font-size:14px;margin-bottom:14px;">By confirming, you commit to deducting the loan amounts from employees' salary, transferring the deduction to Neev's VANs, and paying the remaining salary directly to employees on 30th Aug.</p>
+    <button class="btn btn-dark" style="padding:14px 32px;font-size:15px;" onclick="confirmPrePayday()">✅ Confirm transfer commitment</button>
+  </div>
+  <div class="card" style="display:none;text-align:center;padding:24px;border-color:var(--ok);" id="pp-doneCard">
+    <div style="font-size:28px;margin-bottom:8px;">✅</div>
+    <b style="font-size:16px;color:var(--ok);">Confirmed</b>
+    <p style="color:var(--mu);font-size:13px;margin-top:6px;">Your commitment has been recorded. Neev will prepare instant crediting for your employees on payday.</p>
+  </div>
+</div>
+
+<!-- POST-PAYDAY SETTLEMENT -->
+<div class="screen" id="s-settlement">
+  <div class="topbar"><h1>Post-payday settlement</h1><div class="topbar-right"><button class="btn btn-outline btn-sm" onclick="toast('Downloading settlement report…')">📥 Download PDF</button></div></div>
+  <p style="color:var(--mu);font-size:13px;margin-bottom:16px;">Summary of payday actions. Shows each employee's salary, how much was deducted and sent to Neev, and how much was paid to the employee directly.</p>
+  <div id="settlementTable"></div>
+</div>
+
+<!-- RECONCILIATION -->
+<div class="screen" id="s-recon">
+  <div class="topbar"><h1>Reconciliation tracker</h1><div class="topbar-right"><button class="btn btn-outline btn-sm" onclick="toast('Downloading recon report…')">📥 Export</button></div></div>
+  <p style="color:var(--mu);font-size:13px;margin-bottom:16px;">Real-time VAN receipt status. Updated as transfers are confirmed by the bank.</p>
+  <div id="reconTable"></div>
+</div>
+
+<!-- POLICY -->
+<div class="screen" id="s-policy">
+  <div class="topbar"><h1>Policy configuration</h1></div>
+  <p style="color:var(--mu);font-size:13px;margin-bottom:16px;">Set rules that get enforced automatically. Employees outside these rules cannot borrow.</p>
+  <div class="row-flex">
+    <div class="card">
+      <label class="fl">Max deduction from salary (%)</label>
+      <select id="polMaxDeduct" style="margin-bottom:14px;"><option>30%</option><option selected>40%</option><option>50%</option></select>
+      <label class="fl">Minimum tenure to borrow</label>
+      <select id="polMinTenure" style="margin-bottom:14px;"><option>No minimum</option><option selected>3 months</option><option>6 months</option></select>
+      <label class="fl">Eligible employee types</label>
+      <select id="polEmpType" style="margin-bottom:14px;"><option selected>Full-time only</option><option>Full-time + Contract</option><option>All types</option></select>
+    </div>
+    <div class="card">
+      <label class="fl">Probation restriction</label>
+      <select id="polProbation" style="margin-bottom:14px;"><option selected>Block during probation</option><option>Allow during probation</option></select>
+      <label class="fl">Payroll cut-off (days before payday)</label>
+      <select id="polCutoff" style="margin-bottom:14px;"><option>3 days</option><option selected>5 days</option><option>7 days</option></select>
+      <label class="fl">Fast-track score threshold</label>
+      <select id="polAutoApprove" style="margin-bottom:14px;"><option>60+ (Good or above)</option><option selected>80+ (Excellent only)</option><option>Off — review every request equally</option></select>
+      <p style="font-size:11px;color:var(--mu);margin:-10px 0 14px;">Every loan request still needs your manual approval. This just moves high-score employees' requests to the top of your queue.</p>
+    </div>
+  </div>
+  <button class="btn btn-dark" onclick="savePolicy()">Save policy</button>
+</div>
+
+<!-- REFERRAL -->
+<div class="screen" id="s-referral">
+  <div class="topbar"><h1>Refer a company</h1></div>
+  <div class="card" style="background:var(--m1);border-color:var(--m5);">
+    <b style="font-size:16px;color:var(--m6);">🎁 Refer another company to Neev</b>
+    <p style="color:var(--mu);font-size:13px;margin-top:6px;">Both companies get reduced service charges for the first month when the referred company onboards.</p>
+  </div>
+  <label class="fl">Company name</label>
+  <input type="text" id="refCompName" placeholder="e.g. ABC Logistics" style="margin-bottom:12px;">
+  <label class="fl">Contact person name</label>
+  <input type="text" id="refContactName" placeholder="HR manager name" style="margin-bottom:12px;">
+  <label class="fl">Contact email or phone</label>
+  <input type="text" id="refContactInfo" placeholder="Email or phone number" style="margin-bottom:16px;">
+  <button class="btn btn-primary" onclick="submitReferral()">Submit referral</button>
+  <div style="height:20px"></div>
+  <div class="card" id="empDemandCard" style="border-color:var(--t5);background:var(--t1);">
+    <b style="font-size:14px;color:var(--t9);">📊 Employee demand from unreferred companies</b>
+    <p style="color:var(--mu);font-size:13px;margin-top:6px;">42 employees from ABC Pvt Ltd have already applied on Neev. 18 from XYZ Services. You can refer them to fast-track onboarding.</p>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen" id="s-settings">
+  <div class="topbar"><h1>Settings</h1></div>
+  <div class="row-flex">
+    <div class="card">
+      <b style="font-size:14px;display:block;margin-bottom:12px;">HRMS integration</b>
+      <label class="fl">Integration method</label>
+      <select id="setIntegration" style="margin-bottom:12px;"><option selected>Manual Excel upload</option><option>API — Keka</option><option>API — greytHR</option><option>API — Zoho People</option></select>
+      <label class="fl">Deduction file delivery</label>
+      <select id="setDelivery" style="margin-bottom:12px;"><option selected>Download from portal</option><option>Auto-email to HR on 25th</option><option>Push to HRMS via API</option></select>
+      <button class="btn btn-outline btn-sm" onclick="toast('Integration settings saved.')">Save</button>
+    </div>
+    <div class="card">
+      <b style="font-size:14px;display:block;margin-bottom:12px;">Admin users</b>
+      <div class="detail-row"><span>priya.hr@buildright.in</span><b>Admin</b></div>
+      <div class="detail-row"><span>accounts@buildright.in</span><b>Finance</b></div>
+      <div style="margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="toast('Invite sent.')">+ Add admin</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <b style="font-size:14px;display:block;margin-bottom:12px;">Company profile</b>
+    <p style="color:var(--mu);font-size:12px;margin-bottom:12px;">Everything Neev has on file for your company, exactly as submitted (or verified) during onboarding.</p>
+    <div class="detail-row"><span>Company</span><b id="setCompanyName">BuildRight Constructions</b></div>
+    <div class="detail-row"><span>CIN</span><b class="van-mono" id="cp-cin">—</b></div>
+    <div class="detail-row"><span>GST number</span><b class="van-mono" id="cp-gst">—</b></div>
+    <div class="detail-row"><span>PAN</span><b class="van-mono" id="cp-pan">—</b></div>
+    <div class="detail-row"><span>TAN</span><b class="van-mono" id="cp-tan">—</b></div>
+    <div class="detail-row"><span>HRMS integration</span><b id="cp-hrms">—</b></div>
+    <div class="detail-row"><span>Whitelisted IP</span><b class="van-mono" id="cp-ip">—</b></div>
+    <div class="detail-row"><span>Company address</span><b id="cp-companyAddr">—</b></div>
+    <div class="detail-row"><span>Head office address</span><b id="cp-hoAddr">—</b></div>
+    <div class="detail-row"><span>Contact person</span><b id="cp-contact">—</b></div>
+    <div class="detail-row"><span>Contact email</span><b id="cp-email">—</b></div>
+    <div class="detail-row"><span>Employees on Neev</span><b id="cp-employees">—</b></div>
+  </div>
+  <div class="card">
+    <b style="font-size:14px;display:block;margin-bottom:12px;">Scheduled report delivery</b>
+    <p style="color:var(--mu);font-size:12px;margin-bottom:12px;">Automatically email deduction files or settlement reports instead of downloading manually every cycle.</p>
+    <div class="row-flex">
+      <div>
+        <label class="fl">Report</label>
+        <select id="setReportType" style="margin-bottom:12px;"><option>Deduction file</option><option>Settlement report</option><option>Both</option></select>
+      </div>
+      <div>
+        <label class="fl">Frequency</label>
+        <select id="setReportFreq" style="margin-bottom:12px;"><option>Weekly</option><option selected>Monthly</option><option>Every payday</option></select>
+      </div>
+    </div>
+    <label class="fl">Recipient email(s)</label>
+    <input type="text" id="setReportRecipients" placeholder="hr@buildright.in, accounts@buildright.in" style="margin-bottom:12px;">
+    <button class="btn btn-outline btn-sm" onclick="saveReportSchedule()">Save schedule</button>
+    <p style="color:var(--mu);font-size:12px;margin-top:10px;" id="reportScheduleStatus">No schedule set — reports must be downloaded manually.</p>
+  </div>
+</div>
+
+<!-- AUDIT LOG -->
+<div class="screen" id="s-audit">
+  <div class="topbar"><h1>Audit log</h1></div>
+  <p style="color:var(--mu);font-size:13px;margin-bottom:16px;">Every HR action taken this session — approvals, employee changes, policy updates — with who did it and when.</p>
+  <div id="auditList"></div>
+  <div id="auditEmpty" class="card" style="text-align:center;padding:30px;"><p style="color:var(--mu);">No actions logged yet this session.</p></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app-wrap -->
+
+<div class="toast" id="toast"></div>
+
+<script src="shared/components.js"></script>
+<script src="company/js/data.js"></script>
+<script src="company/js/scope.js"></script>
+<script src="company/js/scoring.js"></script>
+<script src="company/js/audit.js"></script>
+<script src="company/js/signup.js"></script>
+<script src="company/js/login.js"></script>
+<script src="company/js/persist.js"></script>
+<script src="company/js/dashboard.js"></script>
+<script src="company/js/employees.js"></script>
+<script src="company/js/bulk.js"></script>
+<script src="company/js/payroll.js"></script>
+<script src="company/js/settlement.js"></script>
+<script src="company/js/recon.js"></script>
+<script src="company/js/policy.js"></script>
+<script src="company/js/settings.js"></script>
+<script src="company/js/analytics.js"></script>
+<script src="company/js/referral.js"></script>
+<script src="company/js/main.js"></script>
+</body>
+</html>
