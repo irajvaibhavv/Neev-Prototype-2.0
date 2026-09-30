@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <link href="shared/theme.css" rel="stylesheet">
-<link href="employee/style.css?v=6" rel="stylesheet">
+<link href="employee/style.css?v=7" rel="stylesheet">
 <style>
 :root{--bg:#F1F6F3;} /* employee app uses a slightly cooler background than the dashboards */
 body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;color:var(--ink);}
@@ -129,15 +129,6 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
   </div>
 </div>
 
-<!-- ===== SIGN UP: SUCCESS ===== -->
-<div class="screen" id="s-signup-success">
-  <div class="center-col">
-    <div class="success-tick"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M4 12l6 6L20 6" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <h2 style="font-size:20px;">Successfully signed up!</h2>
-    <p class="muted" style="margin-top:6px;">Your identity is verified. Log in to start using Neev.</p>
-  </div>
-  <button class="btn btn-primary" onclick="go('s-login')">Continue to login</button>
-</div>
 
 <!-- ===== SIGN UP: PHONE + OTP + NAME (lightweight, then straight to home) ===== -->
 <div class="screen" id="s-signup">
@@ -167,257 +158,13 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
     </div>
   </div>
 
-  <!-- Company step (shown after OTP verified — capture employer name for lead gen) -->
-  <div id="signupCompanyBlock" style="display:none;">
-    <div style="height:16px"></div>
-    <div class="onb-input-card">
-      <div class="center-col" style="margin-bottom:12px;">
-        <div style="font-size:28px;margin-bottom:4px;">🏢</div>
-        <b style="font-size:15px;color:var(--teal-900);">Where do you work?</b>
-        <p class="muted" style="font-size:12px;margin-top:4px;">Select your company or type it in</p>
-      </div>
-      <label class="field-label">Company name</label>
-      <select id="signupCompanySelect" onchange="onSignupCompanyChange()" style="margin-bottom:10px;">
-        <option value="">— Select your company —</option>
-        <option value="BuildRight Constructions">BuildRight Constructions</option>
-        <option value="QuickServe Logistics">QuickServe Logistics</option>
-        <option value="SecureGuard Facilities">SecureGuard Facilities</option>
-        <option value="Zomato">Zomato</option>
-        <option value="Swiggy">Swiggy</option>
-        <option value="Urban Company">Urban Company</option>
-        <option value="BigBasket">BigBasket</option>
-        <option value="Dunzo">Dunzo</option>
-        <option value="Porter">Porter</option>
-        <option value="Rapido">Rapido</option>
-        <option value="other">Other (type below)</option>
-      </select>
-      <div id="signupCompanyOtherRow" style="display:none;">
-        <label class="field-label">Enter your company name</label>
-        <input type="text" id="signupCompanyOther" placeholder="e.g. ABC Pvt. Ltd.">
-      </div>
-      <div style="height:12px"></div>
-      <button class="btn btn-primary" onclick="continueFromSignupCompany()">Continue</button>
-    </div>
-  </div>
 
   <div style="height:16px"></div>
   <p class="muted" style="text-align:center;font-size:13px;">Already have an account? <span style="color:var(--teal-700);font-weight:700;cursor:pointer;" onclick="go('s-login')">Log in</span></p>
   <p class="muted" style="text-align:center;font-size:12px;margin-top:16px;">Demo device? <span style="color:var(--danger);font-weight:700;cursor:pointer;" onclick="resetAllDemoData()">Clear all data &amp; start fresh</span></p>
 </div>
 
-<!-- ===== SIGN UP: AADHAAR SCAN (separate screen after company select) ===== -->
-<div class="screen" id="s-signup-aadhaar">
-  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-signup')">←</button><h2>Aadhaar Verification</h2></div><button class="icon-btn" onclick="speakScreen('s-signup-aadhaar')">🔊</button></div>
-  <div style="height:8px"></div>
-  <div class="onb-input-card">
-    <div class="center-col" style="margin-bottom:12px;">
-      <div style="font-size:28px;margin-bottom:4px;">🪪</div>
-      <b style="font-size:15px;color:var(--teal-900);">Scan your Aadhaar card</b>
-      <p class="muted" style="font-size:12px;margin-top:4px;">We'll read your name and details from it</p>
-    </div>
-    <div id="signupAadhaarCapture">
-      <div class="card center-col" style="padding:24px 18px;border-style:dashed;cursor:pointer;" onclick="captureSignupAadhaar()">
-        <div style="font-size:30px;margin-bottom:6px;">📷</div>
-        <b style="font-size:14px;">Take Aadhaar photo</b>
-      </div>
-      <p style="text-align:center;font-size:13px;margin-top:8px;">or <span style="color:var(--teal-700);font-weight:700;cursor:pointer;" onclick="showSignupAadhaarManual()">enter number manually</span></p>
-    </div>
-    <div id="signupAadhaarScanning" style="display:none;">
-      <div class="card center-col" style="padding:22px;">
-        <div style="font-size:24px;">⏳</div>
-        <p class="muted" style="margin-top:8px;">Reading Aadhaar card…</p>
-      </div>
-    </div>
-    <div id="signupAadhaarConfirm" style="display:none;">
-      <div class="card" style="background:var(--teal-100);border:none;margin-bottom:12px;">
-        <p style="font-size:13px;color:var(--teal-900);font-weight:600;">✅ Details read from your Aadhaar</p>
-      </div>
-      <div class="field-row"><label class="field-label">Name (as on Aadhaar)</label><input type="text" id="signupAadhaarName" readonly style="background:var(--bg);"></div>
-      <div class="field-row"><label class="field-label">Aadhaar number</label><input type="text" id="signupAadhaarNum" readonly style="background:var(--bg);"></div>
-      <div id="signupAddressBlock" style="display:none;">
-        <div style="height:12px"></div>
-        <div class="card" style="border-color:var(--teal-300);">
-          <p style="font-size:13px;font-weight:600;color:var(--teal-700);margin-bottom:6px;">📍 Address on Aadhaar</p>
-          <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px;" id="signupAadhaarAddr"></p>
-          <label style="display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink);cursor:pointer;">
-            <input type="checkbox" id="sameAddressCheck" onclick="toggleSignupAddress()" checked style="margin-top:2px;width:20px;height:20px;flex-shrink:0;">
-            <span style="font-size:13px;line-height:1.5;">This is my current address</span>
-          </label>
-        </div>
-        <div id="currentAddressFields" style="display:none;">
-          <p style="font-size:13px;font-weight:600;color:var(--teal-700);margin:12px 0 8px;">Current address</p>
-          <div class="field-row"><label class="field-label">Address line</label><input type="text" id="currentAddrLine" placeholder="e.g. Room 3, Chawl No. 12, Dharavi"></div>
-          <div class="field-row"><label class="field-label">City</label><input type="text" id="currentAddrCity" placeholder="e.g. Mumbai"></div>
-          <div style="display:flex;gap:10px;">
-            <div class="field-row" style="flex:1;"><label class="field-label">State</label><input type="text" id="currentAddrState" placeholder="e.g. Maharashtra"></div>
-            <div class="field-row" style="flex:1;"><label class="field-label">PIN code</label><input type="text" id="currentAddrPin" placeholder="e.g. 400017" maxlength="6"></div>
-          </div>
-        </div>
-      </div>
-      <div style="height:12px"></div>
-      <button class="btn btn-primary" onclick="completeSignup()">Continue</button>
-    </div>
-    <div id="signupAadhaarManual" style="display:none;">
-      <div class="field-row"><label class="field-label">Aadhaar number</label><input type="text" id="signupAadhaarManualNum" placeholder="e.g. 1234 5678 9012" maxlength="14"></div>
-      <button class="btn btn-primary" onclick="completeSignupManualAadhaar()">Verify &amp; continue</button>
-    </div>
-  </div>
-</div>
 
-<!-- ===== IDENTITY VERIFICATION: PAN + Aadhaar + Photo (triggered from loans or profile nudge) ===== -->
-<div class="screen" id="s-identity-verify">
-  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Verify your identity</h2></div><button class="icon-btn" onclick="speakScreen('s-identity-verify')">🔊</button></div>
-
-  <div class="voice-bar">
-    <span class="voice-lang-chip">🇬🇧 EN</span>
-    <button class="voice-play-btn" onclick="speakScreen('s-identity-verify')">▶</button>
-    <span class="voice-label" id="idvVoiceLabel">PAN capture</span>
-    <span class="voice-speaker" onclick="speakScreen('s-identity-verify')">🔊</span>
-  </div>
-
-  <div>
-    <div class="card" style="margin-bottom:16px;">
-      <p style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;">🔒 Identity Verification <span class="muted" style="font-weight:500;font-size:11.5px;margin-left:auto;">Aadhaar required · PAN optional</span></p>
-      <div class="idv-tracker">
-        <div class="idv-node active" id="idvNodePan"><div class="ring">○</div><b>PAN</b><span id="idvStatusPan">In progress</span></div>
-        <div class="idv-connector"></div>
-        <div class="idv-node pending" id="idvNodeAadhaar"><div class="ring">○</div><b>Aadhaar</b><span id="idvStatusAadhaar">Pending</span></div>
-        <div class="idv-connector"></div>
-        <div class="idv-node pending" id="idvNodePhoto"><div class="ring">○</div><b>Photo</b><span id="idvStatusPhoto">Pending</span></div>
-      </div>
-    </div>
-
-    <!-- 1. PAN -->
-    <div id="idvPanSection">
-      <div class="step-section-head"><span class="step-num-badge">1</span><b style="font-size:15px;">PAN Card</b></div>
-      <div id="panCaptureBlock">
-        <div class="card center-col" style="padding:28px 18px;border-style:dashed;cursor:pointer;" onclick="capturePan()">
-          <div style="font-size:34px;margin-bottom:8px;">📷</div>
-          <b style="font-size:14px;">Take PAN card photo</b>
-          <p class="muted" style="font-size:12px;margin-top:4px;">Tap to open camera</p>
-        </div>
-        <p style="text-align:center;font-size:13px;margin-top:10px;">or <span style="color:var(--teal-700);font-weight:700;cursor:pointer;" onclick="showPanManual()">enter details manually</span></p>
-        <p style="text-align:center;font-size:13px;margin-top:6px;"><span style="color:var(--muted);font-weight:700;cursor:pointer;" onclick="skipPan()">Skip for now</span></p>
-      </div>
-      <div id="panScanBlock" style="display:none;">
-        <div class="card center-col" style="padding:22px;">
-          <div style="font-size:26px;">⏳</div>
-          <p class="muted" style="margin-top:8px;">Reading PAN card…</p>
-        </div>
-      </div>
-      <div id="panFormBlock" style="display:none;">
-        <div class="card" id="panOcrNote" style="display:none;background:var(--teal-100);border:none;">
-          <p style="font-size:13px;color:var(--teal-900);font-weight:600;">✅ Details read from your PAN card. Check and edit if needed.</p>
-        </div>
-        <div class="field-row">
-          <label class="field-label">Full name (as on PAN)</label>
-          <input type="text" id="panName" placeholder="e.g. Ramesh Kumar">
-        </div>
-        <div class="field-row">
-          <label class="field-label">PAN number</label>
-          <input type="text" id="panNumber" placeholder="e.g. ABCDE1234F" maxlength="10" style="text-transform:uppercase;">
-        </div>
-        <div class="field-row">
-          <label class="field-label">Date of birth</label>
-          <input type="text" id="panDob" placeholder="DD/MM/YYYY">
-        </div>
-        <button class="btn btn-primary" onclick="confirmPan()">Confirm &amp; continue</button>
-        <p style="text-align:center;font-size:13px;margin-top:10px;"><span style="color:var(--muted);font-weight:700;cursor:pointer;" onclick="skipPan()">Skip for now</span></p>
-      </div>
-      <div id="panDoneBlock" style="display:none;">
-        <div class="card" id="panDoneCard" style="border-color:var(--success);display:flex;align-items:center;gap:10px;"><span style="font-size:20px;" id="panDoneIcon">✅</span><div><b style="font-size:13.5px;" id="panDoneTitle">PAN verified</b><p class="muted" style="font-size:12px;" id="panDoneSummary">—</p></div></div>
-      </div>
-    </div>
-
-    <!-- 2. Aadhaar -->
-    <div id="idvAadhaarSection" style="display:none;">
-      <div class="step-section-head"><span class="step-num-badge">2</span><b style="font-size:15px;">Aadhaar Card</b></div>
-      <div id="aadhaarCaptureBlock">
-        <div class="card center-col" style="padding:28px 18px;border-style:dashed;cursor:pointer;" onclick="captureAadhaar()">
-          <div style="font-size:34px;margin-bottom:8px;">📷</div>
-          <b style="font-size:14px;">Take Aadhaar card photo</b>
-          <p class="muted" style="font-size:12px;margin-top:4px;">Tap to open camera</p>
-        </div>
-        <p style="text-align:center;font-size:13px;margin-top:10px;">or <span style="color:var(--teal-700);font-weight:700;cursor:pointer;" onclick="showAadhaarManual()">enter details manually</span></p>
-      </div>
-      <div id="aadhaarScanBlock" style="display:none;">
-        <div class="card center-col" style="padding:22px;">
-          <div style="font-size:26px;">⏳</div>
-          <p class="muted" style="margin-top:8px;">Reading Aadhaar card…</p>
-        </div>
-      </div>
-      <div id="aadhaarFormBlock" style="display:none;">
-        <div class="card" id="aadhaarOcrNote" style="display:none;background:var(--teal-100);border:none;">
-          <p style="font-size:13px;color:var(--teal-900);font-weight:600;">✅ Details read from your Aadhaar card. Check and edit if needed.</p>
-        </div>
-        <div class="field-row">
-          <label class="field-label">Aadhaar number</label>
-          <input type="text" id="aadhaarNumber" placeholder="e.g. 1234 5678 9012" maxlength="14">
-        </div>
-        <div class="field-row">
-          <label class="field-label">Full name (as on Aadhaar)</label>
-          <input type="text" id="aadhaarName" placeholder="e.g. Ramesh Kumar">
-        </div>
-        <div class="field-row">
-          <label class="field-label">Father's name</label>
-          <input type="text" id="aadhaarFatherName" placeholder="e.g. Suresh Kumar">
-        </div>
-        <div class="field-row">
-          <label class="field-label">Date of birth</label>
-          <input type="text" id="aadhaarDob" placeholder="DD/MM/YYYY">
-        </div>
-        <div class="field-row">
-          <label class="field-label">Gender</label>
-          <div class="readonly-field" id="aadhaarGenderDisplay">—</div>
-        </div>
-        <div class="field-row">
-          <label class="field-label">Address (from Aadhaar)</label>
-          <input type="text" id="aadhaarAddr" placeholder="Permanent address">
-        </div>
-        <div class="field-row">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="checkbox" id="sameAsAadhaarAddr" checked onchange="toggleCurrentAddress()" style="width:18px;height:18px;min-height:0;">
-            <span style="font-size:13.5px;">Current address is same as Aadhaar address</span>
-          </label>
-        </div>
-        <div class="field-row" id="currentAddrBlock" style="display:none;">
-          <label class="field-label">Current address</label>
-          <input type="text" id="currentAddr" placeholder="Where you currently live">
-        </div>
-        <button class="btn btn-primary" onclick="confirmAadhaar()">Confirm &amp; continue</button>
-      </div>
-      <div id="aadhaarDoneBlock" style="display:none;">
-        <div class="card" style="border-color:var(--success);display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">✅</span><div><b style="font-size:13.5px;">Aadhaar verified</b><p class="muted" style="font-size:12px;" id="aadhaarDoneSummary">—</p></div></div>
-      </div>
-    </div>
-
-    <!-- 3. Photo -->
-    <div id="idvPhotoSection" style="display:none;">
-      <div class="step-section-head"><span class="step-num-badge">3</span><b style="font-size:15px;">Live Photo</b></div>
-      <div id="photoCaptureBlock">
-        <div class="card center-col" style="padding:28px 18px;border-style:dashed;cursor:pointer;" onclick="capturePhoto()">
-          <div style="font-size:34px;margin-bottom:8px;">🤳</div>
-          <b style="font-size:14px;">Take a live selfie</b>
-          <p class="muted" style="font-size:12px;margin-top:4px;">Used to match your face with your PAN &amp; Aadhaar photos</p>
-        </div>
-      </div>
-      <div id="photoScanBlock" style="display:none;">
-        <div class="card center-col" style="padding:22px;">
-          <div style="font-size:26px;">⏳</div>
-          <p class="muted" style="margin-top:8px;">Matching face with ID photos…</p>
-        </div>
-      </div>
-      <div id="photoDoneBlock" style="display:none;">
-        <div class="card center-col" style="padding:22px;border-color:var(--success);">
-          <div style="font-size:28px;">✅</div>
-          <b style="margin-top:8px;">Face matched!</b>
-          <p class="muted" style="font-size:13px;margin-top:4px;">Identity verification complete</p>
-        </div>
-        <button class="btn btn-primary" onclick="finishIdentityVerify()">Continue</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ===== EMPLOYER SETUP (triggered from loans flow, not signup) ===== -->
 <div class="screen" id="s-employer-setup">
@@ -802,24 +549,6 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
   <button class="btn btn-primary" onclick="requireBank(buyGold)">Buy gold</button>
 </div>
 
-<!-- ===== INVESTMENT: FD ===== -->
-<div class="screen" id="s-invest-fd">
-  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-invest')">←</button><h2>Create Small FD</h2></div></div>
-  <p class="muted" style="margin-bottom:12px;">Save a small amount, earn fixed interest, get it back on maturity.</p>
-  <label class="field-label">Amount (₹)</label>
-  <input type="number" id="fdAmount" placeholder="e.g. 500" oninput="updateFdPreview()" style="margin-bottom:12px;">
-  <label class="field-label">Tenure</label>
-  <div style="display:flex;gap:8px;margin-bottom:16px;">
-    <div class="tenure-pill" onclick="pickFdTenure(this,3)">3 months</div>
-    <div class="tenure-pill selected" onclick="pickFdTenure(this,6)">6 months</div>
-    <div class="tenure-pill" onclick="pickFdTenure(this,12)">12 months</div>
-  </div>
-  <div class="card">
-    <div class="breakdown-row"><span>Interest rate</span><span>7% p.a.</span></div>
-    <div class="breakdown-row total"><span>Maturity value</span><span id="fdMaturity">₹0</span></div>
-  </div>
-  <button class="btn btn-primary" onclick="requireBank(createFd)">Create FD</button>
-</div>
 
 <!-- ===== INVESTMENT: MUTUAL FUNDS (fund house list) ===== -->
 <div class="screen" id="s-invest-mf">
@@ -1943,23 +1672,23 @@ function toggleKfsSection(toggle){
 
 <!-- Loaded in dependency order: core state/helpers and i18n first, then one file per screen,
      main.js last since it kicks off the first render pass across all of them. -->
-<script src="employee/js/core.js"></script>
+<script src="employee/js/core.js?v=2"></script>
 <script src="employee/js/account.js"></script>
 <script src="employee/js/permissions.js?v=3"></script>
 <script src="employee/js/loyalty.js?v=3"></script>
 <script src="employee/js/i18n.js?v=3"></script>
-<script src="employee/js/signup.js?v=7"></script>
+<script src="employee/js/signup.js?v=8"></script>
 <script src="employee/js/pin.js"></script>
 <script src="employee/js/login.js"></script>
 <script src="employee/js/onboarding.js"></script>
-<script src="employee/js/employer-setup.js?v=11"></script>
-<script src="employee/js/home.js?v=7"></script>
-<script src="employee/js/pan.js?v=7"></script>
+<script src="employee/js/employer-setup.js?v=12"></script>
+<script src="employee/js/home.js?v=8"></script>
+<script src="employee/js/pan.js?v=8"></script>
 <script src="employee/js/apply.js?v=13"></script>
 <script src="employee/js/enach.js?v=4"></script>
 <script src="employee/js/bankstatement.js?v=6"></script>
 <script src="employee/js/insurance.js"></script>
-<script src="employee/js/investment.js"></script>
+<script src="employee/js/investment.js?v=2"></script>
 <script src="employee/js/bbps.js"></script>
 <script src="employee/js/ledger.js"></script>
 <script src="employee/js/history.js?v=2"></script>

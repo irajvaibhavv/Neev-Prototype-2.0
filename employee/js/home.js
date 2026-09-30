@@ -132,7 +132,6 @@ function onBannerMouseDown(e){
   document.addEventListener('mouseup',onUp);
 }
 
-// Legacy compat
 function updateProfileNudge(){ updateProfileSlide(); initBannerCarousel(); }
 
 // ===== LOANS HUB =====

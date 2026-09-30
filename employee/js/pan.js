@@ -109,11 +109,6 @@ function finishKycFlow(){
   }
 }
 
-// Legacy: keep confirmPanDetails working for any old callers
-function confirmPanDetails(){
-  finishKycFlow();
-}
-
 function retakePanPhoto(){
   document.getElementById('digilockerDetailsBlock').style.display='none';
   document.getElementById('digilockerArea').style.display='block';

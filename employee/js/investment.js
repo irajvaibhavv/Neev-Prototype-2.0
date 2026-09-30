@@ -20,32 +20,6 @@ function buyGold(){
   go('s-invest-success');
 }
 
-let fdTenure=6;
-function pickFdTenure(el,months){
-  fdTenure=months;
-  document.querySelectorAll('#s-invest-fd .tenure-pill').forEach(p=>p.classList.remove('selected'));
-  el.classList.add('selected');updateFdPreview();
-}
-function updateFdPreview(){
-  const amt=parseFloat(document.getElementById('fdAmount').value)||0;
-  const maturity=amt*(1+0.07*fdTenure/12);
-  document.getElementById('fdMaturity').textContent=fmt(maturity);
-}
-function createFd(){
-  const amt=parseFloat(document.getElementById('fdAmount').value)||0;
-  if(amt<100){toast('Minimum ₹100 to create an FD');return;}
-  if(!S.bankLast4){S.bankLast4='1234';S.bankName='State Bank of India';try{document.getElementById('profileBank').textContent='State Bank of India ****1234';}catch(e){}}
-  const maturity=amt*(1+0.07*fdTenure/12);
-  S.investments.unshift({type:'Small FD',detail:fdTenure+' months @ 7% p.a.',amount:amt,date:'Today'});
-  document.getElementById('inv-successTitle').textContent='FD created!';
-  document.getElementById('inv-successNote').textContent=fmt(amt)+' locked for '+fdTenure+' months. Maturity value: '+fmt(maturity)+'.';
-  addNotification('Your FD of '+fmt(amt)+' for '+fdTenure+' months has been created.',true);
-  addPoints(10,'FD created');
-  document.getElementById('fdAmount').value='';
-  renderInvestments();
-  go('s-invest-success');
-}
-
 const MF_FUNDS=[
   {amc:'SBI Mutual Fund',scheme:'SBI Liquid Fund',icon:'🏦',risk:'Low risk',returns:'~6-7% p.a.',minAmount:500},
   {amc:'HDFC Mutual Fund',scheme:'HDFC Money Market Fund',icon:'🏛️',risk:'Low risk',returns:'~6-7% p.a.',minAmount:500},

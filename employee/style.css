@@ -58,7 +58,6 @@ label.field-label{display:block;font-size:12px;font-weight:700;color:var(--muted
 /* Scan is just the 3rd of 4 equal tabs now, same row as Home/Ledger/Profile — the colored
    circle keeps it visually distinct without floating it above the bar. */
 .navbtn-scan-icon{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--marigold-500),#FFC862);display:flex;align-items:center;justify-content:center;font-size:13px;}
-.scan-fab:active{transform:scale(0.93);}
 .fab-support{position:absolute;right:16px;bottom:92px;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--marigold-500),#FFC862);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(219,142,12,0.4);z-index:35;cursor:pointer;border:none;font-size:20px;transition:transform .15s ease,box-shadow .15s ease;}
 .fab-support:active{transform:scale(0.92);box-shadow:0 3px 10px rgba(219,142,12,0.3);}
 .badge{font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:var(--teal-100);color:var(--teal-700);letter-spacing:.02em;}
@@ -123,47 +122,10 @@ label.field-label{display:block;font-size:12px;font-weight:700;color:var(--muted
 :root{
   --fl-900:#2D1B69;--fl-700:#4A2FA8;--fl-500:#6C4FE0;--fl-100:#EDE9FB;
 }
-.fl-header{display:flex;justify-content:space-between;align-items:center;padding:10px 0 0;}
-.fl-brand{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:17px;color:var(--fl-900);display:flex;align-items:center;gap:6px;}
-.fl-dot{width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;}
-.fl-lang{background:var(--fl-100);border-radius:10px;padding:6px 12px;font-size:12.5px;font-weight:700;color:var(--fl-700);cursor:pointer;}
-
-.wiz-progress{padding-top:6px;}
-.wiz-progress-top{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--muted);margin-bottom:8px;}
-.wiz-progress-top b{color:var(--ink);}
-.wiz-progress-pct{font-weight:800;color:var(--fl-900);font-size:14px;}
 .wiz-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
 .wiz-bar-fill{height:100%;background:var(--fl-700);border-radius:3px;transition:width .3s;}
 
-.voice-bar{display:flex;align-items:center;gap:10px;background:var(--fl-100);border-radius:14px;padding:10px 14px;margin:14px 0;}
-.voice-lang-chip{background:#fff;border-radius:10px;padding:5px 10px;font-size:12px;font-weight:700;color:var(--fl-900);flex-shrink:0;}
-.voice-play-btn{width:32px;height:32px;border-radius:50%;background:var(--fl-700);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;flex-shrink:0;border:none;}
-.voice-label{flex:1;font-size:13px;color:var(--fl-900);font-weight:600;}
-.voice-speaker{font-size:16px;color:var(--fl-700);cursor:pointer;flex-shrink:0;}
-
-/* Identity Verification 3-node tracker (PAN / Aadhaar / Photo) */
-.idv-tracker{display:flex;justify-content:space-between;margin:16px 0 6px;}
-.idv-node{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;}
-.idv-node .ring{width:38px;height:38px;border-radius:50%;border:3px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;}
-.idv-node.pending .ring{border-color:#E4A199;color:#E4A199;}
-.idv-node.active .ring{border-color:var(--danger);color:var(--danger);}
-.idv-node.done .ring{border-color:var(--success);color:#fff;background:var(--success);}
-.idv-node.skipped .ring{border-color:var(--muted);color:var(--muted);}
-.idv-node b{font-size:12.5px;color:var(--ink);}
-.idv-node span{font-size:10.5px;color:var(--muted);background:var(--bg);border-radius:8px;padding:2px 8px;}
-.idv-connector{flex:.6;height:2px;background:var(--border);margin-top:19px;}
-
-/* Read-only field: looks like an input but isn't editable (used for values fetched via API, e.g. Aadhaar gender) */
-.readonly-field{width:100%;padding:15px 16px;border-radius:12px;border:1.6px solid var(--border);background:var(--bg);font-size:15px;color:var(--ink);min-height:50px;box-sizing:border-box;display:flex;align-items:center;}
-
-.step-num-badge{width:26px;height:26px;border-radius:50%;background:var(--fl-900);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.step-section-head{display:flex;align-items:center;gap:10px;margin:18px 0 12px;}
-
 /* App Permissions screen */
-.dp-hero{background:linear-gradient(135deg,var(--fl-900),var(--fl-700));border-radius:16px;padding:20px;display:flex;gap:14px;align-items:center;margin-bottom:14px;}
-.dp-hero .ic{font-size:28px;}
-.dp-hero b{color:#fff;font-size:16px;display:block;}
-.dp-hero p{color:rgba(255,255,255,0.8);font-size:12.5px;margin-top:3px;}
 .dp-counter{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px;}
 .dp-counter-top{font-size:13px;font-weight:700;margin-bottom:8px;}
 .dp-grant-all{background:var(--fl-100);border:1.5px solid var(--fl-700);border-radius:12px;padding:12px;text-align:center;font-weight:700;color:var(--fl-900);cursor:pointer;margin-bottom:14px;}
@@ -172,7 +134,6 @@ label.field-label{display:block;font-size:12px;font-weight:700;color:var(--muted
 .dp-card .body{flex:1;}
 .dp-card .head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .dp-card b{font-size:13.5px;}
-.dp-required{font-size:9.5px;font-weight:700;color:var(--fl-700);background:var(--fl-100);padding:2px 8px;border-radius:8px;}
 .dp-card p{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;}
 .dp-toggle{width:42px;height:24px;border-radius:14px;background:var(--border);position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;}
 .dp-toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:left .2s;}
@@ -247,32 +208,6 @@ label.field-label{display:block;font-size:12px;font-weight:700;color:var(--muted
 .loan-user-name{font-size:13px;color:var(--ink);}
 .loan-user-company{font-size:11px;color:var(--muted);margin-top:1px;}
 
-.loan-steps{display:flex;align-items:center;gap:6px;margin-bottom:16px;padding:12px 0 8px;}
-.loan-step{flex:1;text-align:center;position:relative;}
-.loan-step-dot{width:28px;height:28px;border-radius:50%;background:var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);transition:all .3s ease;}
-.loan-step.done .loan-step-dot{background:var(--teal-700);color:#fff;}
-.loan-step.active .loan-step-dot{background:var(--teal-500);color:#fff;box-shadow:0 0 0 4px rgba(27,133,112,0.15);}
-.loan-step-label{display:block;font-size:10.5px;color:var(--muted);margin-top:5px;font-weight:600;}
-.loan-step.active .loan-step-label{color:var(--teal-900);}
-.loan-step.done .loan-step-label{color:var(--teal-700);}
-.loan-step-line{position:absolute;top:14px;left:calc(50% + 18px);right:calc(-50% + 18px);height:2px;background:var(--border);transition:background .3s ease;}
-.loan-step.done .loan-step-line{background:var(--teal-700);}
-
-/* Confirm details — editable rows */
-.cd-edit-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
-.cd-edit-row:last-child{border-bottom:none;}
-.cd-edit-row .cd-label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
-.cd-edit-row .cd-value{display:block;font-size:15px;font-weight:600;color:var(--ink);margin-top:2px;}
-.cd-edit-btn{width:34px;height:34px;border-radius:50%;background:var(--teal-100);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;transition:all .15s ease;}
-.cd-edit-btn:active{background:var(--teal-500);color:#fff;transform:scale(0.9);}
-
-/* ===== BOTTOM-SHEET MODAL (consent, etc.) ===== */
-.modal-bg.bottom-sheet{align-items:flex-end;padding:0;}
-.modal-bg.bottom-sheet .modal-box{border-radius:22px 22px 0 0;padding:24px 18px 32px;animation:sheetSlide .35s cubic-bezier(.22,1,.36,1);}
-@keyframes sheetSlide{from{transform:translateY(100%);}to{transform:translateY(0);}}
-
-/* ===== SECTION DIVIDER ===== */
-.section-label{font-size:13px;font-weight:700;color:var(--teal-900);text-transform:uppercase;letter-spacing:.04em;margin:20px 0 10px;}
 
 /* Govt schemes eligibility questions — tap-to-select chips */
 .sp-sec{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--teal-700);margin:18px 0 10px;padding-top:14px;border-top:1px dashed var(--border);}

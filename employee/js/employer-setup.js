@@ -173,18 +173,6 @@ function verifyEcnPhoneOtp(){
   },900);
 }
 
-// Called when identity verify finishes
-function finishIdentityVerify(){
-  updateProfileNudge();
-  if(!S.company && S._fromLoans){
-    S._fromLoans=false;
-    startEmployerSetup();
-  } else {
-    go('s-home');
-    toast('Identity verified!');
-  }
-}
-
 function saveProfileName(){
   const name=document.getElementById('profileNameInput').value.trim().replace(/\s+/g,' ');
   if(name.length<3||!/^[A-Za-z .]+$/.test(name)){toast('Enter your full name as on Aadhaar');return;}

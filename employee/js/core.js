@@ -37,7 +37,7 @@ function navTo(id){
 
 // Refresh resumes the current screen (sessionStorage: a new tab starts clean).
 // Only screens fully re-rendered from S are restorable; mid-flow screens fall back to a parent.
-const RESTORABLE_SCREENS=['s-home','s-loans-hub','s-insurance','s-invest','s-bbps','s-ledger','s-history','s-profile','s-notifs','s-schemes','s-referral','s-loyalty','s-documents','s-grievance','s-login','s-signup','s-signup-aadhaar','s-permissions','s-identity-verify','s-bank','s-setup-pin','s-employer-setup','s-signup-success'];
+const RESTORABLE_SCREENS=['s-home','s-loans-hub','s-insurance','s-invest','s-bbps','s-ledger','s-history','s-profile','s-notifs','s-schemes','s-referral','s-loyalty','s-documents','s-grievance','s-login','s-signup','s-permissions','s-bank','s-setup-pin','s-employer-setup'];
 function saveAppState(){
   try{
     const activeEl=document.querySelector('.screen.active');

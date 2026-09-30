@@ -90,11 +90,11 @@ Global state stored in `S` (defined in `core.js`). Key fields added/used:
 |------|---------|-----------------|
 | `core.js` | `go()`, `toast()`, `fmt()`, state `S`, nav helpers | — |
 | `main.js` | Init, bottom nav, profile rendering | — |
-| `signup.js` | Phone OTP → straight to home; existing number → redirects to login; camera modal also serves schemes OCR | `?v=6` |
+| `signup.js` | Phone OTP → straight to home; existing number → redirects to login; camera modal also serves schemes OCR | `?v=8` |
 | `login.js` | Returning user login | — |
-| `home.js` | Home screen, banner carousel (profile CTA: employer → DigiLocker KYC → PIN), Sakhi, Loans Hub slider | `?v=7` |
-| `employer-setup.js` | Name prompt (if missing) → Company select (with badge scan) → ECN verify → phone OTP; BuildRight always resolves to Ramesh Kumar (demo) | `?v=11` |
-| `pan.js` | DigiLocker (Aadhaar+PAN) + KYC consents + selfie face match | `?v=7` |
+| `home.js` | Home screen, banner carousel (profile CTA: employer → DigiLocker KYC → PIN), Sakhi, Loans Hub slider | `?v=8` |
+| `employer-setup.js` | Name prompt (if missing) → Company select (with badge scan) → ECN verify → phone OTP; BuildRight always resolves to Ramesh Kumar (demo) | `?v=12` |
+| `pan.js` | DigiLocker (Aadhaar+PAN) + KYC consents + selfie face match | `?v=8` |
 | `apply.js` | Loan flow: reason tiles → KFS (collapsible) → T&C → e-sign/e-nach → success; not-partnered screen (company name + HR contact) | `?v=13` |
 | `bankstatement.js` | AA consent + OTP → fetch accounts → select salary account (no upload, no ESIC/EPF) | `?v=6` |
 | `enach.js` | E-NACH mandate modal (auto-populated from AA, readonly fields) | `?v=4` |
@@ -110,8 +110,6 @@ Global state stored in `S` (defined in `core.js`). Key fields added/used:
 - Pattern: `<div class="modal-bg" id="xxxModal">` with `.show` class to display.
 - E-NACH modal: `id="enachModal"` — form with bank details, mandate setup.
 - E-Sign modal: `id="esignModal"` — name input (first-time) or OTP-only (repeat), no auto-fill button (removed in 2.0).
-- Loan consent modal: `id="loanConsentModal"` — unused (permissions now a full screen step).
-- AA consent modal: `id="aaConsentModal"` — unused (AA consent now handled on bank statement screen).
 - Loan T&C modal: `id="loanTcModal"` — full Terms & Conditions (11 sections), checkbox to agree, then reveals e-sign/e-nach.
 - Camera permission modal: `id="cameraPermModal"` — allow/deny for Aadhaar scan.
 
@@ -175,7 +173,6 @@ Two distinct scenarios:
 - AA consent is no longer on the Loan Consents screen (`s-permissions`). The permissions screen now has only 3 toggles: CIBIL, EPFO, ESIC.
 - `ALL_PERM_KEYS` array is now `['cibil','epfo','esic']` (3 items, no AA).
 - AA consent is handled entirely on the bank statement screen (`s-bank-statement`): checkbox → OTP → fetch accounts → choose salary account → upload statement.
-- The standalone `aaConsentModal` HTML still exists but is unused.
 
 ### 10. Loan Terms & Conditions modal before e-sign/e-nach
 - Clicking "I agree to the loan terms..." checkbox now opens `loanTcModal` instead of directly revealing e-sign/e-nach.
@@ -431,6 +428,10 @@ Two distinct scenarios:
 2. **Function name conflicts**: `signup.js` and the identity-verify section both have address-related functions. Use unique names (e.g. `toggleSignupAddress` vs `toggleCurrentAddress`).
 3. **Null references after refactoring**: When converting inline elements to modals, update ALL functions that reference the old inline elements (e.g. `continueFromBankStatement()` referenced deleted inline e-sign elements).
 4. **Phone mockup overflow**: Content below 812px is clipped by the phone frame. Test by scrolling or checking DOM directly. On real phones (≤ 500px wide) the mockup is dropped: `@media (max-width:500px)` at the end of `employee/style.css` makes `.phone` the full viewport (no frame/notch/fake status bar/side note, safe-area insets, 16px inputs to stop iOS zoom). Keep new fixed/absolute UI inside `.screen-wrap` so it works in both views.
+
+### Dead-code cleanup (Sep 2026)
+- Removed screens nothing navigated to: `s-signup-success`, `s-signup-aadhaar` (+ signup company step), `s-identity-verify` (old PAN→Aadhaar→Photo tracker), `s-invest-fd` (FDs dropped in CF-4), plus their JS and ~50 unused CSS rules. Changes #2, #11, #15 below describe those removed steps (history only).
+- `grantCameraPermission()` in `signup.js` now only serves the schemes Aadhaar scan. `core.js?v=2`, `investment.js?v=2`, `style.css?v=7`.
 
 ### CF-14. Government schemes eligibility flow (replaces state selector)
 - Home tile → `openSchemes()`. Aadhaar data + complete `S.schemeProfile` → straight to results; else `s-scheme-profile`.
