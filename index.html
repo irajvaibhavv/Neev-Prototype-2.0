@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neev Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#1a0f2e; --ink2:#3d3354; --ink3:#5f5680; --line:#e2dff0; --page:#f8f7fc; --card:#fff; --teal:#0f5c52; --violet:#6d4fc4; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--page); color:var(--ink); font-family:"Plus Jakarta Sans",system-ui,sans-serif; font-weight:500; line-height:1.55; }
+  main { max-width:880px; margin:0 auto; padding:40px 16px 56px; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; font-size:18px; }
+  .logo { width:36px; height:36px; border-radius:10px; background:var(--violet); color:#fff; display:grid; place-items:center; }
+  h1 { font-size:30px; line-height:1.2; margin:28px 0 8px; }
+  .lead { color:var(--ink2); margin:0 0 28px; max-width:620px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:640px) { .grid { grid-template-columns:1fr; } h1 { font-size:24px; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:0 1px 3px #46237a0a; display:flex; flex-direction:column; }
+  .card h2 { margin:10px 0 4px; font-size:18px; }
+  .card p { margin:0 0 16px; color:var(--ink2); font-size:14px; flex:1; }
+  .icon { font-size:28px; }
+  .btn { display:inline-block; text-align:center; text-decoration:none; font-weight:700; font-size:14px; padding:11px 16px; border-radius:10px; color:#fff; }
+  .btn.app { background:var(--teal); } .btn.portal { background:var(--violet); }
+  .btn:hover { opacity:.92; } .btn:focus-visible { outline:3px solid #8b5cf680; outline-offset:2px; }
+  .meta { font-size:12px; color:var(--ink3); margin-top:10px; }
+  section.steps { margin-top:28px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; }
+  section.steps h2 { margin:0 0 12px; font-size:17px; }
+  ol { margin:0; padding-left:20px; color:var(--ink2); font-size:14px; }
+  ol li { margin-bottom:8px; } b { color:var(--ink); }
+  .note { margin-top:14px; font-size:13px; color:var(--ink2); background:#fef3c7; border:1px solid #b4530933; border-radius:10px; padding:10px 12px; }
+  code { background:var(--page); border:1px solid var(--line); border-radius:6px; padding:1px 6px; font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><span class="logo">N</span>Neev · Prototype</div>
+  <h1>Salary advance + Government schemes for blue-collar workers</h1>
+  <p class="lead">Two connected prototypes: the worker's mobile app, and the manager dashboard that tracks every scheme application from the app.</p>
+
+  <div class="grid">
+    <div class="card">
+      <span class="icon" aria-hidden="true">📱</span>
+      <h2>Employee app</h2>
+      <p>Sign-up, salary advance (loan flow), and Government schemes — eligibility check, apply, cart and payment.</p>
+      <a class="btn app" href="employee.html">Open employee app</a>
+      <div class="meta">Best viewed on a laptop (phone frame) or on a phone.</div>
+    </div>
+    <div class="card">
+      <span class="icon" aria-hidden="true">📊</span>
+      <h2>Manager dashboard</h2>
+      <p>User funnel, leads, New / Incomplete / Pending / Filled applications, application detail, document reminders, trends.</p>
+      <a class="btn portal" href="agent/">Open manager dashboard</a>
+      <div class="meta">Login: <code>9876500001</code> · OTP fills automatically</div>
+    </div>
+  </div>
+
+  <section class="steps">
+    <h2>2-minute demo</h2>
+    <ol>
+      <li>Open the <b>Employee app</b>, pick a language, sign up with <b>any 10-digit number</b> (OTP fills itself).</li>
+      <li>Tap <b>Government schemes</b> → scan or enter Aadhaar → answer the quick questions → see eligible schemes.</li>
+      <li>On 1–2 schemes tap <b>Apply via Neev</b> → fill the form → upload some documents (skip one) → <b>Add to cart</b> → open the 🛒 cart → <b>Pay</b>.</li>
+      <li>Open the <b>Manager dashboard</b> in a new tab of the <b>same browser</b> → your applications appear tagged <b>LIVE</b> in New (all documents) or Pending (document skipped). Open one → send a WhatsApp reminder, remove it, or mark it Filled → Approved.</li>
+    </ol>
+    <div class="note">
+      <b>Prototype limitation:</b> the app and dashboard share data only inside the same browser on the same device (no server yet).
+      A phone and a laptop won't see each other's data. The dashboard also shows ~500 sample users so the funnel looks realistic — untick <i>Include sample data</i> to see only your own.
+    </div>
+  </section>
+</main>
+</body>
+</html>

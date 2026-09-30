@@ -411,6 +411,12 @@ Two distinct scenarios:
 - To create a new client deployment: copy this 2.0 folder, run the conversion scripts (convert_to_js.py + obfuscate_names.py), and add protect.js.
 - Deploy the **client folder** to Netlify, not this one.
 
+## Sharing online (GitHub Pages)
+- Repo is public → GitHub Pages serves it free: `https://irajvaibhavv.github.io/Neev-Prototype-2.0/` (root `index.html` = start page with links + 2-minute demo script; `employee.html`; `agent/` = manager dashboard). `.nojekyll` keeps files served as-is.
+- Portal is built with `base: './'` (relative) so it works both at `localhost:3000/agent/` and under `/Neev-Prototype-2.0/agent/`. Keep all paths relative — never `src="/..."`.
+- Pages updates automatically on every push to `main` (rebuild `agent/` first if portal source changed).
+- Data is per-browser (localStorage): app + dashboard share data only in the same browser on the same device.
+
 ## Dev server setup
 - `.claude/launch.json` configured with Python HTTP server (`autoPort: true`).
 - Command: `python -m http.server` (port assigned automatically, typically 3000).
