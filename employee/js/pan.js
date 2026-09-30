@@ -35,7 +35,6 @@ function confirmDigiLockerDetails(){
   S.panNumber=S._panFetched.number;
   S.panName=S._panFetched.name;
   toast('Documents verified via DigiLocker!');
-  // Show consents
   document.getElementById('digilockerDetailsBlock').style.display='none';
   document.getElementById('kycConsentsBlock').style.display='block';
   renderKycConsents();
@@ -67,7 +66,6 @@ function renderKycConsents(){
 
 function toggleKycConsent(key){
   S.permissions[key]=!S.permissions[key];
-  // Also update the permissions screen toggles if they exist
   var permToggle=document.getElementById('permToggle-'+key);
   if(permToggle) permToggle.classList.toggle('on',!!S.permissions[key]);
   renderKycConsents();
@@ -84,11 +82,9 @@ function continueFromKycConsents(){
     toast('Please allow all consents to continue');
     return;
   }
-  // Also mark the 3 permissions screen keys as done
   S.permissions.cibil=true;
   S.permissions.epfo=true;
   S.permissions.esic=true;
-  // Show selfie capture
   document.getElementById('kycConsentsBlock').style.display='none';
   document.getElementById('kycSelfieBlock').style.display='block';
 }

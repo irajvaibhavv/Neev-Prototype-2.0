@@ -1,4 +1,4 @@
-// Neev Employee App — my documents (T2E agreement, statements, per-loan repayment schedules).
+// Neev Employee App — my documents (loan agreement, statements, per-loan repayment schedules).
 function renderDocuments(){
   const perLoan = document.getElementById('docsPerLoan');
   if(S.loans.length === 0){ perLoan.innerHTML='<p class="muted" style="font-size:13px;">No loans yet.</p>'; return; }

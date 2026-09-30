@@ -1,5 +1,4 @@
-// Neev Employee App — voice narration + language switching (language picker modal, text translation).
-// English + the 22 scheduled languages of India (Eighth Schedule) = 23, matching the badge count.
+// Neev Employee App — voice narration (TTS) + language picker (Hindi / English / Voice) + text translation.
 const LANGS=[
   {code:'hi',name:'Hindi',native:'हिंदी',flag:'🇮🇳'},
   {code:'en',name:'English',native:'English',flag:'🇬🇧'},
@@ -113,7 +112,6 @@ const T={
   }
 };
 
-// Store original English text for all translatable nodes
 let originals=[];
 function indexTexts(){
   originals=[];
@@ -133,7 +131,6 @@ function applyTranslation(lang){
       item.el.textContent=item.orig; // fallback to English
     }
   });
-  // Translate select options
   if(lang==='hi'){
     document.querySelectorAll('#aadhaarGender option').forEach(o=>{
       if(o.value==='male')o.textContent='पुरुष';
@@ -153,7 +150,6 @@ function applyTranslation(lang){
       if(o.value==='other')o.textContent='Other';
     });
   }
-  // Translate input placeholders
   if(dict){
     document.querySelectorAll('input[placeholder]').forEach(inp=>{
       // keep placeholders in English for now as they are examples
@@ -167,13 +163,11 @@ function selectLanguage(code){
   document.getElementById('langSummaryName').textContent=name;
   document.getElementById('langSummaryName2').textContent=name;
   document.getElementById('langModal').classList.remove('show');
-  // Apply text translation
   const textLang=(code==='hi')?'hi':'en';
   applyTranslation(textLang);
   if(code==='voice'){
     toast('Voice mode enabled. We\'ll read screens aloud for you.');
   }
-  // If on splash screen, go straight to signup
   const active=document.querySelector('.screen.active');
   if(active&&active.id==='s-splash') go('s-signup');
 }

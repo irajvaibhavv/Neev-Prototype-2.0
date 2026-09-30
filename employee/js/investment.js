@@ -1,4 +1,4 @@
-// Neev Employee App — Investment: digital gold + small FDs ("Gullak"-style micro-savings).
+// Neev Employee App — investments: digital gold / silver.
 const GOLD_RATE=6250; // ₹ per gram
 function updateGoldPreview(){
   const amt=parseFloat(document.getElementById('goldAmount').value)||0;

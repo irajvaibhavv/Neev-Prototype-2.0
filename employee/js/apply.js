@@ -1,4 +1,4 @@
-// Neev Employee App — get advance: amount + reason tiles, cost breakdown, T2E agreement/quick confirm, success.
+// Neev Employee App — get advance: reason tiles → KFS → T&C → e-sign / e-NACH → success; not-partnered screen.
 
 function renderLoanUserStrips(){
   const initials=S.name?S.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2):'';

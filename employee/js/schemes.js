@@ -1,5 +1,5 @@
 // Neev Employee App — Government Schemes: Aadhaar + common questions → eligibility-matched schemes.
-// Scheme list + rules come from research (Sep 2026) — see research_notes/Indian welfare schemes eligibility/.
+// Scheme list + rules come from research (Sep 2026) — see docs/research/scheme-eligibility/.
 let agentFormScheme=null;
 const SCHEME_FEE=49; // ₹ per scheme, paid once for the whole cart
 
@@ -221,7 +221,7 @@ function ageFromDob(dob){
 // Part B questions, rendered as tap-to-select chips. Income brackets end exactly on real scheme
 // thresholds (₹1L, 1.2L, 2.5L, 3L, 4L, 6L, 9L) and store the bracket's upper bound, so rules compare with <=.
 const YES_NO=[['yes','Yes'],['no','No']];
-// Shortened flow (Haqdarshak / myScheme research, research_notes/Haqdarshak onboarding/):
+// Shortened flow (Haqdarshak / myScheme research, docs/research/haqdarshak-onboarding/):
 //  - `auto`: filled from the loan flow when the user did employer verify first (salary, occupation) — shown with "Change".
 //  - `show`: branching — asked only when relevant; when hidden, `hidden` gives the implied answer.
 //  - `optional`: not required; unanswered → affected schemes become "may be eligible", never "eligible".
@@ -512,7 +512,7 @@ function applyButton(s){
 }
 
 // Application-form fields per scheme — built ONLY from what the official form / portal was CONFIRMED to ask
-// (see research_notes/Scheme application fields/). Anything not confirmed is deliberately NOT asked here;
+// (see docs/research/scheme-forms/). Anything not confirmed is deliberately NOT asked here;
 // the agent collects it at the visit. Never add a field from memory or an aggregator site.
 // Field: {l:label, t:'text'|'tel'|'date'|'yn'|'sel', o:[options], ph, hint, opt:true, must:'yes'|'no', re:RegExp, err, min, if:profile=>bool}
 const F=(l,ph,x)=>({l,t:'text',ph,...x});

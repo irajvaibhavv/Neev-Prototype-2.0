@@ -1,5 +1,4 @@
-// Neev Employee App — Employer Setup (just-in-time from loans flow).
-// Company dropdown + Employee ID + badge scan option.
+// Neev Employee App — employer verification: company (or badge scan) → Employee ID → HRMS phone OTP.
 const KNOWN_COMPANIES={
   'BuildRight Constructions':{initial:'B',color:'var(--teal-900)',dept:'Site Labour',desig:'Mason',region:'Pune'},
   'QuickServe Logistics':{initial:'Q',color:'var(--marigold-600)',dept:'Delivery',desig:'Rider',region:'Mumbai'},
@@ -27,7 +26,6 @@ function startEmployerSetup(){
   document.getElementById('esBadgeScanBlock').style.display='none';
 
   if(S.signupCompany && KNOWN_COMPANIES[S.signupCompany]){
-    // Company already known from signup — hide dropdown, show ECN directly
     if(companyRow) companyRow.style.display='none';
     S.company=S.signupCompany;
     const known=KNOWN_COMPANIES[S.signupCompany];
@@ -87,7 +85,6 @@ function onEsCompanyChange(){
 function scanEmployeeBadge(){
   toast('Scanning badge...');
   setTimeout(function(){
-    // Simulate badge scan auto-filling details
     var sel=document.getElementById('esCompanySelect');
     if(!sel.value || sel.value==='other'){
       sel.value='BuildRight Constructions';

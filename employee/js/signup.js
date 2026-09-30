@@ -1,5 +1,4 @@
 // Neev Employee App — sign up: phone OTP → straight to home.
-// Aadhaar and company steps removed from signup onboarding (moved to employer verify / KYC).
 const AADHAAR_SAMPLE={number:'1234 5678 9012',name:'Ramesh Kumar',fatherName:'Suresh Kumar',dob:'15/06/1994',gender:'Male',addr:'H.No. 214, Ward No. 6, Najafgarh, South West Delhi, Delhi, 110043'};
 
 function sendSignupOtp(){
@@ -16,7 +15,6 @@ function sendSignupOtp(){
   document.getElementById('signupOtpBlock').style.display='block';
   document.getElementById('signupSendOtpBtn').style.display='none';
   toast('OTP sent to '+m);
-  // Auto-fill OTP after 1.5s (simulate SMS auto-read)
   setTimeout(function(){
     var otps=document.querySelectorAll('#signupOtpBlock .otpd');
     ['1','2','3','4'].forEach(function(v,i){ otps[i].value=v; });
@@ -31,7 +29,6 @@ function verifySignupOtp(){
   btn.disabled=true;
   btn.style.opacity='0.7';
   btn.style.pointerEvents='none';
-  // Go straight to home — skip company select and Aadhaar steps
   S.name=S.name||'User';
   finishSignup();
 }
@@ -51,7 +48,6 @@ function continueFromSignupCompany(){
   } else {
     S.signupCompany=val;
   }
-  // Reset Aadhaar screen state for fresh entry
   document.getElementById('signupAadhaarCapture').style.display='block';
   document.getElementById('signupAadhaarScanning').style.display='none';
   document.getElementById('signupAadhaarConfirm').style.display='none';
@@ -60,7 +56,6 @@ function continueFromSignupCompany(){
 }
 
 function captureSignupAadhaar(){
-  // Show camera permission dialog first
   document.getElementById('cameraPermModal').classList.add('show');
 }
 function grantCameraPermission(){
@@ -100,7 +95,6 @@ function showSignupAadhaarManual(){
 function completeSignupManualAadhaar(){
   const num=document.getElementById('signupAadhaarManualNum').value.trim();
   if(num.replace(/\s/g,'').length<12){toast('Enter a valid Aadhaar number');return;}
-  // Simulate UIDAI lookup
   toast('Verifying with UIDAI…');
   setTimeout(()=>{
     S.name=AADHAAR_SAMPLE.name;

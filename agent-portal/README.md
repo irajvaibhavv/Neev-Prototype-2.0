@@ -12,5 +12,5 @@ node tests/applications.check.mjs
 ```
 
 Prototype only: data is read from the employee app's localStorage (same origin), so it works on one computer.
-Production needs a shared realtime backend (e.g. Supabase, Mumbai region) — see the repo's CLAUDE.md.
+Production needs a shared realtime backend (e.g. Supabase, Mumbai region). See the root README for how it connects to the app.
 Demo login: 9876500001, OTP 1234.

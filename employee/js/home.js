@@ -158,7 +158,6 @@ function renderLoansHub(){
   const elig=eligible();
   document.getElementById('eligibleAmt').textContent=fmt(elig);
 
-  // Set up interactive slider + manual entry for withdrawal amount
   const slider=document.getElementById('loansWithdrawSlider');
   const manualInput=document.getElementById('loansWithdrawInput');
   if(slider){
@@ -187,7 +186,6 @@ function renderLoansHub(){
     document.getElementById('homeActiveLoan').style.display='block';
     document.getElementById('homeRepayAmt').textContent=fmt(activeLoan.amount);
     document.getElementById('homeRepayDate').textContent=activeLoan.dueDate;
-    // Show remaining amount after active loan
     var remaining=elig;
     var remainEl=document.getElementById('loansRemainingAmt');
     if(remainEl) remainEl.textContent=fmt(remaining);

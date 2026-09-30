@@ -1,11 +1,5 @@
 // Neev Employee App — bank account setup (penny drop verification).
-// Old employer selection screens (s-company, s-verify-ecn, s-request-company) removed —
-// employer setup now handled by employer-setup.js with HRMS phone OTP.
-
-// ===== BANK =====
-// Not part of signup — asked for the first time the user actually tries to move money
-// (get a loan, buy insurance, invest, or pay a bill). requireBank() is the gate every
-// one of those "final" actions calls through; after verification it resumes that action.
+// Asked only when the user first moves money: requireBank(next) gates the action, then resumes it.
 let pendingAfterBank=null;
 function requireBank(next){
   if(S.bankLast4){next();return;}

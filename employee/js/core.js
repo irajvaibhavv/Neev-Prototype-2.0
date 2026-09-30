@@ -1,5 +1,5 @@
 // Neev Employee App — global state + helpers used across every screen.
-// Blank on purpose — real identity gets filled in by signup/login (see account.js), not baked in here.
+// Starts blank; signup/login fill it (see account.js).
 const S = {
   voiceLang:'en', custId:0, name:'', mobile:'', company:null, ecn:'',
   salary:0, daysInMonth:30, currentDay:15, payDay:30,
@@ -13,10 +13,7 @@ const S = {
 
 function fmt(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
 
-// ===== SCREEN HISTORY (so the back arrow returns to wherever the user actually came from) =====
-// Every screen can be reached from more than one place (e.g. "Govt Schemes" is opened from Home,
-// but also from the "company not listed" screen mid-signup) — a back button hardcoded to one
-// parent skips right past that. go() pushes the screen being left onto a stack; goBack() pops it.
+// Screens are reachable from several places, so back uses a history stack, not a fixed parent.
 let screenHistory=[];
 function go(id){
   const activeEl=document.querySelector('.screen.active');
@@ -27,23 +24,19 @@ function go(id){
   document.getElementById('appBody').scrollTop=0;
   saveAppState();
 }
-// fallback is the screen's old hardcoded parent — used if there's no history (e.g. right after a
-// refresh restores straight onto this screen, before any in-session navigation has happened).
+// fallback: used when there's no history (e.g. right after a refresh).
 function goBack(fallback){
   go(screenHistory.pop()||fallback||'s-home');
-  screenHistory.pop(); // the line above's go() just re-pushed the screen we're leaving; drop it so back keeps unwinding instead of ping-ponging
+  screenHistory.pop(); // go() just re-pushed the screen we left
 }
 function navTo(id){
-  screenHistory=[]; // switching bottom-nav tabs starts a fresh drill-down chain
+  screenHistory=[];
   go(id);
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-target')===id));
 }
 
-// ===== RESUME WHERE YOU LEFT OFF ON REFRESH =====
-// sessionStorage (not localStorage): survives a page refresh in the same tab, but is empty again
-// once the tab/browser is closed — so a refresh mid-demo resumes, while a fresh open still starts clean.
-// Only screens that are fully re-rendered from S on load are safe to resume on directly; mid-flow
-// screens (checkout, loan detail, success pages…) fall back to a stable parent screen.
+// Refresh resumes the current screen (sessionStorage: a new tab starts clean).
+// Only screens fully re-rendered from S are restorable; mid-flow screens fall back to a parent.
 const RESTORABLE_SCREENS=['s-home','s-loans-hub','s-insurance','s-invest','s-bbps','s-ledger','s-history','s-profile','s-notifs','s-schemes','s-referral','s-loyalty','s-documents','s-grievance','s-login','s-signup','s-signup-aadhaar','s-permissions','s-identity-verify','s-bank','s-setup-pin','s-employer-setup','s-signup-success'];
 function saveAppState(){
   try{
@@ -51,7 +44,7 @@ function saveAppState(){
     const bottomNavVisible=document.getElementById('bottomNav').style.display==='flex';
     sessionStorage.setItem('neev_employee_state_v2',JSON.stringify({S:S,activeScreen:activeEl?activeEl.id:'s-splash',bottomNavVisible:bottomNavVisible}));
   }catch(e){}
-  saveCurrentProfile(); // persist to the permanent, mobile-keyed account store (see account.js)
+  saveCurrentProfile();
 }
 function restoreAppState(){
   try{
