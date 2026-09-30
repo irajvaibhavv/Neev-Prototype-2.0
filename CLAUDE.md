@@ -428,7 +428,7 @@ Two distinct scenarios:
 1. **Script caching**: After editing a JS file, bump the `?v=N` query param on its `<script>` tag in `employee.html`, otherwise browser serves the old cached version.
 2. **Function name conflicts**: `signup.js` and the identity-verify section both have address-related functions. Use unique names (e.g. `toggleSignupAddress` vs `toggleCurrentAddress`).
 3. **Null references after refactoring**: When converting inline elements to modals, update ALL functions that reference the old inline elements (e.g. `continueFromBankStatement()` referenced deleted inline e-sign elements).
-4. **Phone mockup overflow**: Content below 812px is clipped by the phone frame. Test by scrolling or checking DOM directly.
+4. **Phone mockup overflow**: Content below 812px is clipped by the phone frame. Test by scrolling or checking DOM directly. On real phones (≤ 500px wide) the mockup is dropped: `@media (max-width:500px)` at the end of `employee/style.css` makes `.phone` the full viewport (no frame/notch/fake status bar/side note, safe-area insets, 16px inputs to stop iOS zoom). Keep new fixed/absolute UI inside `.screen-wrap` so it works in both views.
 
 ### CF-14. Government schemes eligibility flow (replaces state selector)
 - Home tile → `openSchemes()`. Aadhaar data + complete `S.schemeProfile` → straight to results; else `s-scheme-profile`.
