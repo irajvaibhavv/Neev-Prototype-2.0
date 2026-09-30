@@ -286,3 +286,12 @@ label.field-label{display:block;font-size:12px;font-weight:700;color:var(--muted
 .opt-chip .sub{display:block;font-size:10.5px;font-weight:500;color:var(--muted);margin-top:2px;}
 .opt-chip.sel{border-color:var(--teal-700);background:var(--teal-100);color:var(--teal-700);box-shadow:inset 0 0 0 1px var(--teal-700);}
 .opt-chip.sel .sub{color:var(--teal-700);}
+
+/* Agent application form */
+.ag-sec{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--teal-700);margin:16px 0 8px;display:flex;justify-content:space-between;align-items:center;}
+.ag-link{font-size:11px;font-weight:700;text-transform:none;letter-spacing:0;text-decoration:underline;cursor:pointer;}
+.ag-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+.ag-row span{color:var(--muted);flex:1;}
+.ag-row b{color:var(--teal-900);text-align:right;flex:1;font-weight:600;}
+
+.sp-auto-val{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;border-radius:12px;background:var(--teal-100);color:var(--teal-700);font-size:13px;}

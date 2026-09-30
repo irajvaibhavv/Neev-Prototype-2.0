@@ -100,7 +100,7 @@ Global state stored in `S` (defined in `core.js`). Key fields added/used:
 | `i18n.js` | Language selection (Hindi, English, Voice only), translation, voice/TTS | `?v=3` |
 | `insurance.js` | Insurance products flow | — |
 | `investment.js` | FD/investment flow | — |
-| `schemes.js` | Govt schemes: Aadhaar + profile (`s-scheme-profile`) → eligibility-matched list (eligible / may be eligible) with docs, agent form | `?v=8` |
+| `schemes.js` | Govt schemes: Aadhaar + profile (`s-scheme-profile`) → eligibility-matched list (eligible / may be eligible) with docs, scheme-specific agent form | `?v=12` |
 | `ledger.js` | Loan list, loan detail, repayment timeline | — |
 | Others | `loyalty.js`, `referral.js`, `bbps.js`, `grievance.js`, etc. | — |
 
@@ -426,9 +426,15 @@ Two distinct scenarios:
 
 ### CF-14. Government schemes eligibility flow (replaces state selector)
 - Home tile → `openSchemes()`. Aadhaar data + complete `S.schemeProfile` → straight to results; else `s-scheme-profile`.
-- `s-scheme-profile`: Part A Aadhaar: scan card (OCR mock via shared `cameraPermModal`, `S._camForScheme` flag) or enter number (1.5s mock; skipped if KYC gave aadhaar/gender/dob) → Part B common questions as tap-to-select chips (`SP_QUESTIONS` config → `renderSchemeQuestions()`, answers in `spAns`; CSS `.opt-chip` in style.css; income brackets end on real scheme thresholds and store the upper bound): state you live in (defaults to Aadhaar state — client ask), own monthly income, family yearly income, PF/ESIC, income tax/GST in family, govt job/pension in family, ration card, pucca house, car, occupation, marital status, no. of children, daughter <10, daughter 10–18.
+- `s-scheme-profile`: Part A Aadhaar (scan card OCR mock via shared `cameraPermModal` + `S._camForScheme`, or enter number; skipped if KYC gave aadhaar/gender/dob) → Part B **shortened flow** (Haqdarshak/myScheme research, `research_notes/Haqdarshak onboarding/`), config `SP_QUESTIONS` in `schemes.js`:
+  - `auto`: Occupation (from `S.department` via `DEPT_TO_OCCUPATION`) and own income (`S.salary`) prefilled with "Change" — **only if the user did employer verify in the loan flow first**; otherwise asked.
+  - `show`/`hidden`: daughter questions only if children > 0; four tax/govt/pension questions only if the gate `AnyTaxGovt` = yes (else implied "no").
+  - `optional`: OwnHome, Car. Left blank → `eligibleSchemes()` evaluates rules under every possible answer; differing results → 'maybe' + "To confirm" line (`needs`), never 'yes'.
+  - Result: 8 questions direct-to-schemes, 6 via loan flow (was 15). State select defaults to Aadhaar state (client ask).
 - Questions + scheme list chosen from deep research (Sep 2026): `research_notes/Indian welfare schemes eligibility/`. 13 central schemes + 1–2 most-used per state (14 states).
+- Schemes whose hard criteria the quiz can't check (Delhi Lakshmi: voter/10-yr/eldest woman; Haryana Lado Lakshmi: 15-yr residency) return `'maybe'`, and the agent form asks those as `must` declarations.
 - Each scheme `rule(p)` returns `'yes'` (criteria fully covered by questions), `'maybe'` (official list / unverified rule decides — badge "May be eligible — confirm"), or false. `check` = criteria we can't ask, shown as "Also check". Accuracy over generosity (client requirement).
-- Check: `node tests/schemes.check.js`. File: `schemes.js` `?v=8`, `signup.js` `?v=6`, `style.css?v=2`
+- "Apply with Agent" opens a scheme-specific form (`openAgentForm`): Aadhaar + the 13 answers prefilled read-only, then "New details" from `SCHEME_FORM` in `schemes.js`. **Rule: only fields CONFIRMED from the scheme's official form** (research: `research_notes/Scheme application fields/`) — never add a field from memory/aggregators. 14 schemes have confirmed fields; the rest show "form not verified — agent collects the rest". Bank a/c is asked only where the form requires it. `must` = eligibility declaration that blocks submit. Submissions saved to `S.schemeApplications`. TODO: confirm forms for PM-SYM, e-Shram, PM-KISAN, Sukanya, NFSA, PM-JAY, Ladki Bahin, Gruha Lakshmi, MAA, TN/Odisha/WB/Gujarat (portals blocked fetch — needs browser/PDF).
+- Check: `node tests/schemes.check.js`. File: `schemes.js` `?v=12`, `style.css?v=4`, `signup.js` `?v=6`, `style.css?v=2`
 5. **Broken clicks**: after any HTML/JS change run `node tests/clicks.check.js` — flags onclick handlers calling undefined functions, go()/navTo()/goBack() to missing screens, and getElementById on missing ids. It can't judge whether a destination makes *sense* — check that by reading labels.
 6. Bottom-nav **Scan** opens the scanner directly; the bank-account gate (`requireBank`) sits on the Pay button, not on opening the scanner.
