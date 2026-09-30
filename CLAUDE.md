@@ -99,7 +99,7 @@ Global state stored in `S` (defined in `core.js`). Key fields added/used:
 | `bankstatement.js` | AA consent + OTP → fetch accounts → select salary account (no upload, no ESIC/EPF) | `?v=6` |
 | `enach.js` | E-NACH mandate modal (auto-populated from AA, readonly fields) | `?v=4` |
 | `permissions.js` | Loan consents (CIBIL, EPFO, ESIC) — 3 toggles only, no AA | `?v=3` |
-| `i18n.js` | Language selection (Hindi, English, Voice only), translation, voice/TTS | `?v=3` |
+| `i18n.js` | Language selection (Hindi, English, Voice only), translation, voice/TTS | `?v=4` |
 | `insurance.js` | Insurance products flow | — |
 | `investment.js` | FD/investment flow | — |
 | `schemes.js` | Govt schemes: Aadhaar + profile (`s-scheme-profile`) → eligibility-matched list (eligible / may be eligible) with docs, scheme-specific agent form | `?v=12` |

@@ -131,25 +131,6 @@ function applyTranslation(lang){
       item.el.textContent=item.orig; // fallback to English
     }
   });
-  if(lang==='hi'){
-    document.querySelectorAll('#aadhaarGender option').forEach(o=>{
-      if(o.value==='male')o.textContent='पुरुष';
-      if(o.value==='female')o.textContent='महिला';
-      if(o.value==='other')o.textContent='अन्य';
-    });
-  } else if(lang==='bn'){
-    document.querySelectorAll('#aadhaarGender option').forEach(o=>{
-      if(o.value==='male')o.textContent='পুরুষ';
-      if(o.value==='female')o.textContent='মহিলা';
-      if(o.value==='other')o.textContent='অন্যান্য';
-    });
-  } else {
-    document.querySelectorAll('#aadhaarGender option').forEach(o=>{
-      if(o.value==='male')o.textContent='Male';
-      if(o.value==='female')o.textContent='Female';
-      if(o.value==='other')o.textContent='Other';
-    });
-  }
   if(dict){
     document.querySelectorAll('input[placeholder]').forEach(inp=>{
       // keep placeholders in English for now as they are examples
