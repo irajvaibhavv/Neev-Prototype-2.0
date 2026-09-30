@@ -1,8 +1,8 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { logout } from '../lib/auth'
-import { STAGES } from '../lib/applications'
+import { REMOVED, STAGES } from '../lib/applications'
 
-const ICONS = { new: '🆕', incomplete: '⚠️', pending: '⏳', filled: '✅' }
+const ICONS = { new: '🆕', incomplete: '⚠️', pending: '⏳', filled: '✅', removed: '🗑️' }
 const Count = ({ n }) => <span className="rounded-full bg-white border border-line px-2 py-0.5 text-[11px] text-ink-2">{n}</span>
 const Group = ({ children }) => <div className="hidden md:block px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-side-group">{children}</div>
 
@@ -35,7 +35,7 @@ export default function Shell({ agent, counts, includeSample, setIncludeSample, 
             <span className="text-base" aria-hidden>🎯</span><span className="flex-1 whitespace-nowrap">Leads</span><Count n={counts.leads} />
           </NavLink>
           <Group>Applications</Group>
-          {STAGES.map(s => (
+          {[...STAGES, REMOVED].map(s => (
             <NavLink key={s.key} to={`/${s.key}`} className={link}>
               <span className="text-base" aria-hidden>{ICONS[s.key]}</span>
               <span className="flex-1 whitespace-nowrap">{s.label}</span><Count n={counts[s.key]} />

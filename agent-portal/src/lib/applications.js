@@ -4,10 +4,13 @@ import { makeSample } from './sample.js'
 // Live data comes from the employee app (same origin): localStorage 'neev_employee_db' = { [mobile]: profile }.
 //   profile.signupAt / profile.funnel = the user's journey (schemesOpened → schemeClicked → formStarted → cartAdded → paid)
 //   profile.schemeApplications[] = one per scheme: status 'draft' | 'cart' | 'paid', docsMissing[]
-// The manager's decisions (move to Filled, outcome) live in 'neev_agent_stages' and don't sync back to the app.
+// The manager's decisions (move to Filled, outcome, removals, document changes) live in 'neev_agent_stages';
+// applications the agent adds for a user live in 'neev_agent_added'. Neither syncs back to the app.
 const EMPLOYEE_DB = 'neev_employee_db'
 const STAGES_KEY = 'neev_agent_stages'
 const SAMPLE_KEY = 'neev_portal_sample'
+const ADDED_KEY = 'neev_agent_added'
+export const SCHEME_FEE = 49
 
 export const FUNNEL = [
   { key: 'downloaded', label: 'Downloaded the app' },
@@ -23,6 +26,9 @@ export const STAGES = [
   { key: 'pending', label: 'Pending', short: 'Pending', desc: 'Paid, but documents are missing — collect them.' },
   { key: 'filled', label: 'Filled applications', short: 'Filled', desc: 'Filed on the government portal — record the outcome.' },
 ]
+// Removed applications are kept (audit trail + restore), just out of the working sections.
+export const REMOVED = { key: 'removed', label: 'Removed', short: 'Removed', desc: 'Removed by an agent — e.g. user not eligible. Paid ones are flagged for a ₹49 refund.' }
+export const REMOVE_REASONS = ['Not eligible for this scheme', 'Duplicate application', 'User asked to cancel', 'Wrong scheme selected', 'Other']
 export const OUTCOMES = [
   { key: 'in_process', label: 'In process' },
   { key: 'approved', label: 'Approved' },
@@ -36,11 +42,13 @@ export const LEAD_TABS = [
 const read = (k, fallback) => { try { return JSON.parse(localStorage.getItem(k)) ?? fallback } catch { return fallback } }
 const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch { /* storage blocked: lasts until reload */ } }
 
-// Section an application sits in: from its own status, unless the manager moved it (Filled / docs received).
-function sectionOf(a, override) {
+// Section an application sits in. Removed wins; Filled is a manager decision; otherwise it follows payment + documents
+// (so an agent uploading the last missing document moves it Pending → New, and removing one moves it back).
+function sectionOf(a, o) {
+  if (o.removed) return 'removed'
   if (a.status !== 'paid') return 'incomplete'
-  if (override?.stage) return override.stage
-  return a.docsMissing?.length ? 'pending' : 'new'
+  if (o.stage === 'filled') return 'filled'
+  return a.docsMissing.length ? 'pending' : 'new'
 }
 
 function loadLive() {
@@ -67,10 +75,13 @@ export function loadAll(includeSample, sample) {
   const overrides = { ...(includeSample ? sample.stageOverrides : {}), ...read(STAGES_KEY, {}) }
   const people = [...live.people, ...(includeSample ? sample.people : [])]
   const byMobile = Object.fromEntries(people.map(p => [p.mobile, p]))
-  const apps = [...live.apps, ...(includeSample ? sample.apps : [])].map(a => {
+  const added = read(ADDED_KEY, []).filter(a => byMobile[a.owner])
+  const apps = [...live.apps, ...added, ...(includeSample ? sample.apps : [])].map(a => {
     const o = overrides[a.id] || {}
-    return { ...a, person: byMobile[a.owner || a.mobile], stage: sectionOf(a, o), outcome: o.outcome || 'in_process',
-      history: o.history || [], reminders: o.reminders || [] }
+    const docs = { ...Object.fromEntries((a.docsMissing || []).map(d => [d, false])), ...(a.docs || {}), ...(o.docOverrides || {}) }
+    const withDocs = { ...a, docs, docsMissing: Object.keys(docs).filter(d => !docs[d]) }
+    return { ...withDocs, person: byMobile[a.owner || a.mobile], stage: sectionOf(withDocs, o), outcome: o.outcome || 'in_process',
+      history: o.history || [], reminders: o.reminders || [], removed: o.removed || null }
   })
   apps.sort((x, y) => (y.paidAt || y.createdAt || '').localeCompare(x.paidAt || x.createdAt || ''))
   return { people, apps }
@@ -94,7 +105,7 @@ export function useData() {
   const reload = useCallback(() => setData(loadAll(includeSample, sample)), [includeSample, sample])
 
   useEffect(() => {
-    const onStorage = e => { if (e.key === EMPLOYEE_DB || e.key === STAGES_KEY) reload() }
+    const onStorage = e => { if ([EMPLOYEE_DB, STAGES_KEY, ADDED_KEY].includes(e.key)) reload() }
     window.addEventListener('storage', onStorage)
     window.addEventListener('focus', reload)
     return () => { window.removeEventListener('storage', onStorage); window.removeEventListener('focus', reload) }
@@ -117,8 +128,32 @@ export function useData() {
     reload()
   }, [reload, sample])
 
+  // Agent powers. Each is logged in the application's history (timeline) with a readable label.
+  const setDoc = useCallback((app, doc, uploaded) => {
+    const docOverrides = { ...(read(STAGES_KEY, {})[app.id]?.docOverrides || {}), [doc]: uploaded }
+    update(app.id, { docOverrides, note: `${uploaded ? 'Uploaded' : 'Removed'} document: ${doc}` })
+  }, [update])
+  const markAllDocs = useCallback(app => {
+    const docOverrides = { ...(read(STAGES_KEY, {})[app.id]?.docOverrides || {}), ...Object.fromEntries(app.docsMissing.map(d => [d, true])) }
+    update(app.id, { docOverrides, note: `Documents received: ${app.docsMissing.join(', ')}` })
+  }, [update])
+  const removeApp = useCallback((app, reason, detail) => {
+    const refund = app.status === 'paid' && (app.amount || 0) > 0
+    update(app.id, { removed: { at: new Date().toISOString(), reason, detail, refund }, note: `Removed — ${reason}${detail ? `: ${detail}` : ''}${refund ? ` · ₹${app.amount} refund due` : ''}` })
+  }, [update])
+  const restoreApp = useCallback(app => update(app.id, { removed: null, note: 'Restored' }), [update])
+  const addApp = useCallback((person, scheme, payment, collected) => {
+    const at = new Date().toISOString()
+    const app = { id: `AG${Date.now()}`, owner: person.mobile, applicant: person.name, mobile: person.mobile, state: person.state,
+      scheme: scheme.name, status: 'paid', addedByAgent: true, payment, amount: payment === 'collected' ? SCHEME_FEE : 0,
+      docs: Object.fromEntries(scheme.docs.map(d => [d, collected.includes(d)])), formData: {}, createdAt: at, paidAt: at }
+    write(ADDED_KEY, [...read(ADDED_KEY, []), app])
+    update(app.id, { note: `Added by agent · fee ${payment === 'collected' ? `₹${SCHEME_FEE} collected` : 'waived'}` })
+    return app.id
+  }, [update])
+
   const setIncludeSample = v => { write(SAMPLE_KEY, v); setIncludeSampleState(v); setData(loadAll(v, sample)) }
-  return { ...data, update, logReminder, includeSample, setIncludeSample }
+  return { ...data, update, logReminder, setDoc, markAllDocs, removeApp, restoreApp, addApp, includeSample, setIncludeSample }
 }
 
 export const fmtDate = iso => iso

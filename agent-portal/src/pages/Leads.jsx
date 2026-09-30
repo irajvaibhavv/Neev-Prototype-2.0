@@ -1,9 +1,13 @@
-import { NavLink, useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { NavLink, useNavigate, useParams } from 'react-router-dom'
+import AddAppModal from '../components/AddAppModal'
 import { LEAD_TABS, fmtDate, leadsAt } from '../lib/applications'
 
 // People who showed interest but haven't started an application — the manager's follow-up list.
-export default function Leads({ people }) {
+export default function Leads({ people, apps, addApp }) {
   const { step = 'schemesOpened' } = useParams()
+  const [adding, setAdding] = useState(null)
+  const nav = useNavigate()
   const tab = LEAD_TABS.find(t => t.key === step) || LEAD_TABS[0]
   const rows = leadsAt(people, tab.key)
 
@@ -36,6 +40,7 @@ export default function Leads({ people }) {
                   <th className="px-4 py-3 font-semibold">Joined app</th>
                   <th className="px-4 py-3 font-semibold">{tab.key === 'schemesOpened' ? 'Viewed schemes' : 'Clicked a scheme'}</th>
                   <th className="px-4 py-3 font-semibold">Contact</th>
+                  <th className="px-4 py-3 font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -46,6 +51,9 @@ export default function Leads({ people }) {
                     <td className="px-4 py-3 text-ink-2 whitespace-nowrap">{fmtDate(p.signupAt)}</td>
                     <td className="px-4 py-3 text-ink-2 whitespace-nowrap">{fmtDate(p.funnel[tab.key])}</td>
                     <td className="px-4 py-3"><a href={`tel:+91${p.mobile}`} className="text-side-active font-semibold hover:underline whitespace-nowrap">+91 {p.mobile}</a></td>
+                    <td className="px-4 py-3">
+                      <button onClick={() => setAdding(p)} className="rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-ink-2 hover:border-brand hover:text-side-active whitespace-nowrap">+ Add application</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -53,6 +61,8 @@ export default function Leads({ people }) {
           </div>
         )}
       </div>
+      {adding && <AddAppModal person={adding} existing={apps.filter(a => (a.owner || a.mobile) === adding.mobile)} onClose={() => setAdding(null)}
+        onAdd={(...args) => nav(`/application/${addApp(...args)}`)} />}
     </div>
   )
 }

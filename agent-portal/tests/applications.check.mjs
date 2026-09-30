@@ -32,4 +32,21 @@ assert.equal(apps.find(a => a.id === 'A2').state, 'Bihar')
 const s = loadAll(true, makeSample())
 const sf = funnelCounts(s.people).map(x => x.n); console.log('funnel with sample:', sf.join(' → '))
 assert(sf[0] >= 500 && sf.every((n, i) => !i || n <= sf[i - 1]), 'funnel must narrow')
+// ---- agent powers: remove (with refund flag), delete/upload a document, add an application ----
+store.neev_agent_stages = JSON.stringify({
+  A1: { stage: 'filled', outcome: 'approved' },
+  A2: { docOverrides: { 'Income certificate': true } },                     // agent collected the missing doc → New
+  A3: { removed: { at: t(6), reason: 'Not eligible for this scheme', refund: false } },
+  AG1: { docOverrides: { 'Aadhaar card': false } },                         // agent deleted a wrong upload → Pending
+})
+store.neev_agent_added = JSON.stringify([
+  { id: 'AG1', owner: '9000000004', applicant: 'Payer', mobile: '9000000004', scheme: 'e-Shram Card', status: 'paid', addedByAgent: true,
+    payment: 'collected', amount: 49, docs: { 'Aadhaar card': true, 'Bank account details': true }, createdAt: t(7), paidAt: t(7) },
+  { id: 'AG2', owner: '9999999999', scheme: 'e-Shram Card', status: 'paid', docs: {} },   // unknown person → ignored
+])
+const p2 = loadAll(false, makeSample()).apps
+const st = Object.fromEntries(p2.map(a => [a.id, a.stage]))
+assert.deepEqual(st, { A1: 'filled', A2: 'new', A3: 'removed', A4: 'incomplete', AG1: 'pending' })
+assert.deepEqual(p2.find(a => a.id === 'AG1').docsMissing, ['Aadhaar card'])
+assert.equal(p2.find(a => a.id === 'A3').removed.reason, 'Not eligible for this scheme')
 console.log('ok')

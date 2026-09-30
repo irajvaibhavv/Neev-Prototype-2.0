@@ -90,7 +90,9 @@ OPENF('e-Shram Card'); assert(S.funnel.schemeClicked&&!S.funnel.formStarted,'ope
 els2.agentMobile={value:'9876543210'}; els2.agentAddress={value:'Delhi'};
 UP(0); assert(S.funnel.formStarted,'uploading a doc = started'); assert.equal(APPS()[0].status,'draft');
 ADD(); assert.equal(APPS()[0].status,'cart'); assert(S.funnel.cartAdded);
-assert.equal(APPS()[0].docsMissing.length,ALL.find(s=>s.name==='e-Shram Card').docs.length-1,'skipped docs recorded as missing');
+// Aadhaar + mobile are already verified → not asked; only the bank detail (not in e-Shram's form, no loan KYC) is missing
+assert.deepEqual(APPS()[0].docsMissing,['Bank account details'],'only docs we do not hold can be missing');
+assert.equal(APPS()[0].docs['Aadhaar card'],'on-file');
 // second scheme, all docs uploaded
 OPENF('PM Suraksha Bima Yojana');
 FLD().forEach((f,i)=>{ if(f.t==='yn'||f.t==='sel'){ els2['agW'+i]={outerHTML:''}; PICK(i,f.must==='no'?1:0); } else els2['agF'+i]={value:f.re===RE_IFSC?'SBIN0001234':f.re===RE_ACC?'12345678':f.t==='date'?'1990-01-01':f.re===RE_MOB?'9876543210':'x'}; });
@@ -100,4 +102,11 @@ PAY(); assert.equal(CART().length,0); assert(S.funnel.paid);
 const paid=APPS().filter(a=>a.status==='paid');
 assert.equal(paid.length,2); assert(paid.find(a=>a.scheme==='e-Shram Card').docsMissing.length>0,'e-Shram → pending');
 assert.equal(paid.find(a=>a.scheme==='PM Suraksha Bima Yojana').docsMissing.length,0,'PMSBY → complete');
+// docsToAsk: bank verified in loan KYC → nothing left to ask for e-Shram; PMSBY asks bank in its own form
+eval(require('fs').readFileSync('employee/js/schemes.js','utf8')+';global.ASK=docsToAsk;');
+const esh=ALL.find(s=>s.name==='e-Shram Card'), pmsby=ALL.find(s=>s.name==='PM Suraksha Bima Yojana');
+assert.deepEqual(ASK(esh),['Bank account details']);
+assert.deepEqual(ASK(pmsby),[],'PMSBY: Aadhaar on file + bank asked in its form');
+S.bankLast4='1234'; assert.deepEqual(ASK(esh),[]); delete S.bankLast4;
+const sav=S.aadhaar; delete S.aadhaar; assert(ASK(esh).includes('Aadhaar card'),'no Aadhaar yet → must ask'); S.aadhaar=sav;
 console.log('cart flow ok');

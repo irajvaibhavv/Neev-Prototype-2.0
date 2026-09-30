@@ -482,7 +482,9 @@ function renderSchemes(){
         <p style="font-size:12px;margin:0 0 8px;color:var(--teal-900);"><b>Also check:</b> ${s.check}</p>
         <div style="background:var(--teal-100);border-radius:8px;padding:8px 10px;margin-bottom:10px;">
           <b style="font-size:11px;color:var(--teal-900);">📄 Documents needed</b>
-          <ul style="margin:4px 0 0 16px;padding:0;font-size:12px;color:var(--teal-900);">${s.docs.map(d=>'<li>'+d+'</li>').join('')}</ul>
+          ${docsToAsk(s).length?`<ul style="margin:4px 0 0 16px;padding:0;font-size:12px;color:var(--teal-900);">${docsToAsk(s).map(d=>'<li>'+d+'</li>').join('')}</ul>`
+            :'<p style="font-size:12px;margin:4px 0 0;color:var(--teal-900);">None — we already have what\'s needed.</p>'}
+          ${s.docs.length>docsToAsk(s).length?'<p class="muted" style="font-size:11px;margin:4px 0 0;">Aadhaar, mobile and bank details you\'ve already verified aren\'t asked again.</p>':''}
         </div>
         <div style="display:flex;gap:8px;">
           <div style="flex:1;text-align:center;">
@@ -627,11 +629,32 @@ function openAgentForm(schemeName){
 
 // Mock document upload — one slot per "Documents needed" item. Skipping is allowed (→ Pending after payment).
 let agDocs={};
+
+// Documents we already hold — never ask the user to upload these again (minimal-questions rule).
+// Returns why we have it, or '' if the user must provide it. Keep this conservative: only exact matches,
+// e.g. "Bank passbook" (a copy of the passbook) is still asked even when we know the account.
+const BANK_DOCS=['Bank account','Bank account details','Savings bank account','Savings / Jan Dhan bank account','Bank account in own name'];
+function docOnFile(d,schemeName){
+  const form=SCHEME_FORM[schemeName];
+  const formHasBank=!!(form&&form.fields.some(f=>f.l==='Bank account number'));
+  if(['Aadhaar card','Parent Aadhaar','Parent Aadhaar card','Address proof','Residence proof'].includes(d)&&S.aadhaar) return 'Aadhaar verified';
+  if(d==='Parent Aadhaar & PAN'&&S.aadhaar&&S.panNumber) return 'Aadhaar + PAN from DigiLocker';
+  if(d==='Mobile number'&&S.mobile) return 'OTP verified';
+  if(d==='Aadhaar-linked mobile'&&S.mobile&&S.aadhaar) return 'OTP verified';
+  if(BANK_DOCS.includes(d)&&(formHasBank||S.bankLast4)) return formHasBank?'asked in the form above':'verified in loan KYC';
+  if(d==='None needed') return 'nothing to upload';
+  return '';
+}
+const docsToAsk=s=>s.docs.filter(d=>!docOnFile(d,s.name));
+
 function renderAgentDocs(){
   const sch=findScheme(agentFormScheme); const docs=(sch&&sch.docs)||[];
+  const onFile=docs.filter(d=>docOnFile(d,sch.name)), ask=docs.filter(d=>!docOnFile(d,sch.name));
   document.getElementById('agentDocs').innerHTML='<div class="ag-sec">📎 Documents</div>'
-    +'<p class="muted" style="font-size:11px;margin:0 0 8px;">Upload what you have now. You can skip — your application will show as pending until they\'re added.</p>'
-    +docs.map((d,i)=>'<div class="ag-doc"><span>'+(agDocs[d]?'✅ ':'📄 ')+d+'</span>'
+    +(onFile.length?'<p style="font-size:12px;margin:0 0 8px;color:var(--success);">✓ Already with us: '+onFile.map(d=>d+' <span class="muted">('+docOnFile(d,sch.name)+')</span>').join(', ')+'</p>':'')
+    +(ask.length?'<p class="muted" style="font-size:11px;margin:0 0 8px;">Upload what you have now. You can skip — your application will show as pending until they\'re added.</p>'
+      :'<p class="muted" style="font-size:11px;margin:0 0 8px;">No documents to upload for this scheme.</p>')
+    +docs.map((d,i)=>docOnFile(d,sch.name)?'':'<div class="ag-doc"><span>'+(agDocs[d]?'✅ ':'📄 ')+d+'</span>'
       +(agDocs[d]==='uploading'?'<b class="muted">Uploading…</b>'
         :agDocs[d]?'<span class="ag-link" onclick="agentDocUpload('+i+',true)">Remove</span>'
         :'<button type="button" class="btn btn-outline btn-sm" onclick="agentDocUpload('+i+')">📷 Upload</button>')+'</div>').join('');
@@ -673,7 +696,7 @@ function submitAgentForm(){
   if(Object.values(agDocs).includes('uploading')){toast('Please wait for the upload to finish');return;}
   markFormStarted();
   const sch=findScheme(agentFormScheme);
-  const docs={}; sch.docs.forEach(d=>{ docs[d]=!!agDocs[d]; });
+  const docs={}; sch.docs.forEach(d=>{ docs[d]=docOnFile(d,sch.name)?'on-file':!!agDocs[d]; });
   Object.assign(openAppFor(agentFormScheme),{status:'cart',cartAt:new Date().toISOString(),mobile,address,formData:data,docs,
     docsMissing:sch.docs.filter(d=>!docs[d]),state:(S.schemeProfile||{}).LiveState});
   trackFunnel('cartAdded');

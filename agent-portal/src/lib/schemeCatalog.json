@@ -1,0 +1,369 @@
+[
+ {
+  "name": "Construction Workers Welfare Board",
+  "icon": "🔧",
+  "docs": [
+   "Aadhaar card",
+   "90-day work certificate",
+   "Bank passbook",
+   "Passport-size photo"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "PM Shram Yogi Maandhan",
+  "icon": "👷",
+  "docs": [
+   "Aadhaar card",
+   "Savings / Jan Dhan bank account",
+   "Mobile number"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "e-Shram Card",
+  "icon": "🪪",
+  "docs": [
+   "Aadhaar card",
+   "Aadhaar-linked mobile",
+   "Bank account details"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "Atal Pension Yojana",
+  "icon": "👴",
+  "docs": [
+   "Aadhaar card",
+   "Savings bank account",
+   "Mobile number"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "PM Suraksha Bima Yojana",
+  "icon": "🛡️",
+  "docs": [
+   "Aadhaar card",
+   "Bank account"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "PM Jeevan Jyoti Bima Yojana",
+  "icon": "💙",
+  "docs": [
+   "Aadhaar card",
+   "Bank account"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "PM Awas Yojana (Urban 2.0)",
+  "icon": "🏠",
+  "docs": [
+   "Aadhaar of all family members",
+   "Income certificate",
+   "Self-declaration of no pucca house",
+   "Bank account details"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "Sukanya Samriddhi Yojana",
+  "icon": "👧",
+  "docs": [
+   "Daughter's birth certificate",
+   "Parent Aadhaar & PAN",
+   "Address proof"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "Ayushman Bharat (PM-JAY)",
+  "icon": "🏥",
+  "docs": [
+   "Aadhaar card",
+   "Ration card",
+   "Mobile number"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "PM-KISAN",
+  "icon": "🌾",
+  "docs": [
+   "Aadhaar card",
+   "Land records",
+   "Bank passbook"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "PM SVANidhi",
+  "icon": "🛒",
+  "docs": [
+   "Aadhaar card",
+   "Vending certificate / LoR",
+   "Bank account"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "PM Ujjwala Yojana",
+  "icon": "🔥",
+  "docs": [
+   "Aadhaar card",
+   "Ration card",
+   "Bank account"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "Ration Card (NFSA)",
+  "icon": "🍚",
+  "docs": [
+   "Aadhaar of all family members",
+   "Income certificate",
+   "Residence proof",
+   "Passport-size photo"
+  ],
+  "scope": "Central"
+ },
+ {
+  "name": "Delhi Lakshmi Yojana",
+  "icon": "👩",
+  "docs": [
+   "Aadhaar card",
+   "Delhi voter ID",
+   "10-year residence proof",
+   "MP/MLA recommendation"
+  ],
+  "scope": "Delhi"
+ },
+ {
+  "name": "Mukhyamantri Mahila Rojgar Yojana",
+  "icon": "👩",
+  "docs": [
+   "Aadhaar card",
+   "Bank account in own name",
+   "JEEViKA SHG details"
+  ],
+  "scope": "Bihar"
+ },
+ {
+  "name": "Mukhyamantri Kanya Utthan",
+  "icon": "👩‍🎓",
+  "docs": [
+   "Marksheet",
+   "Aadhaar card",
+   "Bihar residence certificate",
+   "Bank account"
+  ],
+  "scope": "Bihar"
+ },
+ {
+  "name": "Kanya Sumangala Yojana",
+  "icon": "👧",
+  "docs": [
+   "Daughter's birth certificate",
+   "Parent Aadhaar card",
+   "UP residence proof",
+   "Income certificate"
+  ],
+  "scope": "Uttar Pradesh"
+ },
+ {
+  "name": "Majhi Ladki Bahin Yojana",
+  "icon": "👩",
+  "docs": [
+   "Aadhaar card",
+   "Maharashtra domicile / ration card",
+   "Income certificate or yellow/orange ration card",
+   "Bank passbook"
+  ],
+  "scope": "Maharashtra"
+ },
+ {
+  "name": "Mahatma Jyotiba Phule Jan Arogya",
+  "icon": "🏥",
+  "docs": [
+   "Aadhaar card",
+   "Ration card or domicile certificate"
+  ],
+  "scope": "Maharashtra"
+ },
+ {
+  "name": "MAA Yojana (formerly Chiranjeevi)",
+  "icon": "🏥",
+  "docs": [
+   "Jan Aadhaar card",
+   "Aadhaar card"
+  ],
+  "scope": "Rajasthan"
+ },
+ {
+  "name": "Shri Annapurna Rasoi",
+  "icon": "🍛",
+  "docs": [
+   "None needed"
+  ],
+  "scope": "Rajasthan"
+ },
+ {
+  "name": "Ladli Bahna Yojana",
+  "icon": "👩",
+  "docs": [
+   "Samagra ID",
+   "Aadhaar card (linked to bank)",
+   "Bank passbook"
+  ],
+  "scope": "Madhya Pradesh"
+ },
+ {
+  "name": "Ladli Laxmi Yojana",
+  "icon": "👧",
+  "docs": [
+   "Daughter's birth certificate",
+   "Samagra ID",
+   "Parent Aadhaar"
+  ],
+  "scope": "Madhya Pradesh"
+ },
+ {
+  "name": "Maiyan Samman Yojana",
+  "icon": "👩",
+  "docs": [
+   "Aadhaar card",
+   "Ration card",
+   "Bank passbook"
+  ],
+  "scope": "Jharkhand"
+ },
+ {
+  "name": "Gruha Lakshmi",
+  "icon": "👩",
+  "docs": [
+   "Aadhaar card",
+   "Ration card (you as head)",
+   "Bank passbook linked to Aadhaar"
+  ],
+  "scope": "Karnataka"
+ },
+ {
+  "name": "Anna Bhagya",
+  "icon": "🍚",
+  "docs": [
+   "AAY/BPL ration card",
+   "Aadhaar of family members"
+  ],
+  "scope": "Karnataka"
+ },
+ {
+  "name": "Kalaignar Magalir Urimai Thogai",
+  "icon": "👩",
+  "docs": [
+   "Aadhaar card",
+   "Family ration card",
+   "Bank passbook",
+   "Electricity bill"
+  ],
+  "scope": "Tamil Nadu"
+ },
+ {
+  "name": "CM's Comprehensive Health Insurance (CMCHIS)",
+  "icon": "🏥",
+  "docs": [
+   "Ration card",
+   "VAO income certificate",
+   "Aadhaar card"
+  ],
+  "scope": "Tamil Nadu"
+ },
+ {
+  "name": "Annapurna Bhandar",
+  "icon": "👩",
+  "docs": [
+   "Aadhaar card",
+   "Voter ID",
+   "Bank passbook"
+  ],
+  "scope": "West Bengal"
+ },
+ {
+  "name": "PMJAY-MA (Mukhyamantri Amrutum)",
+  "icon": "🏥",
+  "docs": [
+   "Aadhaar card",
+   "Income certificate or NFSA ration card"
+  ],
+  "scope": "Gujarat"
+ },
+ {
+  "name": "Namo Lakshmi Yojana",
+  "icon": "👩‍🎓",
+  "docs": [
+   "School ID / bonafide certificate",
+   "Aadhaar card",
+   "Income certificate",
+   "Bank account"
+  ],
+  "scope": "Gujarat"
+ },
+ {
+  "name": "Subhadra Yojana",
+  "icon": "👩",
+  "docs": [
+   "Aadhaar card",
+   "Ration card / income certificate",
+   "Bank passbook"
+  ],
+  "scope": "Odisha"
+ },
+ {
+  "name": "Gopabandhu Jan Arogya Yojana",
+  "icon": "🏥",
+  "docs": [
+   "Aadhaar card",
+   "NFSA/SFSS ration card"
+  ],
+  "scope": "Odisha"
+ },
+ {
+  "name": "Mukh Mantri Sehat Yojana",
+  "icon": "🏥",
+  "docs": [
+   "Aadhaar card",
+   "Punjab voter ID"
+  ],
+  "scope": "Punjab"
+ },
+ {
+  "name": "Smart Ration Card (Atta-Dal)",
+  "icon": "🍚",
+  "docs": [
+   "Smart ration card",
+   "Aadhaar of family members"
+  ],
+  "scope": "Punjab"
+ },
+ {
+  "name": "Deen Dayal Lado Lakshmi Yojana",
+  "icon": "👩",
+  "docs": [
+   "Parivar Pehchan Patra (PPP)",
+   "Aadhaar card",
+   "Bank passbook"
+  ],
+  "scope": "Haryana"
+ },
+ {
+  "name": "Chirayu Ayushman Bharat",
+  "icon": "🏥",
+  "docs": [
+   "Parivar Pehchan Patra (PPP)",
+   "Aadhaar card"
+  ],
+  "scope": "Haryana"
+ }
+]
