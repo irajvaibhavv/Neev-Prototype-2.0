@@ -43,36 +43,39 @@ function Card({ title, sub, total, children, view, setView }) {
 }
 
 // Daily column chart: 4px rounded tops anchored to the baseline, 2px gaps, recessive grid, hover tooltip.
-function DailyChart({ title, sub, series, unit, color }) {
+// fmt formats values (e.g. ₹), label formats each column's key (default: a day).
+export function DailyChart({ title, sub, series, unit, color, fmt = String, label = dayLabel, keyHead = 'Date' }) {
   const [view, setView] = useState('Chart')
   const [hover, setHover] = useState(null)
   const total = series.reduce((s, d) => s + d.n, 0)
   const max = Math.max(1, ...series.map(d => d.n))
-  const niceMax = Math.ceil(max / 4) * 4 || 4
-  const W = 600, H = 170, L = 30, R = 8, B = 26, T = 8
+  const step = 10 ** Math.max(0, Math.floor(Math.log10(max / 2))) // round axis top to an even multiple of 1/10/100…
+  const niceMax = Math.ceil(max / (2 * step)) * 2 * step
+  const ticks = [0, niceMax / 2, niceMax]
+  const W = 600, H = 170, L = Math.max(30, 10 + Math.max(...ticks.map(t => fmt(t).length)) * 7.5), R = 8, B = 26, T = 8
   const cw = (W - L - R) / series.length, bw = Math.max(2, cw - 2)
   const y = v => T + (H - T - B) * (1 - v / niceMax)
-  const ticks = [0, niceMax / 2, niceMax]
-  const labelIdx = new Set([0, Math.floor(series.length / 2), series.length - 1])
+  const labelIdx = new Set(series.length <= 12 ? series.map((_, i) => i) : [0, Math.floor(series.length / 2), series.length - 1])
+  const totalText = unit ? `${fmt(total)} ${unit}` : fmt(total)
 
   return (
-    <Card title={title} sub={sub} total={`${total} ${unit}`} view={view} setView={setView}>
+    <Card title={title} sub={sub} total={totalText} view={view} setView={setView}>
       {view === 'Table' ? (
         <div className="max-h-48 overflow-y-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-ink-3"><tr><th className="py-1">Date</th><th className="py-1 text-right">{unit}</th></tr></thead>
+            <thead className="text-left text-xs uppercase text-ink-3"><tr><th className="py-1">{keyHead}</th><th className="py-1 text-right">{unit || 'Amount'}</th></tr></thead>
             <tbody className="divide-y divide-line">
-              {[...series].reverse().map(d => <tr key={d.k}><td className="py-1.5 text-ink-2">{dayLabel(d.k)}</td><td className="py-1.5 text-right font-semibold">{d.n}</td></tr>)}
+              {[...series].reverse().map(d => <tr key={d.k}><td className="py-1.5 text-ink-2">{label(d.k)}</td><td className="py-1.5 text-right font-semibold">{fmt(d.n)}</td></tr>)}
             </tbody>
           </table>
         </div>
       ) : (
         <div className="relative">
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`${title}: ${total} ${unit} over ${series.length} days`}>
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`${title}: ${totalText} over ${series.length} ${keyHead === 'Date' ? 'days' : 'periods'}`}>
             {ticks.map(t => (
               <g key={t}>
                 <line x1={L} x2={W - R} y1={y(t)} y2={y(t)} stroke="#eceaf3" strokeWidth="1" />
-                <text x={L - 8} y={y(t) + 4} textAnchor="end" fontSize="13" fill="#5f5680">{t}</text>
+                <text x={L - 8} y={y(t) + 4} textAnchor="end" fontSize="13" fill="#5f5680">{fmt(t)}</text>
               </g>
             ))}
             {series.map((d, i) => {
@@ -86,7 +89,8 @@ function DailyChart({ title, sub, series, unit, color }) {
                   <rect x={L + i * cw} y={T} width={cw} height={H - T - B} fill="transparent"
                     onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} />
                   {labelIdx.has(i) && <text x={i === 0 ? x : i === series.length - 1 ? x + bw : x + bw / 2} y={H - 6} fontSize="13" fill="#5f5680"
-                    textAnchor={i === 0 ? 'start' : i === series.length - 1 ? 'end' : 'middle'}>{dayLabel(d.k)}</text>}
+                    textAnchor={series.length <= 12 ? 'middle' : i === 0 ? 'start' : i === series.length - 1 ? 'end' : 'middle'}
+                    {...(series.length <= 12 ? { x: x + bw / 2 } : {})}>{label(d.k)}</text>}
                 </g>
               )
             })}
@@ -95,7 +99,7 @@ function DailyChart({ title, sub, series, unit, color }) {
           {hover !== null && (
             <div className="pointer-events-none absolute -top-2 rounded-md bg-ink text-white text-xs px-2 py-1 shadow-card-hover whitespace-nowrap"
               style={{ left: `${((L + hover * cw + cw / 2) / W) * 100}%`, transform: 'translate(-50%, -100%)' }}>
-              {dayLabel(series[hover].k)} · <b>{series[hover].n}</b> {unit}
+              {label(series[hover].k)} · <b>{fmt(series[hover].n)}</b> {unit}
             </div>
           )}
         </div>

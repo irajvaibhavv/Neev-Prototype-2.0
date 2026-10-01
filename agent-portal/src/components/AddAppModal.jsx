@@ -22,6 +22,8 @@ export default function AddAppModal({ person, existing, onClose, onAdd }) {
   // Pre-tick what the app already verified for this person (same rule as docOnFile in employee/js/schemes.js)
   const onFile = d => (['Aadhaar card', 'Parent Aadhaar', 'Parent Aadhaar card', 'Address proof', 'Residence proof', 'Aadhaar-linked mobile'].includes(d) && person.aadhaarLast4)
     || d === 'Mobile number' || d === 'None needed'
+  const mandatory = scheme ? scheme.docs.filter(d => !scheme.optionalDocs.includes(d)) : []
+  const allMandatory = mandatory.every(d => collected.includes(d))
   const choose = n => { setName(n); const s = catalog.find(x => x.name === n); setCollected(s ? s.docs.filter(onFile) : []) }
 
   return (
@@ -59,11 +61,12 @@ export default function AddAppModal({ person, existing, onClose, onAdd }) {
             {scheme.docs.map(d => (
               <label key={d} className="flex items-center gap-2.5 rounded-lg border border-line px-3 py-2 text-sm cursor-pointer hover:border-ink-3">
                 <input type="checkbox" checked={collected.includes(d)} onChange={() => toggle(d)} className="accent-brand size-4" />{d}
+                {scheme.optionalDocs.includes(d) && <span className="ml-auto text-xs text-ink-3">optional</span>}
               </label>
             ))}
           </div>
           <p className="mt-2 text-xs text-ink-3">
-            {collected.length === scheme.docs.length ? 'All documents collected → goes to New applications.' : 'Missing documents → goes to Pending until they are collected.'}
+            {allMandatory ? 'All mandatory documents collected → goes to New applications.' : 'Missing documents → goes to Pending until they are collected.'}
           </p>
         </fieldset>
       )}

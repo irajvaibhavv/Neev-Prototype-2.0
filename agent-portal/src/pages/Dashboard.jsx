@@ -5,13 +5,14 @@ import { OUTCOMES, STAGES, fmtDate, funnelCounts, pct } from '../lib/application
 // Saralya "Application summary" style: pastel tinted cards with a coloured number.
 const STAGE_STYLE = {
   new: { card: 'bg-info-tint/60 border-info/25', num: 'text-info', badge: 'bg-info-tint text-info' },
+  in_progress: { card: 'bg-cyan-50 border-cyan-200', num: 'text-cyan-700', badge: 'bg-cyan-100 text-cyan-800' },
   incomplete: { card: 'bg-orange-50 border-orange-200', num: 'text-orange-600', badge: 'bg-orange-100 text-orange-700' },
   pending: { card: 'bg-warn-tint/70 border-warn/25', num: 'text-warn', badge: 'bg-warn-tint text-warn' },
   filled: { card: 'bg-brand-tint/70 border-brand/25', num: 'text-brand-dark', badge: 'bg-brand-tint text-side-active' },
 }
 const OUTCOME_BAR = { approved: 'bg-ok', in_process: 'bg-info', disapproved: 'bg-bad' }
 const OUTCOME_TEXT = { approved: 'text-ok', in_process: 'text-info', disapproved: 'text-bad' }
-const FUNNEL_LINK = { schemesOpened: '/leads/schemesOpened', schemeClicked: '/leads/schemeClicked', formStarted: '/incomplete', cartAdded: '/incomplete', paid: '/new' }
+const FUNNEL_LINK = { schemesOpened: '/leads/schemesOpened', schemeClicked: '/leads/schemeClicked', }
 
 function Panel({ title, sub, children, className = '' }) {
   return (
@@ -93,14 +94,14 @@ export default function Dashboard({ agent, people, apps }) {
       {/* Application summary */}
       <section>
         <h2 className="font-bold">Application summary</h2>
-        <p className="text-xs text-ink-3 mt-0.5">One application per scheme — a user can apply for several. Click a card to open that section.</p>
-        <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <p className="text-xs text-ink-3 mt-0.5">One application per scheme — a user can apply for several.</p>
+        <div className="mt-3 grid grid-cols-2 lg:grid-cols-5 gap-3">
           {STAGES.map(s => (
-            <Link key={s.key} to={`/${s.key}`} className={`rounded-card border p-4 transition-shadow hover:shadow-card-hover ${STAGE_STYLE[s.key].card}`}>
+            <div key={s.key} className={`rounded-card border p-4 ${STAGE_STYLE[s.key].card}`}>
               <div className="text-[11px] font-bold uppercase tracking-wider text-ink-2">{s.label}</div>
               <div className={`mt-1 text-3xl font-bold font-heading ${STAGE_STYLE[s.key].num}`}>{byStage(s.key).length}</div>
               <div className="mt-1 text-xs text-ink-3">{s.desc.split(' — ')[0]}</div>
-            </Link>
+            </div>
           ))}
         </div>
       </section>
@@ -154,7 +155,7 @@ export default function Dashboard({ agent, people, apps }) {
             {apps.slice(0, 6).map(a => (
               <li key={a.id} className="py-2.5 flex items-center gap-3 text-sm">
                 <span className="size-2 rounded-full bg-line-strong shrink-0" />
-                <div className="flex-1 min-w-0"><Link to={`/application/${a.id}`} className="font-bold hover:text-side-active hover:underline">{a.applicant}</Link> <span className="text-ink-2">· {a.scheme}</span></div>
+                <div className="flex-1 min-w-0"><span className="font-bold">{a.applicant}</span> <span className="text-ink-2">· {a.scheme}</span></div>
                 <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STAGE_STYLE[a.stage].badge}`}>{STAGES.find(s => s.key === a.stage).short}</span>
                 <span className="hidden sm:block text-xs text-ink-3 w-24 text-right">{fmtDate(a.paidAt || a.createdAt)}</span>
               </li>

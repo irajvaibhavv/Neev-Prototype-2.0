@@ -3,14 +3,14 @@
 // Demo only — replace with real auth in production.
 export const ROLES = {
   super: { label: 'Super admin', home: '/admin/users', area: 'Neev backend' },
-  agent: { label: 'Agent', home: '/dashboard', area: 'Govt schemes' },
-  sales: { label: 'Sales', home: '/sales', area: 'Sales' },
+  agent: { label: 'Agent', home: '/new', area: 'Govt schemes' },
+  sales: { label: 'Sales', home: '/dashboard', area: 'Sales' },
 }
-export const MANAGED_ROLES = ['agent', 'sales'] // roles the super admin can create
+export const MANAGED_ROLES = ['agent', 'sales', 'super'] // roles the super admin can create
 const SEED_USERS = [
-  { id: 'u-super', name: 'Neev Admin', mobile: '9876500000', role: 'super', area: 'All states', active: true },
-  { id: 'u-agent', name: 'Neev Manager', mobile: '9876500001', role: 'agent', area: 'Govt schemes · All states', active: true },
-  { id: 'u-sales', name: 'Neev Sales', mobile: '9876500002', role: 'sales', area: 'All regions', active: true },
+  { id: 'u-super', name: 'Neev Admin', mobile: '9876500000', role: 'super', active: true },
+  { id: 'u-agent', name: 'Neev Manager', mobile: '9876500001', role: 'agent', active: true },
+  { id: 'u-sales', name: 'Neev Sales', mobile: '9876500002', role: 'sales', active: true },
 ]
 export const DEMO_OTP = '1234'
 const KEY = 'neev_agent_session'
@@ -29,7 +29,9 @@ export function validateUser(u, users = getUsers()) {
   if (!u.name.trim()) return 'Enter a name'
   if (!/^\d{10}$/.test(u.mobile)) return 'Enter a 10-digit mobile number'
   if (users.some(x => x.mobile === u.mobile && x.id !== u.id)) return 'This mobile number is already registered'
-  if (!MANAGED_ROLES.includes(u.role) && u.role !== 'super') return 'Choose a role'
+  if (!MANAGED_ROLES.includes(u.role)) return 'Choose a role'
+  const old = users.find(x => x.id === u.id)
+  if (old && isLastSuper(old, users) && (u.role !== 'super' || u.active === false)) return 'There must always be at least one active super admin'
   return ''
 }
 export function saveUser(u) {
@@ -40,8 +42,12 @@ export function saveUser(u) {
   write(USERS_KEY, next)
   return next
 }
+// The last active super admin can't be deleted, deactivated or given another role.
+export const isLastSuper = (u, users = getUsers()) =>
+  u.role === 'super' && u.active !== false && users.filter(x => x.role === 'super' && x.active !== false).length === 1
 export function deleteUser(id) {
-  const next = getUsers().filter(x => x.id !== id || x.role === 'super') // super admin can't be deleted
+  const users = getUsers()
+  const next = users.filter(x => x.id !== id || isLastSuper(x, users))
   write(USERS_KEY, next)
   return next
 }

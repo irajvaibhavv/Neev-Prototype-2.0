@@ -1,11 +1,17 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { FIELD_TYPES, fieldUsage, getFields } from '../../lib/fields'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { FIELD_TYPES, fieldUsage, hasOptions, getFields } from '../../lib/fields'
+import FieldModal from '../../components/FieldModal'
 import { btnPrimary } from '../../lib/ui'
 
+// /admin/fields/new and /admin/fields/:id open the add / edit dialog over the list.
 export default function Fields() {
-  const [list] = useState(getFields)
-  const [used] = useState(fieldUsage)
+  const { id } = useParams()
+  const nav = useNavigate()
+  const [list, setList] = useState(getFields)
+  const [used, setUsed] = useState(fieldUsage)
+  const close = () => nav('/admin/fields')
+  const saved = () => { setList(getFields()); setUsed(fieldUsage()); close() }
   const [q, setQ] = useState('')
   const rows = list.filter(f => !q || f.name.toLowerCase().includes(q.toLowerCase()))
 
@@ -39,7 +45,7 @@ export default function Fields() {
                   {!f.required && <span className="ml-2 text-xs text-ink-3">optional</span>}
                   {f.desc && <div className="mt-0.5 text-xs text-ink-2 max-w-sm">{f.desc}</div>}
                 </td>
-                <td className="px-4 py-3 text-ink-2 whitespace-nowrap">{FIELD_TYPES[f.type]}{f.type === 'dropdown' && ` · ${f.options.length} options`}</td>
+                <td className="px-4 py-3 text-ink-2 whitespace-nowrap">{FIELD_TYPES[f.type]}{hasOptions(f.type) && ` · ${f.options.length} options`}</td>
                 <td className="px-4 py-3 text-ink-2 whitespace-nowrap" title={(used[f.name] || []).map(s => s.name).join('\n')}>
                   {used[f.name] ? `${used[f.name].length} scheme${used[f.name].length > 1 ? 's' : ''}` : <span className="text-ink-3">Not used</span>}
                 </td>
@@ -50,6 +56,7 @@ export default function Fields() {
         {rows.length === 0 && <p className="p-10 text-center text-ink-2">No fields match.</p>}
       </div>
       <p className="mt-3 text-xs text-ink-3">{list.length} fields · click one to edit it.</p>
+      {id && <FieldModal key={id} id={id === 'new' ? undefined : id} onClose={close} onSaved={saved} />}
     </div>
   )
 }

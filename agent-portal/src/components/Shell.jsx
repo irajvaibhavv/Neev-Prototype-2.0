@@ -4,7 +4,7 @@ import { ROLES, logout } from '../lib/auth'
 const Count = ({ n }) => <span className="rounded-full bg-white border border-line px-2 py-0.5 text-[11px] text-ink-2">{n}</span>
 const Group = ({ children }) => <div className="hidden md:block px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-side-group">{children}</div>
 
-// Saralya-style layout: lavender sidebar with uppercase sections + counts, white top bar.
+// Saralya-style layout: lavender sidebar (sticky on desktop — Log out always visible at the bottom; long menus scroll inside it) with uppercase sections + counts, white top bar.
 // items: [{ group } | { to, icon, label, count? }] — each role passes its own sidebar; toolbar sits left in the top bar.
 export default function Shell({ agent, items, toolbar, children }) {
   const nav = useNavigate()
@@ -13,7 +13,7 @@ export default function Shell({ agent, items, toolbar, children }) {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      <aside className="md:w-64 shrink-0 flex flex-col bg-side border-b md:border-b-0 md:border-r border-line">
+      <aside className="md:w-64 shrink-0 flex flex-col md:sticky md:top-0 md:h-screen bg-side border-b md:border-b-0 md:border-r border-line">
         <div className="h-16 flex items-center gap-2.5 px-5 border-b border-line">
           <div className="size-8 rounded-lg bg-brand text-white grid place-items-center font-heading font-bold">N</div>
           <div className="leading-tight">
@@ -21,7 +21,7 @@ export default function Shell({ agent, items, toolbar, children }) {
             <div className="text-[11px] text-side-group">{ROLES[agent.role].label} portal</div>
           </div>
         </div>
-        <nav className="p-3 flex md:flex-col gap-1 overflow-x-auto" aria-label="Portal sections">
+        <nav className="p-3 flex md:flex-col gap-1 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto md:flex-1 md:min-h-0" aria-label="Portal sections">
           {items.map(it => (it.group ? <Group key={it.group}>{it.group}</Group> : (
             <NavLink key={it.to} to={it.to} className={link}>
               <span className="text-base" aria-hidden>{it.icon}</span>
@@ -29,7 +29,7 @@ export default function Shell({ agent, items, toolbar, children }) {
             </NavLink>
           )))}
         </nav>
-        <div className="mt-auto p-3 border-t border-line">
+        <div className="mt-auto shrink-0 p-3 border-t border-line">
           <button onClick={() => { logout(); nav('/login', { replace: true }) }}
             className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-side-text hover:bg-brand/5">
             <span className="text-base" aria-hidden>↩</span>Log out

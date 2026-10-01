@@ -59,14 +59,19 @@ export function makeSample(now = Date.now()) {
     const chosen = [...SCHEMES].sort(() => r() - 0.5).slice(0, n)
     chosen.forEach(([scheme, docs], j) => {
       const status = f.paid ? 'paid' : f.cartAdded ? 'cart' : 'draft'
-      const missing = status === 'draft' ? docs : docs.filter(() => r() < 0.3)
+      const missing = status === 'draft' ? docs : docs.filter(() => r() < 0.12)
       const id = `S${i}-${j}`
       apps.push({ id, sample: true, owner: mobile, applicant: p.name, mobile, state: p.state, scheme, status, docsMissing: missing,
         docs: Object.fromEntries(docs.map(d => [d, !missing.includes(d)])), formData: {}, address: p.address,
         paymentRef: status === 'paid' ? `NEEVSCH${String(i).padStart(8, '0')}` : undefined,
         createdAt: f.formStarted, cartAt: f.cartAdded, paidAt: f.paid, amount: status === 'paid' ? 49 : 0 })
-      // Some older paid applications have already been filed on the government portal.
-      if (status === 'paid' && !missing.length && r() < 0.6) stageOverrides[id] = { stage: 'filled', outcome: pick(['in_process', 'in_process', 'approved', 'approved', 'disapproved']) }
+      // Complete paid applications: about half still New, some being filed (In progress), the rest filed.
+      // (Same number of r() draws as before, so the rest of the sample stays the same.)
+      if (status === 'paid' && !missing.length) {
+        const v = r()
+        if (v < 0.3) stageOverrides[id] = { stage: 'filled', outcome: pick(['in_process', 'in_process', 'approved', 'approved', 'disapproved']) }
+        else if (v < 0.5) stageOverrides[id] = { stage: 'in_progress', step: 'Application in progress' }
+      }
     })
   }
   return { people, apps, stageOverrides }

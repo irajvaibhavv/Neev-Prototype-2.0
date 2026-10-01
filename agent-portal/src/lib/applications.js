@@ -22,10 +22,15 @@ export const FUNNEL = [
 ]
 export const STAGES = [
   { key: 'new', label: 'New applications', short: 'New', desc: 'Paid with all documents — ready to file on the government portal.' },
+  { key: 'in_progress', label: 'In progress', short: 'In progress', desc: 'An agent has started filing it on the government portal.' },
   { key: 'incomplete', label: 'Incomplete', short: 'Incomplete', desc: 'Started filling or sitting in the cart, not paid yet — nudge these users.' },
   { key: 'pending', label: 'Pending', short: 'Pending', desc: 'Paid, but documents are missing — collect them.' },
   { key: 'filled', label: 'Filled applications', short: 'Filled', desc: 'Filed on the government portal — record the outcome.' },
 ]
+// Who works which section: agents file complete paid applications; sales chases users who haven't paid
+// (Incomplete) or still owe documents (Pending). Removed stays with the agent.
+export const AGENT_STAGES = ['new', 'in_progress', 'filled', 'removed']
+export const SALES_STAGES = ['incomplete', 'pending']
 // Removed applications are kept (audit trail + restore), just out of the working sections.
 export const REMOVED = { key: 'removed', label: 'Removed', short: 'Removed', desc: 'Removed by an agent — e.g. user not eligible. Paid ones are flagged for a ₹49 refund.' }
 export const REMOVE_REASONS = ['Not eligible for this scheme', 'Duplicate application', 'User asked to cancel', 'Wrong scheme selected', 'Other']
@@ -48,6 +53,7 @@ function sectionOf(a, o) {
   if (o.removed) return 'removed'
   if (a.status !== 'paid') return 'incomplete'
   if (o.stage === 'filled') return 'filled'
+  if (o.stage === 'in_progress') return 'in_progress' // agent clicked Start filing
   return a.docsMissing.length ? 'pending' : 'new'
 }
 
@@ -80,7 +86,7 @@ export function loadAll(includeSample, sample) {
     const o = overrides[a.id] || {}
     const docs = { ...Object.fromEntries((a.docsMissing || []).map(d => [d, false])), ...(a.docs || {}), ...(o.docOverrides || {}) }
     const withDocs = { ...a, docs, docsMissing: Object.keys(docs).filter(d => !docs[d]) }
-    return { ...withDocs, person: byMobile[a.owner || a.mobile], stage: sectionOf(withDocs, o), outcome: o.outcome || 'in_process',
+    return { ...withDocs, person: byMobile[a.owner || a.mobile], stage: sectionOf(withDocs, o), outcome: o.outcome || 'in_process', filing: o.filing || null, step: o.step || '', // filing = Filing details tab; step = current Application step (In progress)
       history: o.history || [], reminders: o.reminders || [], removed: o.removed || null }
   })
   apps.sort((x, y) => (y.paidAt || y.createdAt || '').localeCompare(x.paidAt || x.createdAt || ''))
@@ -100,7 +106,8 @@ export function leadsAt(people, key) {
 
 export function useData() {
   const sample = useMemo(() => makeSample(), [])
-  const [includeSample, setIncludeSampleState] = useState(() => read(SAMPLE_KEY, true))
+  // Sample data is always on (the "Include sample data" toggle was removed).
+  const [includeSample, setIncludeSampleState] = useState(true)
   const [data, setData] = useState(() => loadAll(includeSample, sample))
   const reload = useCallback(() => setData(loadAll(includeSample, sample)), [includeSample, sample])
 
@@ -116,7 +123,8 @@ export function useData() {
     const stages = read(STAGES_KEY, {})
     const prev = { ...(sample.stageOverrides[id] || {}), ...stages[id] }
     const at = new Date().toISOString()
-    stages[id] = { ...prev, ...patch, updatedAt: at, history: [...(prev.history || []), { at, ...patch }] }
+    const { filing, ...logged } = patch // filing details (with files) are stored once, not copied into history
+    stages[id] = { ...prev, ...patch, updatedAt: at, history: [...(prev.history || []), { at, ...logged }] }
     write(STAGES_KEY, stages)
     reload()
   }, [reload, sample])
@@ -146,7 +154,7 @@ export function useData() {
     const at = new Date().toISOString()
     const app = { id: `AG${Date.now()}`, owner: person.mobile, applicant: person.name, mobile: person.mobile, state: person.state,
       scheme: scheme.name, status: 'paid', addedByAgent: true, payment, amount: payment === 'collected' ? (scheme.fee ?? SCHEME_FEE) : 0,
-      docs: Object.fromEntries(scheme.docs.map(d => [d, collected.includes(d)])), formData: {}, createdAt: at, paidAt: at }
+      docs: Object.fromEntries(scheme.docs.filter(d => collected.includes(d) || !scheme.optionalDocs?.includes(d)).map(d => [d, collected.includes(d)])), formData: {}, createdAt: at, paidAt: at }
     write(ADDED_KEY, [...read(ADDED_KEY, []), app])
     update(app.id, { note: `Added by agent · fee ${payment === 'collected' ? `₹${scheme.fee ?? SCHEME_FEE} collected` : 'waived'}` })
     return app.id
@@ -154,6 +162,14 @@ export function useData() {
 
   const setIncludeSample = v => { write(SAMPLE_KEY, v); setIncludeSampleState(v); setData(loadAll(v, sample)) }
   return { ...data, update, logReminder, setDoc, markAllDocs, removeApp, restoreApp, addApp, includeSample, setIncludeSample }
+}
+
+// Internal application ID shown to agents, e.g. NEEV-4K7Q2M — the same for an application every time
+// (stored ids come in several formats: app 'APP…', agent-added 'AG…', sample 'S…').
+export function appRef(id) {
+  let h = 2166136261
+  for (const c of String(id)) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0
+  return `NEEV-${h.toString(36).toUpperCase().padStart(6, '0').slice(-6)}`
 }
 
 export const fmtDate = iso => iso

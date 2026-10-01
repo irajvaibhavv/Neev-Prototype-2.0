@@ -52,7 +52,7 @@ export default function Leads({ people, apps, addApp }) {
                     <td className="px-4 py-3 text-ink-2 whitespace-nowrap">{fmtDate(p.funnel[tab.key])}</td>
                     <td className="px-4 py-3"><a href={`tel:+91${p.mobile}`} className="text-side-active font-semibold hover:underline whitespace-nowrap">+91 {p.mobile}</a></td>
                     <td className="px-4 py-3">
-                      <button onClick={() => setAdding(p)} className="rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-ink-2 hover:border-brand hover:text-side-active whitespace-nowrap">+ Add application</button>
+                      {addApp && <button onClick={() => setAdding(p)} className="rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-ink-2 hover:border-brand hover:text-side-active whitespace-nowrap">+ Add application</button>}
                     </td>
                   </tr>
                 ))}

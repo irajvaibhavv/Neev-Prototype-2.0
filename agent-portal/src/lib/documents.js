@@ -3,8 +3,10 @@
 // document name the schemes already use. Schemes reference documents by name, so a rename is copied
 // into every scheme that uses it.
 import { getSchemes, renameDocInSchemes } from './schemes'
+import { DOC_HELP } from './npsCatalog.js'
 
-const KEY = 'neev_portal_documents'
+// const KEY = 'neev_portal_documents' // documents of the old catalogue, kept in storage but not shown
+const KEY = 'neev_portal_documents_v2'
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) } catch { return null } }
 const write = v => { try { localStorage.setItem(KEY, JSON.stringify(v)) } catch { /* storage blocked */ } }
 
@@ -16,7 +18,7 @@ export function getDocuments() {
   const stored = read() || []
   const known = new Set(stored.map(d => d.name))
   const extra = [...new Set(getSchemes().flatMap(s => s.docs))].filter(n => !known.has(n))
-    .map(name => ({ ...BLANK_DOC, name, id: `doc-${slug(name)}` }))
+    .map(name => ({ ...BLANK_DOC, name, help: DOC_HELP[name] || '', id: `doc-${slug(name)}` }))
   return [...stored, ...extra].sort((a, b) => a.name.localeCompare(b.name))
 }
 export const getDocument = id => getDocuments().find(d => d.id === id) || null
