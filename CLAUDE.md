@@ -102,7 +102,7 @@ Global state stored in `S` (defined in `core.js`). Key fields added/used:
 | `i18n.js` | Language selection (Hindi, English, Voice only), translation, voice/TTS | `?v=4` |
 | `insurance.js` | Insurance products flow | — |
 | `investment.js` | FD/investment flow | — |
-| `schemes.js` | Govt schemes: Aadhaar + profile (`s-scheme-profile`) → eligibility-matched list (eligible / may be eligible) with docs, scheme-specific agent form | `?v=12` |
+| `schemes.js` | Govt schemes: Aadhaar + profile (`s-scheme-profile`) → gamified quiz (CF-15) → eligibility-matched list with docs, scheme-specific agent form | `?v=19` |
 | `ledger.js` | Loan list, loan detail, repayment timeline | — |
 | Others | `loyalty.js`, `referral.js`, `bbps.js`, `grievance.js`, etc. | — |
 
@@ -445,6 +445,16 @@ Two distinct scenarios:
 - Each scheme `rule(p)` returns `'yes'` (criteria fully covered by questions), `'maybe'` (official list / unverified rule decides — badge "May be eligible — confirm"), or false. `check` = criteria we can't ask, shown as "Also check". Accuracy over generosity (client requirement).
 - "Apply with Agent" opens a scheme-specific form (`openAgentForm`): Aadhaar + the 13 answers prefilled read-only, then "New details" from `SCHEME_FORM` in `schemes.js`. **Rule: only fields CONFIRMED from the scheme's official form** (research: `docs/research/scheme-forms/`) — never add a field from memory/aggregators. 14 schemes have confirmed fields; the rest show "form not verified — agent collects the rest". Bank a/c is asked only where the form requires it. `must` = eligibility declaration that blocks submit. Submissions saved to `S.schemeApplications`. TODO: confirm forms for PM-SYM, e-Shram, PM-KISAN, Sukanya, NFSA, PM-JAY, Ladki Bahin, Gruha Lakshmi, MAA, TN/Odisha/WB/Gujarat (portals blocked fetch — needs browser/PDF).
 - Check: `node tests/schemes.check.js`. File: `schemes.js` `?v=12`, `style.css?v=4`, `signup.js` `?v=6`, `style.css?v=2`
+### CF-15. Gamified schemes quiz (lead feedback: too much text, too many questions → drop-off)
+- `s-scheme-profile` is now **one question per screen**: big icon + short question + tap tiles (auto-advance), Skip, Back. Top bar = live counter `✅ N for you · 🔒 M to unlock` + progress bar + state picker.
+- 3 levels (`lvl` in `SP_QUESTIONS`: Work / Family / Home) with a checkpoint after each: "N schemes for you · 🔒 M more · K quick questions" → Keep going / See my schemes.
+- **Unlocked schemes stay on screen** (user ask): teal hero card = big unlocked count + 🔒 left + horizontal shelf of won schemes (icon, name, ₹ benefit = `win` field, taken from each scheme's research-based `desc`). Newly unlocked ones pop in with a NEW tag (`renderSpShelf`, `spShelfSeen`). Level pills Work / Family / Home replace a question counter (the total changes as questions become irrelevant).
+- **Optional PAN** after Aadhaar in the same card (`spPanStep`, `saveSchemePan`): skipped if loan KYC already has PAN. Stored as `S.schemePan`, NOT `S.panNumber` — otherwise the loan flow would skip DigiLocker KYC. Counts for the "Parent Aadhaar & PAN" document and shows masked in the agent form.
+- **Only questions that can still change a result are asked.** `schemeStatus()` tries every possible answer for unanswered questions a rule reads (`ruleKeys` parses `p.x` from the rule; `P_KEYS` maps to question keys): never true → hidden, always true → yes/maybe, depends → `'locked'` + `needs`. Replaces the old `optional` flag; any question can be skipped. Worst case 9 questions direct, 7 via loan flow; usually fewer.
+- Answers saved after every tap (raw, not resolved — implied answers come from `spResolve`), so users can leave and return. Results: "🔒 Unlock N more" card asks the next useful question inline; scheme cards show name + ₹ benefit + badge, details/documents folded in `<details>`. "Edit answers" = `openSchemeProfile('edit')` (every question, current answers selected).
+- PM Awas no longer reads family income (₹9L limit ≈ ₹75k/month — almost no user is above it): rule returns 'maybe', limit shown in its "Also check". So family income is asked only where a state scheme needs it (e.g. Delhi/Maharashtra women, everyone in Haryana).
+- Family income asked per month (labels rounded down, so conservative); stored values unchanged (portal `labels.js` still valid).
+- Files: `schemes.js?v=19`, `style.css?v=11`, `employee.html`, `tests/schemes.check.js`.
 5. **Broken clicks**: after any HTML/JS change run `node tests/clicks.check.js` — flags onclick handlers calling undefined functions, go()/navTo()/goBack() to missing screens, and getElementById on missing ids. It can't judge whether a destination makes *sense* — check that by reading labels.
 6. Bottom-nav **Scan** opens the scanner directly; the bank-account gate (`requireBank`) sits on the Pay button, not on opening the scanner.
 

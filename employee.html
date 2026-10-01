@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <link href="shared/theme.css" rel="stylesheet">
-<link href="employee/style.css?v=7" rel="stylesheet">
+<link href="employee/style.css?v=11" rel="stylesheet">
 <style>
 :root{--bg:#F1F6F3;} /* employee app uses a slightly cooler background than the dashboards */
 body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;color:var(--ink);}
@@ -1315,51 +1315,42 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
 <!-- ===== SCHEMES ===== -->
 <!-- ===== GOVT SCHEMES: ELIGIBILITY PROFILE ===== -->
 <div class="screen" id="s-scheme-profile">
-  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="goBack('s-home')">←</button><h2>Check your eligibility</h2></div><button class="icon-btn" onclick="speakScreen('s-scheme-profile')">🔊</button></div>
-  <p class="muted" style="font-size:13px;margin-bottom:12px;">Answer a few questions and we'll show the schemes you qualify for.</p>
+  <div class="topbar"><div class="back-row"><button class="icon-btn" onclick="spBack()">←</button><h2>Find your schemes</h2></div><button class="icon-btn" onclick="speakScreen('s-scheme-profile')">🔊</button></div>
 
-  <!-- Part A: Aadhaar -->
-  <div class="card" id="spAadhaarInputBlock">
-    <b style="font-size:14px;">Step 1 · Verify Aadhaar</b>
-    <div id="spScanChoice">
-      <button class="btn btn-primary" style="margin-top:10px;" onclick="scanSchemeAadhaar()">📷 Scan your Aadhaar card</button>
-      <p class="muted" style="font-size:12px;text-align:center;margin:10px 0 2px;">— or enter the number —</p>
+  <div class="card sp-id" id="spAadhaarInputBlock">
+    <div class="sp-id-head"><span class="sp-id-ic">🪪</span><div><b>Verify your identity</b><p class="muted" style="font-size:12px;">Takes 10 seconds</p></div></div>
+    <div id="spAadhaarStep">
+      <div id="spScanChoice">
+        <button class="btn btn-primary" onclick="scanSchemeAadhaar()">📷 Scan Aadhaar card</button>
+        <p class="muted" style="font-size:12px;text-align:center;margin:10px 0 2px;">— or type the number —</p>
+      </div>
+      <input type="tel" id="spAadhaarInput" maxlength="14" placeholder="Aadhaar number" style="letter-spacing:1.5px;margin:8px 0 10px;">
+      <button class="btn btn-outline" id="spVerifyBtn" onclick="verifySchemeAadhaar()">Verify Aadhaar</button>
+      <div id="spVerifying" class="center-col" style="display:none;padding:14px;">
+        <div style="font-size:22px;" id="spVerifyingIcon">⏳</div>
+        <p class="muted" style="margin-top:6px;" id="spVerifyingText">Fetching details from UIDAI…</p>
+      </div>
     </div>
-    <div class="field-row" style="margin-top:10px;">
-      <label class="field-label">Aadhaar number</label>
-      <input type="tel" id="spAadhaarInput" maxlength="14" placeholder="XXXX XXXX XXXX" style="letter-spacing:1.5px;">
-    </div>
-    <button class="btn btn-outline" id="spVerifyBtn" onclick="verifySchemeAadhaar()">Verify Aadhaar</button>
-    <div id="spVerifying" class="center-col" style="display:none;padding:14px;">
-      <div style="font-size:22px;" id="spVerifyingIcon">⏳</div>
-      <p class="muted" style="margin-top:6px;" id="spVerifyingText">Fetching details from UIDAI…</p>
+    <div id="spPanStep" style="display:none;">
+      <div class="sp-ok">✅ Aadhaar verified · <b id="spIdName"></b></div>
+      <label class="field-label" style="margin-top:14px;">PAN card <span class="sp-opt">Optional</span></label>
+      <input type="text" id="spPanInput" maxlength="10" placeholder="ABCDE1234F" style="text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;">
+      <button class="btn btn-primary" onclick="saveSchemePan()">Continue →</button>
+      <button class="sp-skip" style="width:100%;" onclick="startSchemeQuiz()">Skip</button>
     </div>
   </div>
-  <div class="card" id="spAadhaarDoneBlock" style="display:none;border-color:var(--success);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <b style="font-size:14px;">Your details</b>
-      <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#E6F6EC;color:var(--success);" id="spVerifiedBadge">✅ Verified via Aadhaar</span>
-    </div>
-    <div class="field-row"><label class="field-label">Name</label><input type="text" id="spName" readonly></div>
-    <div style="display:flex;gap:8px;">
-      <div class="field-row" style="flex:1;"><label class="field-label">Gender</label><input type="text" id="spGender" readonly></div>
-      <div class="field-row" style="flex:1;"><label class="field-label">Date of birth</label><input type="text" id="spDob" readonly></div>
-    </div>
-    <div class="field-row" style="margin-bottom:0;"><label class="field-label">State (as per Aadhaar)</label><input type="text" id="spState" readonly></div>
-  </div>
 
-  <!-- Part B: common questions (chosen from research on most-used schemes; see docs/research/).
-       Chip groups are rendered by renderSchemeQuestions() in schemes.js from SP_QUESTIONS. -->
-  <div class="card" id="spDetailsBlock" style="display:none;">
-    <b style="font-size:14px;">Step 2 · A few quick questions</b>
-    <p class="muted" style="font-size:12px;margin:2px 0 12px;">Just tap your answer.</p>
-    <div class="sp-q">
-      <span class="sp-q-label">📍 State you live in</span>
-      <select id="spLiveState" style="margin-bottom:0;"></select>
-      <p class="muted" style="font-size:11px;margin-top:4px;">Defaulted to your Aadhaar state. Change it if you now live elsewhere.</p>
+  <!-- One question per screen; rendered by renderSp() in schemes.js from SP_QUESTIONS. -->
+  <div id="spQuiz" style="display:none;">
+    <div class="sp-hero">
+      <div class="sp-hero-top">
+        <div><span class="sp-hero-num" id="spFound">0</span><span class="sp-hero-lbl">schemes<br>unlocked</span></div>
+        <div class="sp-hero-lock">🔒 <b id="spLocked">0</b> left</div>
+      </div>
+      <div class="sp-shelf" id="spShelf"></div>
     </div>
-    <div id="spQuestions"></div>
-    <button class="btn btn-primary" id="spFindBtn" onclick="findMySchemes()">Find my schemes</button>
+    <div class="sp-meta"><div class="sp-levels" id="spLevels"></div><span class="sp-state">📍 <select id="spLiveState" onchange="onSpStateChange()"></select></span></div>
+    <div id="spStep"></div>
   </div>
 </div>
 
@@ -1371,7 +1362,7 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
       <b style="font-size:16px;color:var(--teal-900);" id="schemeCountText">You're eligible for 0 schemes</b>
       <p class="muted" style="font-size:12px;margin-top:2px;" id="schemeStateHint">Based on your profile</p>
     </div>
-    <span style="font-size:12px;font-weight:700;color:var(--teal-700);cursor:pointer;white-space:nowrap;" onclick="openSchemeProfile()">✏️ Update profile</span>
+    <span style="font-size:12px;font-weight:700;color:var(--teal-700);cursor:pointer;white-space:nowrap;" onclick="openSchemeProfile('edit')">✏️ Edit answers</span>
   </div>
 
   <!-- Scheme cards rendered by JS -->
@@ -1603,9 +1594,7 @@ body{background:linear-gradient(160deg,#0B4F45 0%,#0E5C50 40%,#123F38 100%);min-
 <div class="modal-bg" id="agentModal">
   <div class="modal-box" style="text-align:left;max-height:85%;overflow-y:auto;">
     <div id="agentFormBlock" oninput="markFormStarted()">
-      <div style="font-size:30px;text-align:center;">📝</div>
-      <h2 style="margin:10px 0 4px;font-size:17px;text-align:center;">Apply for scheme</h2>
-      <p style="margin-bottom:12px;text-align:center;font-weight:700;color:var(--teal-900);" id="agentFormScheme">—</p>
+      <h2 style="margin:0 0 12px;font-size:18px;text-align:center;color:var(--teal-900);" id="agentFormScheme">—</h2>
       <div id="agentPrefill"></div>
       <div id="agentNewFields"></div>
       <div id="agentDocs"></div>
@@ -1696,7 +1685,7 @@ function toggleKfsSection(toggle){
 <script src="employee/js/notifications.js"></script>
 <script src="employee/js/referral.js"></script>
 <script src="employee/js/grievance.js"></script>
-<script src="employee/js/schemes.js?v=15"></script>
+<script src="employee/js/schemes.js?v=19"></script>
 <script src="employee/js/main.js"></script>
 </body>
 </html>

@@ -10,7 +10,8 @@ const base={LiveState:'Delhi',MonthlyIncome:12000,FamilyIncome:150000,Pf:'no',Se
 // Male construction worker, Bihar Aadhaar, living in Delhi, no PF, BPL card
 S.schemeProfile={...base};
 let r=res(); console.log(r);
-['Construction Workers Welfare Board','PM Shram Yogi Maandhan','e-Shram Card','PM Awas Yojana (Urban 2.0)','Sukanya Samriddhi Yojana'].forEach(n=>assert.equal(r[n],'yes',n));
+['Construction Workers Welfare Board','PM Shram Yogi Maandhan','e-Shram Card','Sukanya Samriddhi Yojana'].forEach(n=>assert.equal(r[n],'yes',n));
+assert.equal(r['PM Awas Yojana (Urban 2.0)'],'maybe','PMAY income limit is not asked → never a plain yes');
 assert.equal(r['Ayushman Bharat (PM-JAY)'],'maybe');
 assert(!r['Delhi Lakshmi Yojana'],'male must not get women scheme');
 // Salaried with PF, ₹20k, owns home → loses PM-SYM, e-Shram, PMAY
@@ -57,28 +58,38 @@ els2.agW0={outerHTML:''}; PICK(0,0); // Yes → already has LPG
 SUB(); assert(/needs/.test(lastToast),'LPG=Yes must be rejected: '+lastToast);
 console.log('agent form ok');
 
-// ---- shortened flow: auto-fill, branching, optional unknowns ----
-eval(require('fs').readFileSync('employee/js/schemes.js','utf8')+';global.REQ=spRequired;global.RES=spResolve;global.EL=eligibleSchemes;');
-// straight to schemes (no loan data): income + occupation asked; no kids & gate "no" hide 6 questions
-delete S.salary; delete S.company; delete S.department;
-let a={Children:0,AnyTaxGovt:'no'};
-const direct=REQ(a).map(q=>q.f); console.log('direct-to-schemes questions:',direct.length,direct.join(','));
-assert(direct.includes('Occupation')&&direct.includes('MonthlyIncome')&&!direct.includes('DaughterU10')&&!direct.includes('SelfTax'));
-// came via loan flow (BuildRight): occupation + income auto-filled
+// ---- quiz flow: only questions that can unlock something, auto-fill, gates, locked schemes ----
+eval(require('fs').readFileSync('employee/js/schemes.js','utf8')+';global.RES=spResolve;global.EL=eligibleSchemes;'
+  +"global.QUEUE=a=>{spAns=a;spMode='more';spDone=new Set();return spQueue().map(q=>q.f);};");
+delete S.salary; delete S.company; delete S.department; S.gender='Male'; S.schemeState='Delhi';
+const st=(sp,n)=>(EL({LiveState:'Delhi',...sp}).find(s=>s.name===n)||{}).status;
+// nothing answered: age-only schemes are found, answer-dependent ones are locked (never 'yes')
+assert.equal(st({},'PM Suraksha Bima Yojana'),'yes');
+assert.equal(st({},'PM Shram Yogi Maandhan'),'locked');
+assert.equal(st({},'Delhi Lakshmi Yojana'),undefined,'male never sees a women-only scheme');
+const direct=QUEUE({}); console.log('direct-to-schemes questions (worst case):',direct.length,direct.join(','));
+assert(direct.includes('Occupation')&&direct.includes('Pf')&&direct.includes('AnyTaxGovt'));
+assert(!direct.includes('SelfTax')&&!direct.includes('DaughterU10'),'gated questions wait for their gate');
+assert(!direct.includes('Marital'),'male in Delhi: no scheme depends on marital status → not asked');
+// gate answered "no" → the four detail questions are implied "no" and never asked
+assert.equal(RES({AnyTaxGovt:'no'}).SelfTax,'no');
+assert(!QUEUE({AnyTaxGovt:'no'}).includes('Tax'));
+assert(QUEUE({AnyTaxGovt:'yes'}).includes('SelfTax'),'gate yes → ask own tax');
+assert(QUEUE({Children:2}).includes('DaughterU10')&&!QUEUE({Children:0}).includes('DaughterU10'));
+// came via loan flow (BuildRight): occupation + income auto-filled, not asked
 S.salary=20000;S.company='BuildRight Constructions';S.department='Site Labour';S.designation='Mason';
-const viaLoan=REQ(a).map(q=>q.f); console.log('via-loan questions:',viaLoan.length);
+const viaLoan=QUEUE({}); console.log('via-loan questions (worst case):',viaLoan.length);
 assert(!viaLoan.includes('Occupation')&&!viaLoan.includes('MonthlyIncome'));
-const rv=RES(a); assert.equal(rv.Occupation,'Construction'); assert.equal(rv.MonthlyIncome,15000); assert.equal(rv.DaughterU10,"no"); assert.equal(rv.SelfTax,"no");
-// branching: kids → daughter qs; gate yes → 4 detail qs
-assert(REQ({Children:2,AnyTaxGovt:'yes'}).map(q=>q.f).filter(f=>['DaughterU10','Daughter10to18','SelfTax','Tax','Govt','Pension'].includes(f)).length===6);
-// optional unknown: PMAY depends on OwnHome → must be 'maybe' with needs, never 'yes'
-S.gender='Male'; S.schemeProfile={...base}; delete S.schemeProfile.OwnHome; delete S.schemeProfile.Car;
+const rv=RES({}); assert.equal(rv.Occupation,'Construction'); assert.equal(rv.MonthlyIncome,15000);
+// unknown answer → 'locked' with the question that settles it; answered → settled
+S.schemeProfile={...base}; delete S.schemeProfile.OwnHome; delete S.schemeProfile.Car;
 const pm=EL().find(s=>s.name==='PM Awas Yojana (Urban 2.0)');
-assert.equal(pm.status,'maybe'); assert.deepEqual(pm.needs,['OwnHome']);
-assert.equal(EL().find(s=>s.name==='e-Shram Card').status,'yes','schemes not depending on optional qs stay yes');
-// answered OwnHome=yes → PMAY gone
-S.schemeProfile={...base,OwnHome:'yes'}; delete S.schemeProfile.Car; assert(!EL().some(s=>s.name==='PM Awas Yojana (Urban 2.0)'));
-console.log('short flow ok');
+assert.equal(pm.status,'locked'); assert.deepEqual(pm.needs,['OwnHome']);
+assert.equal(EL().find(s=>s.name==='e-Shram Card').status,'yes','schemes not depending on unknowns stay yes');
+S.schemeProfile={...base,OwnHome:'yes'}; assert(!EL().some(s=>s.name==='PM Awas Yojana (Urban 2.0)'));
+// everything answered → nothing left to ask
+assert.deepEqual(QUEUE({...base}),[]);
+console.log('quiz flow ok');
 
 // ---- cart flow: funnel steps, draft → cart → paid, complete vs pending ----
 global.setTimeout=fn=>fn();
