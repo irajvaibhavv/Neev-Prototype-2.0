@@ -79,7 +79,7 @@ cd agent-portal && npm install && npm run build   # rebuilds agent/ after portal
 ```
 
 A local server is needed because the JS files do not load over `file://`.
-Manager portal login: `9876500001`, OTP `1234`.
+Portal logins (OTP `1234`): super admin `9876500000`, agent `9876500001`, sales `9876500002`.
 
 ## Checks
 
@@ -87,6 +87,7 @@ Manager portal login: `9876500001`, OTP `1234`.
 node tests/clicks.check.js                    # every onclick / go() / getElementById target exists
 node tests/schemes.check.js                   # eligibility rules, forms, cart flow
 node agent-portal/tests/applications.check.mjs
+node agent-portal/tests/admin.check.mjs
 ```
 
 ## Deploy

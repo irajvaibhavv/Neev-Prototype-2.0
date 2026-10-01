@@ -2,368 +2,1008 @@
  {
   "name": "Construction Workers Welfare Board",
   "icon": "🔧",
+  "desc": "Registration with your state BOCW board — pension, accident, maternity, children's education and daughter's marriage aid.",
+  "url": "https://labour.gov.in",
+  "check": "90+ days of construction work in the last 12 months (certificate from employer, contractor or union). Registration fee about ₹20–50.",
   "docs": [
    "Aadhaar card",
    "90-day work certificate",
    "Bank passbook",
    "Passport-size photo"
   ],
+  "fields": [
+   {
+    "label": "Days worked in the last 12 months",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Who will give your 90-day work certificate?",
+    "type": "dropdown",
+    "options": [
+     "Employer / contractor",
+     "Trade union",
+     "Self-certificate"
+    ],
+    "optional": false
+   }
+  ],
   "scope": "Central"
  },
  {
   "name": "PM Shram Yogi Maandhan",
   "icon": "👷",
+  "desc": "₹3,000/month pension from age 60. You pay ₹55–200/month, the government matches it.",
+  "url": "https://maandhan.in",
+  "check": "You are not in NPS.",
   "docs": [
    "Aadhaar card",
    "Savings / Jan Dhan bank account",
    "Mobile number"
   ],
+  "fields": [],
   "scope": "Central"
  },
  {
   "name": "e-Shram Card",
   "icon": "🪪",
+  "desc": "National ID for unorganised workers — gateway to welfare schemes and disaster relief.",
+  "url": "https://eshram.gov.in",
+  "check": "Mobile number linked to Aadhaar (or register with biometrics at a CSC).",
   "docs": [
    "Aadhaar card",
    "Aadhaar-linked mobile",
    "Bank account details"
   ],
+  "fields": [],
   "scope": "Central"
  },
  {
   "name": "Atal Pension Yojana",
   "icon": "👴",
+  "desc": "Guaranteed pension of ₹1,000–5,000/month from age 60.",
+  "url": "https://www.npscra.nsdl.co.in/scheme-details.php",
+  "check": "Needs a savings bank or post office account.",
   "docs": [
    "Aadhaar card",
    "Savings bank account",
    "Mobile number"
+  ],
+  "fields": [
+   {
+    "label": "Spouse name (required if married)",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Do you get any other government social-security benefit?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Pension you want per month",
+    "type": "dropdown",
+    "options": [
+     "₹1,000",
+     "₹2,000",
+     "₹3,000",
+     "₹4,000",
+     "₹5,000"
+    ],
+    "optional": false
+   },
+   {
+    "label": "Pay contribution",
+    "type": "dropdown",
+    "options": [
+     "Monthly",
+     "Quarterly",
+     "Half-yearly"
+    ],
+    "optional": false
+   },
+   {
+    "label": "Nominee name",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee relationship to you",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee date of birth",
+    "type": "date",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Guardian name (only if nominee is under 18)",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Existing PRAN (if any)",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Email",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Bank name",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Branch",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Bank account number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "I agree to the yearly premium being auto-debited from this account",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   }
   ],
   "scope": "Central"
  },
  {
   "name": "PM Suraksha Bima Yojana",
   "icon": "🛡️",
+  "desc": "₹2 lakh accident cover for just ₹20 a year.",
+  "url": "https://jansuraksha.gov.in",
+  "check": "Needs a bank account with auto-debit.",
   "docs": [
    "Aadhaar card",
    "Bank account"
+  ],
+  "fields": [
+   {
+    "label": "Father's / husband's name",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Do you have any disability?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Disability details (if any)",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Nominee name",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee address",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee date of birth",
+    "type": "date",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee relationship to you",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee mobile",
+    "type": "number",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Guardian name (only if nominee is under 18)",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Guardian relationship to nominee",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Email",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Bank account number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "IFSC code",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "I agree to the yearly premium being auto-debited from this account",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   }
   ],
   "scope": "Central"
  },
  {
   "name": "PM Jeevan Jyoti Bima Yojana",
   "icon": "💙",
+  "desc": "₹2 lakh life cover for ₹436 a year.",
+  "url": "https://jansuraksha.gov.in",
+  "check": "Needs a bank account with auto-debit.",
   "docs": [
    "Aadhaar card",
    "Bank account"
+  ],
+  "fields": [
+   {
+    "label": "Father's / husband's name",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee name",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee address",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee date of birth",
+    "type": "date",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee relationship to you",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Nominee mobile",
+    "type": "number",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Guardian name (only if nominee is under 18)",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Guardian relationship to nominee",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Email",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Bank account number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "IFSC code",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "I agree to the yearly premium being auto-debited from this account",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   }
   ],
   "scope": "Central"
  },
  {
   "name": "PM Awas Yojana (Urban 2.0)",
   "icon": "🏠",
+  "desc": "Up to ₹2.5 lakh help to build or buy your first pucca house.",
+  "url": "https://pmaymis.gov.in",
+  "check": "No housing benefit from any government scheme in the last 20 years. House in the woman's name or joint name.",
   "docs": [
    "Aadhaar of all family members",
    "Income certificate",
    "Self-declaration of no pucca house",
    "Bank account details"
   ],
+  "fields": [
+   {
+    "label": "Husband / wife name (if married)",
+    "type": "text",
+    "options": [],
+    "optional": true
+   },
+   {
+    "label": "Number of unmarried children",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Do you own land to build the house on?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Bank account number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "IFSC code",
+    "type": "text",
+    "options": [],
+    "optional": false
+   }
+  ],
   "scope": "Central"
  },
  {
   "name": "Sukanya Samriddhi Yojana",
   "icon": "👧",
+  "desc": "High-interest savings account for your daughter's education and marriage.",
+  "url": "https://www.indiapost.gov.in",
+  "check": "Up to 2 daughters per family.",
   "docs": [
    "Daughter's birth certificate",
    "Parent Aadhaar & PAN",
    "Address proof"
   ],
+  "fields": [],
   "scope": "Central"
  },
  {
   "name": "Ayushman Bharat (PM-JAY)",
   "icon": "🏥",
+  "desc": "Free hospital treatment up to ₹5 lakh per family per year.",
+  "url": "https://beneficiary.nha.gov.in",
+  "check": "Below 70, eligibility depends on the SECC-2011 / state list — check your name on beneficiary.nha.gov.in or at a CSC.",
   "docs": [
    "Aadhaar card",
    "Ration card",
    "Mobile number"
   ],
+  "fields": [],
   "scope": "Central"
  },
  {
   "name": "PM-KISAN",
   "icon": "🌾",
+  "desc": "₹6,000/year to farmer families in three instalments.",
+  "url": "https://pmkisan.gov.in",
+  "check": "Farm land must be in your name. No family member gets a pension of ₹10,000+/month or is a doctor, lawyer, engineer or CA.",
   "docs": [
    "Aadhaar card",
    "Land records",
    "Bank passbook"
   ],
+  "fields": [],
   "scope": "Central"
  },
  {
   "name": "PM SVANidhi",
   "icon": "🛒",
+  "desc": "Collateral-free loans of ₹15,000 → ₹25,000 → ₹50,000 for street vendors.",
+  "url": "https://pmsvanidhi.mohua.gov.in",
+  "check": "Need a Certificate of Vending or recommendation letter from your municipality.",
   "docs": [
    "Aadhaar card",
    "Vending certificate / LoR",
    "Bank account"
+  ],
+  "fields": [
+   {
+    "label": "Is your Aadhaar linked to the mobile number below?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   }
   ],
   "scope": "Central"
  },
  {
   "name": "PM Ujjwala Yojana",
   "icon": "🔥",
+  "desc": "Free LPG connection with first refill for poor households.",
+  "url": "https://pmuy.gov.in",
+  "check": "No LPG connection in the household already.",
   "docs": [
    "Aadhaar card",
    "Ration card",
    "Bank account"
+  ],
+  "fields": [
+   {
+    "label": "Does anyone in your household already have an LPG connection?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Number of adult family members",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Bank account number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "IFSC code",
+    "type": "text",
+    "options": [],
+    "optional": false
+   }
   ],
   "scope": "Central"
  },
  {
   "name": "Ration Card (NFSA)",
   "icon": "🍚",
+  "desc": "Free food grains — 5 kg per person per month (35 kg for Antyodaya families).",
+  "url": "https://nfsa.gov.in",
+  "check": "Your state decides who is a priority household — apply at the food & supply office or CSC.",
   "docs": [
    "Aadhaar of all family members",
    "Income certificate",
    "Residence proof",
    "Passport-size photo"
   ],
+  "fields": [],
   "scope": "Central"
  },
  {
   "name": "Delhi Lakshmi Yojana",
   "icon": "👩",
+  "desc": "₹2,500/month for women.",
+  "url": "https://wcd.delhi.gov.in",
+  "check": "Must be the eldest eligible woman in the family, a registered Delhi voter, you/husband/parent living in Delhi 10+ years, electricity under 2,400 units/year, no criminal case.",
   "docs": [
    "Aadhaar card",
    "Delhi voter ID",
    "10-year residence proof",
    "MP/MLA recommendation"
   ],
+  "fields": [
+   {
+    "label": "Delhi voter ID (EPIC) number",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Are you the eldest woman in your family?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Who has lived in Delhi for 10+ years?",
+    "type": "dropdown",
+    "options": [
+     "Me",
+     "My husband",
+     "My parent"
+    ],
+    "optional": false
+   },
+   {
+    "label": "Is your family electricity use 2,400 units a year or less?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Do you have the MP / MLA endorsement letter?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Are you free of any criminal case?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Bank name",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Bank account number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "IFSC code",
+    "type": "text",
+    "options": [],
+    "optional": false
+   }
+  ],
   "scope": "Delhi"
  },
  {
   "name": "Mukhyamantri Mahila Rojgar Yojana",
   "icon": "👩",
+  "desc": "₹10,000 to start a livelihood, up to ₹2 lakh more later.",
+  "url": "https://brlps.in",
+  "check": "Must be a JEEViKA self-help group member (you can join one). One woman per family.",
   "docs": [
    "Aadhaar card",
    "Bank account in own name",
    "JEEViKA SHG details"
   ],
+  "fields": [],
   "scope": "Bihar"
  },
  {
   "name": "Mukhyamantri Kanya Utthan",
   "icon": "👩‍🎓",
+  "desc": "₹25,000 on passing Class 12, ₹50,000 on graduation for daughters.",
+  "url": "https://medhasoft.bihar.gov.in",
+  "check": "Up to 2 daughters per family. Amount depends on exam result and passing year.",
   "docs": [
    "Marksheet",
    "Aadhaar card",
    "Bihar residence certificate",
    "Bank account"
   ],
+  "fields": [],
   "scope": "Bihar"
  },
  {
   "name": "Kanya Sumangala Yojana",
   "icon": "👧",
+  "desc": "₹25,000 in 6 stages from birth to graduation for daughters.",
+  "url": "https://mksy.up.gov.in",
+  "check": "UP resident family. Max 2 children (twins exception).",
   "docs": [
    "Daughter's birth certificate",
    "Parent Aadhaar card",
    "UP residence proof",
    "Income certificate"
   ],
+  "fields": [
+   {
+    "label": "Father's Aadhaar number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Mother's Aadhaar number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Daughter's Aadhaar number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   }
+  ],
   "scope": "Uttar Pradesh"
  },
  {
   "name": "Majhi Ladki Bahin Yojana",
   "icon": "👩",
+  "desc": "₹1,500/month for women.",
+  "url": "https://ladakibahin.maharashtra.gov.in",
+  "check": "Only one unmarried woman per family; max two women per family. Annual e-KYC required.",
   "docs": [
    "Aadhaar card",
    "Maharashtra domicile / ration card",
    "Income certificate or yellow/orange ration card",
    "Bank passbook"
   ],
+  "fields": [],
   "scope": "Maharashtra"
  },
  {
   "name": "Mahatma Jyotiba Phule Jan Arogya",
   "icon": "🏥",
+  "desc": "Cashless treatment up to ₹5 lakh per family per year.",
+  "url": "https://www.jeevandayee.gov.in",
+  "check": "Maharashtra resident with ration card or domicile certificate.",
   "docs": [
    "Aadhaar card",
    "Ration card or domicile certificate"
   ],
+  "fields": [],
   "scope": "Maharashtra"
  },
  {
   "name": "MAA Yojana (formerly Chiranjeevi)",
   "icon": "🏥",
+  "desc": "Health cover up to ₹25 lakh per family per year.",
+  "url": "https://maayojana.rajasthan.gov.in",
+  "check": "Free for NFSA ration card families, small farmers and contract workers; others pay ₹850/year. Needs Jan Aadhaar.",
   "docs": [
    "Jan Aadhaar card",
    "Aadhaar card"
   ],
+  "fields": [],
   "scope": "Rajasthan"
  },
  {
   "name": "Shri Annapurna Rasoi",
   "icon": "🍛",
+  "desc": "Full meal for ₹8.",
+  "url": "https://rajasthan.gov.in",
+  "check": "Open to everyone — just visit a Rasoi.",
   "docs": [
    "None needed"
   ],
+  "fields": [],
   "scope": "Rajasthan"
  },
  {
   "name": "Ladli Bahna Yojana",
   "icon": "👩",
+  "desc": "₹1,500/month for married women.",
+  "url": "https://cmladlibahna.mp.gov.in",
+  "check": "New registrations open only in special windows. Family land up to 5 acres. Needs Samagra ID.",
   "docs": [
    "Samagra ID",
    "Aadhaar card (linked to bank)",
    "Bank passbook"
+  ],
+  "fields": [
+   {
+    "label": "Family Samagra ID",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Personal Samagra ID",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Is your Aadhaar–Samagra e-KYC already done?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Bank account number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "IFSC code",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Is this account only in your name (not joint) and linked to Aadhaar?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   }
   ],
   "scope": "Madhya Pradesh"
  },
  {
   "name": "Ladli Laxmi Yojana",
   "icon": "👧",
+  "desc": "About ₹1.43 lakh over school years and at age 21 for daughters.",
+  "url": "https://ladlilaxmi.mp.gov.in",
+  "check": "First two daughters; family planning after the second child. Register early — usually before age 5.",
   "docs": [
    "Daughter's birth certificate",
    "Samagra ID",
    "Parent Aadhaar"
   ],
+  "fields": [],
   "scope": "Madhya Pradesh"
  },
  {
   "name": "Maiyan Samman Yojana",
   "icon": "👩",
+  "desc": "₹2,500/month for women.",
+  "url": "https://mmmsy.jharkhand.gov.in",
+  "check": "Single Aadhaar-linked bank account in your name.",
   "docs": [
    "Aadhaar card",
    "Ration card",
    "Bank passbook"
+  ],
+  "fields": [
+   {
+    "label": "Ration card colour",
+    "type": "dropdown",
+    "options": [
+     "Yellow (Antyodaya)",
+     "Pink (Priority)",
+     "White",
+     "Green"
+    ],
+    "optional": false
+   },
+   {
+    "label": "Bank account number",
+    "type": "number",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "IFSC code",
+    "type": "text",
+    "options": [],
+    "optional": false
+   },
+   {
+    "label": "Is this your only bank account linked to Aadhaar?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   }
   ],
   "scope": "Jharkhand"
  },
  {
   "name": "Gruha Lakshmi",
   "icon": "👩",
+  "desc": "₹2,000/month to the woman head of family.",
+  "url": "https://sevasindhugs.karnataka.gov.in",
+  "check": "You must be named head of family on the ration card.",
   "docs": [
    "Aadhaar card",
    "Ration card (you as head)",
    "Bank passbook linked to Aadhaar"
   ],
+  "fields": [],
   "scope": "Karnataka"
  },
  {
   "name": "Anna Bhagya",
   "icon": "🍚",
+  "desc": "Free rice + Indira food kit every month.",
+  "url": "https://ahara.kar.nic.in",
+  "check": "Automatic for AAY/BPL card holders — collect at your ration shop.",
   "docs": [
    "AAY/BPL ration card",
    "Aadhaar of family members"
   ],
+  "fields": [],
   "scope": "Karnataka"
  },
  {
   "name": "Kalaignar Magalir Urimai Thogai",
   "icon": "👩",
+  "desc": "₹1,000/month for women head of family.",
+  "url": "https://kmut.tn.gov.in",
+  "check": "Named head of family on ration card. Land within limits (5 acres wet / 10 acres dry). No professional-tax payer in family.",
   "docs": [
    "Aadhaar card",
    "Family ration card",
    "Bank passbook",
    "Electricity bill"
   ],
+  "fields": [],
   "scope": "Tamil Nadu"
  },
  {
   "name": "CM's Comprehensive Health Insurance (CMCHIS)",
   "icon": "🏥",
+  "desc": "Cashless treatment at empanelled hospitals.",
+  "url": "https://www.cmchistn.com",
+  "check": "Income certificate from VAO.",
   "docs": [
    "Ration card",
    "VAO income certificate",
    "Aadhaar card"
   ],
+  "fields": [],
   "scope": "Tamil Nadu"
  },
  {
   "name": "Annapurna Bhandar",
   "icon": "👩",
+  "desc": "₹3,000/month for women aged 25–60 (replaced Lakshmir Bhandar).",
+  "url": "https://wb.gov.in",
+  "check": "On the WB electoral roll; Aadhaar-seeded bank account in your name.",
   "docs": [
    "Aadhaar card",
    "Voter ID",
    "Bank passbook"
   ],
+  "fields": [],
   "scope": "West Bengal"
  },
  {
   "name": "PMJAY-MA (Mukhyamantri Amrutum)",
   "icon": "🏥",
+  "desc": "Health cover up to ₹10 lakh per family per year.",
+  "url": "https://pmjay.gov.in",
+  "check": "Gujarat resident.",
   "docs": [
    "Aadhaar card",
    "Income certificate or NFSA ration card"
   ],
+  "fields": [],
   "scope": "Gujarat"
  },
  {
   "name": "Namo Lakshmi Yojana",
   "icon": "👩‍🎓",
+  "desc": "₹50,000 for daughters studying in Class 9–12.",
+  "url": "https://www.digitalgujarat.gov.in",
+  "check": "Daughter must be in Class 9–12 — confirm with her school (private-school rules unclear).",
   "docs": [
    "School ID / bonafide certificate",
    "Aadhaar card",
    "Income certificate",
    "Bank account"
   ],
+  "fields": [],
   "scope": "Gujarat"
  },
  {
   "name": "Subhadra Yojana",
   "icon": "👩",
+  "desc": "₹10,000/year for women (two ₹5,000 instalments).",
+  "url": "https://subhadra.odisha.gov.in",
+  "check": "Family land within limits.",
   "docs": [
    "Aadhaar card",
    "Ration card / income certificate",
    "Bank passbook"
   ],
+  "fields": [],
   "scope": "Odisha"
  },
  {
   "name": "Gopabandhu Jan Arogya Yojana",
   "icon": "🏥",
+  "desc": "₹5 lakh health cover per family (+₹5 lakh for women).",
+  "url": "https://health.odisha.gov.in",
+  "check": "Needs an NFSA / SFSS ration card.",
   "docs": [
    "Aadhaar card",
    "NFSA/SFSS ration card"
   ],
+  "fields": [],
   "scope": "Odisha"
  },
  {
   "name": "Mukh Mantri Sehat Yojana",
   "icon": "🏥",
+  "desc": "₹10 lakh cashless health cover for every Punjab family.",
+  "url": "https://sha.punjab.gov.in",
+  "check": "Punjab resident with Punjab voter ID (for Sehat Card).",
   "docs": [
    "Aadhaar card",
    "Punjab voter ID"
+  ],
+  "fields": [
+   {
+    "label": "Number of family members to enrol",
+    "type": "number",
+    "options": [],
+    "optional": false
+   }
   ],
   "scope": "Punjab"
  },
  {
   "name": "Smart Ration Card (Atta-Dal)",
   "icon": "🍚",
+  "desc": "Free wheat every month for NFSA families.",
+  "url": "https://epos.punjab.gov.in",
+  "check": "Collect at your ration depot with the smart card.",
   "docs": [
    "Smart ration card",
    "Aadhaar of family members"
   ],
+  "fields": [],
   "scope": "Punjab"
  },
  {
   "name": "Deen Dayal Lado Lakshmi Yojana",
   "icon": "👩",
+  "desc": "₹2,100/month for women (₹1,100 cash + ₹1,000 deposit).",
+  "url": "https://meraparivar.haryana.gov.in",
+  "check": "Family income as verified in Parivar Pehchan Patra (PPP); Haryana resident for 15+ years.",
   "docs": [
    "Parivar Pehchan Patra (PPP)",
    "Aadhaar card",
    "Bank passbook"
+  ],
+  "fields": [
+   {
+    "label": "Have you lived in Haryana for 15+ years?",
+    "type": "yesno",
+    "options": [],
+    "optional": false
+   }
   ],
   "scope": "Haryana"
  },
  {
   "name": "Chirayu Ayushman Bharat",
   "icon": "🏥",
+  "desc": "₹5 lakh health cover — free up to ₹1.8 lakh income, ₹1,500/year up to ₹3 lakh.",
+  "url": "https://chirayu.haryana.gov.in",
+  "check": "Income as verified in Parivar Pehchan Patra (PPP).",
   "docs": [
    "Parivar Pehchan Patra (PPP)",
    "Aadhaar card"
   ],
+  "fields": [],
   "scope": "Haryana"
  }
 ]

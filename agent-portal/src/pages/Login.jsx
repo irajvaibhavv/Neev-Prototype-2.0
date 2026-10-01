@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AGENTS, DEMO_OTP, findAgent, login } from '../lib/auth'
+import { DEMO_OTP, DEMO_USERS, ROLES, findUser, login } from '../lib/auth'
 
 export default function Login() {
   const nav = useNavigate()
@@ -22,13 +22,23 @@ export default function Login() {
     e.preventDefault()
     setError('')
     if (!/^\d{10}$/.test(mobile)) return setError('Enter your 10-digit mobile number')
-    const a = findAgent(mobile)
+    const a = findUser(mobile)
     if (!a) return setError("This number isn't registered on the Neev portal")
+    if (a.active === false) return setError('This account is deactivated. Contact your Neev admin.')
     setAgent(a)
     setOtp(['', '', '', ''])
     setTimer(30)
     // Simulated SMS auto-read, same as the employee app
     setTimeout(() => setOtp(DEMO_OTP.split('')), 1500)
+  }
+
+  // Demo shortcut: log straight in as that user, skipping the OTP step.
+  function quickLogin(m) {
+    const u = findUser(m)
+    if (!u) return setError("This number isn't registered on the Neev portal")
+    if (u.active === false) return setError('This account is deactivated. Contact your Neev admin.')
+    login(u)
+    nav('/', { replace: true })
   }
 
   function typeOtp(i, v) {
@@ -62,7 +72,7 @@ export default function Login() {
             See how Neev app users move through government schemes — who viewed, who applied, who paid — and take every application through to approval.
           </p>
           <ul className="mt-8 space-y-3 text-sm">
-            {['Live funnel from app download to payment', 'Leads who viewed or clicked a scheme', 'New, incomplete, pending and filled applications'].map(t => (
+            {['Live funnel from app download to payment', 'Leads who viewed or clicked a scheme', 'Separate logins for agents, sales and admins'].map(t => (
               <li key={t} className="flex items-center gap-3">
                 <span className="size-5 rounded-full bg-white/20 grid place-items-center text-[11px]">✓</span>{t}
               </li>
@@ -77,7 +87,7 @@ export default function Login() {
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <div className="size-9 rounded-xl bg-brand text-white grid place-items-center font-heading font-bold">N</div>
-            <span className="font-heading font-bold text-lg">Neev Schemes Portal</span>
+            <span className="font-heading font-bold text-lg">Neev Portal</span>
           </div>
 
           <h2 className="text-2xl font-bold">{agent ? 'Enter OTP' : 'Log in'}</h2>
@@ -124,11 +134,11 @@ export default function Login() {
 
           {/* Demo helper — remove for production */}
           <div className="mt-5 rounded-lg bg-brand-tint/60 border border-brand-tint-2 p-3 text-xs text-ink-2">
-            <b className="text-brand-dark">Demo login</b> (OTP {DEMO_OTP} auto-fills):
+            <b className="text-brand-dark">Demo login</b> — click to log straight in (no OTP):
             <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {AGENTS.map(a => (
-                <button key={a.mobile} type="button" onClick={() => { setMobile(a.mobile); setAgent(null); setError('') }}
-                  className="rounded-md bg-white border border-line px-2 py-1 hover:border-brand">{a.name} · {a.mobile}</button>
+              {DEMO_USERS.map(a => (
+                <button key={a.mobile} type="button" onClick={() => quickLogin(a.mobile)}
+                  className="rounded-md bg-white border border-line px-2 py-1 hover:border-brand"><b>{ROLES[a.role].label}</b> · {a.mobile}</button>
               ))}
             </div>
           </div>

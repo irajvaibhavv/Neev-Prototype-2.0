@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import catalog from '../lib/schemeCatalog.json'
+import { getSchemes } from '../lib/schemes'
 import { SCHEME_FEE } from '../lib/applications'
 import Modal from './Modal'
 import { btnGhost, btnPrimary, seg, segBtn } from '../lib/ui'
 
 // Agent adds a scheme application for a person (e.g. found eligible during a visit).
-// Scheme list is synced from employee/js/schemes.js at build time (scripts/sync-schemes.mjs).
+// Scheme list = app catalogue (synced at build) + super-admin changes (lib/schemes.js).
 export default function AddAppModal({ person, existing, onClose, onAdd }) {
+  const [catalog] = useState(() => getSchemes().filter(s => s.enabled)) // disabled schemes are hidden from agents
   const taken = new Set(existing.filter(a => a.stage !== 'removed').map(a => a.scheme))
   const groups = [
     ['Central schemes', catalog.filter(s => s.scope === 'Central')],
@@ -46,7 +47,7 @@ export default function AddAppModal({ person, existing, onClose, onAdd }) {
       <div>
         <div className="text-xs font-semibold uppercase tracking-wide text-ink-3 mb-1.5">Service fee</div>
         <div className={seg} role="group" aria-label="Service fee">
-          <button type="button" onClick={() => setPayment('collected')} aria-pressed={payment === 'collected'} className={segBtn(payment === 'collected')}>₹{SCHEME_FEE} collected by agent</button>
+          <button type="button" onClick={() => setPayment('collected')} aria-pressed={payment === 'collected'} className={segBtn(payment === 'collected')}>₹{scheme?.fee ?? SCHEME_FEE} collected by agent</button>
           <button type="button" onClick={() => setPayment('waived')} aria-pressed={payment === 'waived'} className={segBtn(payment === 'waived')}>Fee waived</button>
         </div>
       </div>

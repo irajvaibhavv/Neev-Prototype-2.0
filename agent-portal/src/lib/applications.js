@@ -145,10 +145,10 @@ export function useData() {
   const addApp = useCallback((person, scheme, payment, collected) => {
     const at = new Date().toISOString()
     const app = { id: `AG${Date.now()}`, owner: person.mobile, applicant: person.name, mobile: person.mobile, state: person.state,
-      scheme: scheme.name, status: 'paid', addedByAgent: true, payment, amount: payment === 'collected' ? SCHEME_FEE : 0,
+      scheme: scheme.name, status: 'paid', addedByAgent: true, payment, amount: payment === 'collected' ? (scheme.fee ?? SCHEME_FEE) : 0,
       docs: Object.fromEntries(scheme.docs.map(d => [d, collected.includes(d)])), formData: {}, createdAt: at, paidAt: at }
     write(ADDED_KEY, [...read(ADDED_KEY, []), app])
-    update(app.id, { note: `Added by agent · fee ${payment === 'collected' ? `₹${SCHEME_FEE} collected` : 'waived'}` })
+    update(app.id, { note: `Added by agent · fee ${payment === 'collected' ? `₹${scheme.fee ?? SCHEME_FEE} collected` : 'waived'}` })
     return app.id
   }, [update])
 
