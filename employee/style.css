@@ -209,10 +209,51 @@ label.field-label{display:block;font-size:12px;font-weight:700;color:var(--muted
 .loan-user-company{font-size:11px;color:var(--muted);margin-top:1px;}
 
 
-/* Govt schemes eligibility questions — tap-to-select chips */
-.sp-sec{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--teal-700);margin:18px 0 10px;padding-top:14px;border-top:1px dashed var(--border);}
-.sp-q{margin-bottom:16px;}
-.sp-q-label{display:block;font-size:13px;font-weight:700;color:var(--teal-900);margin-bottom:8px;line-height:1.35;}
+/* Govt schemes quiz — one question per screen; unlocked schemes stay on the shelf */
+.sp-hero{background:linear-gradient(140deg,var(--teal-900),var(--teal-500));border-radius:20px;padding:12px 0 12px 14px;color:#fff;box-shadow:0 8px 22px rgba(11,79,69,.28);margin-bottom:14px;overflow:hidden;}
+.sp-hero-top{display:flex;justify-content:space-between;align-items:center;padding-right:14px;margin-bottom:10px;}
+.sp-hero-top>div:first-child{display:flex;align-items:center;gap:8px;}
+.sp-hero-num{font-family:'Baloo 2',sans-serif;font-size:34px;font-weight:800;line-height:1;color:var(--marigold-500);}
+.sp-hero-lbl{font-size:12px;font-weight:700;line-height:1.2;opacity:.9;}
+.sp-hero-lock{font-size:12px;font-weight:600;background:rgba(255,255,255,.14);padding:6px 10px;border-radius:20px;}
+.sp-hero-lock b{font-size:14px;}
+.sp-shelf{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 2px 0;scroll-snap-type:x mandatory;}
+.sp-shelf::-webkit-scrollbar{display:none;}
+.sp-shelf-empty{font-size:12.5px;opacity:.85;margin:4px 0 2px;}
+.sp-won{position:relative;flex:0 0 112px;scroll-snap-align:start;background:#fff;color:var(--teal-900);border-radius:12px;padding:8px 9px;display:flex;flex-direction:column;gap:3px;}
+.sp-won-ic{font-size:17px;line-height:1;}
+.sp-won b{font-size:11.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sp-won i{font-style:normal;font-size:11px;font-weight:700;color:var(--success);line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sp-won em{position:absolute;top:8px;right:8px;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.5px;background:var(--marigold-500);color:#1A1200;padding:2px 6px;border-radius:6px;}
+.sp-won.new{animation:spWon .6s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 0 3px var(--marigold-500);}
+@keyframes spWon{from{opacity:0;transform:scale(.6) translateY(10px);}to{opacity:1;transform:none;}}
+.sp-meta{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;}
+.sp-levels{display:flex;gap:4px;}
+.sp-lv{font-size:11px;font-weight:700;padding:5px 9px;border-radius:20px;background:#fff;border:1px solid var(--border);color:var(--muted);}
+.sp-lv.cur{background:var(--marigold-100);border-color:var(--marigold-500);color:var(--marigold-600);}
+.sp-lv.done{background:var(--teal-100);border-color:var(--teal-100);color:var(--teal-700);}
+.sp-state{display:flex;align-items:center;background:#fff;border:1px solid var(--border);border-radius:20px;padding:0 4px 0 9px;font-size:12px;}
+.sp-state select{width:auto;min-height:0;margin:0;padding:4px 2px;border:0;background:transparent;box-shadow:none;font-size:12px;font-weight:700;color:var(--teal-900);}
+.sp-card{background:#fff;border:1px solid var(--border);border-radius:22px;padding:16px 14px 8px;text-align:center;box-shadow:0 6px 20px rgba(18,36,32,.07);animation:fadein .3s ease;}
+.sp-ic{width:52px;height:52px;margin:0 auto 8px;border-radius:50%;background:var(--marigold-100);display:flex;align-items:center;justify-content:center;font-size:26px;}
+.sp-qt{font-family:'Baloo 2',sans-serif;font-size:19px;font-weight:700;color:var(--teal-900);margin:0 0 12px;line-height:1.25;}
+.sp-card .opt-chip{padding:11px 6px;font-size:14px;border-radius:14px;box-shadow:0 2px 6px rgba(18,36,32,.06);}
+.sp-card .opt-chip:active{transform:scale(.95);background:var(--teal-100);}
+.sp-card .opt-chip.sel{background:var(--teal-700);color:#fff;border-color:var(--teal-700);}
+.sp-skip{background:none;border:0;color:var(--muted);font:inherit;font-size:13px;font-weight:600;margin-top:8px;padding:8px 14px;cursor:pointer;}
+.sp-check .sp-trophy{font-size:56px;line-height:1;margin-bottom:6px;animation:spWon .7s cubic-bezier(.34,1.56,.64,1);}
+.sp-check-sub{font-size:13px;color:var(--muted);margin:-10px 0 16px;}
+.sp-id-head{display:flex;gap:12px;align-items:center;margin-bottom:14px;}
+.sp-id-head b{font-family:'Baloo 2',sans-serif;font-size:17px;color:var(--teal-900);}
+.sp-id-ic{width:44px;height:44px;border-radius:12px;background:var(--marigold-100);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.sp-ok{background:#E6F6EC;color:var(--success);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:600;}
+.sp-opt{font-size:10px;font-weight:700;text-transform:none;letter-spacing:0;background:var(--teal-100);color:var(--teal-700);padding:2px 6px;border-radius:6px;margin-left:4px;}
+.sp-unlock-card{border:1.5px dashed var(--marigold-600);}
+.sp-unlock-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;color:var(--teal-900);}
+.sp-qt-sm{font-size:14px;font-weight:700;color:var(--teal-900);margin:0 0 10px;}
+.scheme-win{font-size:13px;font-weight:700;color:var(--success);margin:2px 0 6px;}
+.scheme-more{margin:10px 0;font-size:12px;color:var(--teal-900);}
+.scheme-more summary{cursor:pointer;font-weight:700;color:var(--teal-700);}
 .opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .opt-grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
 .opt-grid.cols-5{grid-template-columns:repeat(5,1fr);}
@@ -223,13 +264,14 @@ label.field-label{display:block;font-size:12px;font-weight:700;color:var(--muted
 .opt-chip.sel .sub{color:var(--teal-700);}
 
 /* Agent application form */
+.ag-prefill{background:#E6F6EC;border-radius:12px;padding:10px 12px;margin-bottom:6px;font-size:12.5px;}
+.ag-prefill summary{cursor:pointer;font-weight:700;color:var(--success);}
 .ag-sec{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--teal-700);margin:16px 0 8px;display:flex;justify-content:space-between;align-items:center;}
 .ag-link{font-size:11px;font-weight:700;text-transform:none;letter-spacing:0;text-decoration:underline;cursor:pointer;}
 .ag-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
 .ag-row span{color:var(--muted);flex:1;}
 .ag-row b{color:var(--teal-900);text-align:right;flex:1;font-weight:600;}
 
-.sp-auto-val{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;border-radius:12px;background:var(--teal-100);color:var(--teal-700);font-size:13px;}
 
 /* Scheme cart */
 .cart-badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;place-items:center;}
