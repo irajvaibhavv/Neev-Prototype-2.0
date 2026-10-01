@@ -3,7 +3,7 @@
 // Stored in localStorage 'neev_portal_fields'; seeded with the fields of every scheme's confirmed
 // application form in the employee app (SCHEME_FORM, synced into schemeCatalog.json).
 import catalog from './schemeCatalog.json' with { type: 'json' }
-import { getSchemes, renameFieldInSchemes } from './schemes'
+import { getSchemes, renameFieldInSchemes } from './schemes.js'
 
 const KEY = 'neev_portal_fields'
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) } catch { return null } }

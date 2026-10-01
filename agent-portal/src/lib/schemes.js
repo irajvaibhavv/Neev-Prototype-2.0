@@ -4,7 +4,7 @@
 // Keeping changes separate means a re-sync from the app still picks up new app schemes.
 // Enable/disable is its own list so "Undo edits" doesn't re-enable a scheme.
 import catalog from './schemeCatalog.json' with { type: 'json' }
-import { SCHEME_FEE } from './applications'
+import { SCHEME_FEE } from './applications.js'
 
 const KEY = 'neev_portal_schemes'
 const EMPTY = { custom: [], overrides: {}, disabled: [] }

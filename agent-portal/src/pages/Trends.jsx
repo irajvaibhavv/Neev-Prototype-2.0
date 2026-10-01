@@ -8,10 +8,10 @@ const RANGES = [7, 30, 60]
 const dayKey = d => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}` }
 const dayLabel = k => new Date(k + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 
-function buckets(dates, days, now) {
+export function buckets(dates, days, now, weights) {
   const keys = Array.from({ length: days }, (_, i) => dayKey(now - (days - 1 - i) * 86400000))
   const counts = Object.fromEntries(keys.map(k => [k, 0]))
-  dates.forEach(d => { if (d) { const k = dayKey(d); if (k in counts) counts[k]++ } })
+  dates.forEach((d, i) => { if (d) { const k = dayKey(d); if (k in counts) counts[k] += weights ? weights[i] : 1 } })
   return keys.map(k => ({ k, n: counts[k] }))
 }
 
@@ -43,7 +43,7 @@ function Card({ title, sub, total, children, view, setView }) {
 }
 
 // Daily column chart: 4px rounded tops anchored to the baseline, 2px gaps, recessive grid, hover tooltip.
-function DailyChart({ title, sub, series, unit, color }) {
+export function DailyChart({ title, sub, series, unit, color, fmt = n => `${n} ${unit}` }) {
   const [view, setView] = useState('Chart')
   const [hover, setHover] = useState(null)
   const total = series.reduce((s, d) => s + d.n, 0)
@@ -56,7 +56,7 @@ function DailyChart({ title, sub, series, unit, color }) {
   const labelIdx = new Set([0, Math.floor(series.length / 2), series.length - 1])
 
   return (
-    <Card title={title} sub={sub} total={`${total} ${unit}`} view={view} setView={setView}>
+    <Card title={title} sub={sub} total={fmt(total)} view={view} setView={setView}>
       {view === 'Table' ? (
         <div className="max-h-48 overflow-y-auto">
           <table className="w-full text-sm">
@@ -95,7 +95,7 @@ function DailyChart({ title, sub, series, unit, color }) {
           {hover !== null && (
             <div className="pointer-events-none absolute -top-2 rounded-md bg-ink text-white text-xs px-2 py-1 shadow-card-hover whitespace-nowrap"
               style={{ left: `${((L + hover * cw + cw / 2) / W) * 100}%`, transform: 'translate(-50%, -100%)' }}>
-              {dayLabel(series[hover].k)} · <b>{series[hover].n}</b> {unit}
+              {dayLabel(series[hover].k)} · <b>{fmt(series[hover].n)}</b>
             </div>
           )}
         </div>

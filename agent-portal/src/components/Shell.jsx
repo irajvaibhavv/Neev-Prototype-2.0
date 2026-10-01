@@ -1,13 +1,14 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { ROLES, logout } from '../lib/auth'
 
 const Count = ({ n }) => <span className="rounded-full bg-white border border-line px-2 py-0.5 text-[11px] text-ink-2">{n}</span>
 const Group = ({ children }) => <div className="hidden md:block px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-side-group">{children}</div>
 
 // Saralya-style layout: lavender sidebar with uppercase sections + counts, white top bar.
-// items: [{ group } | { to, icon, label, count? }] — each role passes its own sidebar; toolbar sits left in the top bar.
+// items: [{ group } | { to, icon, label, count?, notOn? (path prefix where it isn't highlighted) }] — each role passes its own sidebar; toolbar sits left in the top bar.
 export default function Shell({ agent, items, toolbar, children }) {
   const nav = useNavigate()
+  const { pathname } = useLocation()
   const link = ({ isActive }) => `flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
     isActive ? 'bg-brand/10 text-side-active' : 'text-side-text hover:bg-brand/5'}`
 
@@ -23,7 +24,7 @@ export default function Shell({ agent, items, toolbar, children }) {
         </div>
         <nav className="p-3 flex md:flex-col gap-1 overflow-x-auto" aria-label="Portal sections">
           {items.map(it => (it.group ? <Group key={it.group}>{it.group}</Group> : (
-            <NavLink key={it.to} to={it.to} className={link}>
+            <NavLink key={it.to} to={it.to} className={({ isActive }) => link({ isActive: isActive && !(it.notOn && pathname.startsWith(it.notOn)) })}>
               <span className="text-base" aria-hidden>{it.icon}</span>
               <span className="flex-1 whitespace-nowrap">{it.label}</span>{it.count != null && <Count n={it.count} />}
             </NavLink>

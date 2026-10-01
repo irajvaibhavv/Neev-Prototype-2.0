@@ -4,7 +4,7 @@ let agentFormScheme=null;
 const SCHEME_FEE=49; // ₹ per scheme, paid once for the whole cart
 
 // Funnel tracking for the manager portal (agent-portal/): first time each step happens, per user.
-// downloaded = has an account; then schemesOpened → schemeClicked → formStarted → cartAdded → paid.
+// downloaded = has an account; then schemesOpened → aadhaarGiven → schemeClicked → formStarted → cartAdded → paid.
 function trackFunnel(step){
   S.funnel=S.funnel||{};
   if(!S.funnel[step]){ S.funnel[step]=new Date().toISOString(); saveCurrentProfile(); }
@@ -320,6 +320,7 @@ const newlyFound=(before,sp)=>foundSchemes(sp).filter(s=>!before.includes(s.name
 // Home tile entry: once Aadhaar is known and any answers are saved, go straight to results.
 function openSchemes(){
   trackFunnel('schemesOpened');
+  if(S.aadhaar) trackFunnel('aadhaarGiven'); // e.g. already verified in loan KYC
   if(S.aadhaar&&S.gender&&S.dob&&S.schemeProfile){ renderSchemes(); go('s-schemes'); return; }
   openSchemeProfile();
 }
@@ -453,6 +454,7 @@ function setSchemeAadhaarBusy(icon,text){
 function finishSchemeAadhaar(msg){
   S.schemeState=getStateFromAddress();
   applyProfileFields();
+  trackFunnel('aadhaarGiven');
   toast(msg);
   if(S.panNumber||S.schemePan){ startSchemeQuiz(); return; }
   document.getElementById('spAadhaarStep').style.display='none';
@@ -658,6 +660,7 @@ function agPick(i,j){
 function openAgentForm(schemeName){
   const sch=findScheme(schemeName);
   agentFormScheme=schemeName;
+  S.schemeClickedName=schemeName; // sales dashboard: which scheme they tapped
   trackFunnel('schemeClicked');
   agDocs={...((openAppFor(schemeName)||{}).docs||{})};
   document.getElementById('agentFormScheme').textContent=(sch?sch.icon+' ':'')+schemeName;

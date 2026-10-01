@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ROLES, getSession } from './lib/auth'
-import { LEAD_TABS, REMOVED, STAGES, leadsAt, useData } from './lib/applications'
+import { LEAD_TABS, REMOVED, STAGES, USER_MODES, leadsAt, useData } from './lib/applications'
 import Login from './pages/Login'
 import Shell from './components/Shell'
 import StagePage from './pages/StagePage'
@@ -16,12 +16,14 @@ import DocumentEdit from './pages/admin/DocumentEdit'
 import Fields from './pages/admin/Fields'
 import FieldEdit from './pages/admin/FieldEdit'
 import Sales from './pages/Sales'
+import SalesPerson from './pages/SalesPerson'
+import SalesReports from './pages/SalesReports'
 
 const STAGE_ICONS = { new: '🆕', incomplete: '⚠️', pending: '⏳', filled: '✅', removed: '🗑️' }
 
 // Agent area: Dashboard (funnel) + Leads + one section per application stage.
 function AgentArea({ user }) {
-  const { people, apps, update, logReminder, setDoc, markAllDocs, removeApp, restoreApp, addApp, includeSample, setIncludeSample } = useData()
+  const { people, apps, update, logReminder, setDoc, markAllDocs, removeApp, restoreApp, addApp, userMode, setUserMode } = useData()
   const active = apps.filter(a => a.stage !== 'removed') // dashboard / trends ignore removed applications
   const actions = { update, logReminder, setDoc, markAllDocs, removeApp, restoreApp, addApp }
   const items = [
@@ -32,13 +34,7 @@ function AgentArea({ user }) {
     { group: 'Applications' },
     ...[...STAGES, REMOVED].map(s => ({ to: `/${s.key}`, icon: STAGE_ICONS[s.key], label: s.label, count: apps.filter(a => a.stage === s.key).length })),
   ]
-  const toolbar = (
-    <label className="flex items-center gap-2 text-xs font-semibold text-ink-2 cursor-pointer select-none">
-      <input type="checkbox" checked={includeSample} onChange={e => setIncludeSample(e.target.checked)} className="accent-brand size-4" />
-      Include sample data
-      <span className="hidden sm:inline text-ink-3 font-normal">(~500 demo users; live users are tagged LIVE)</span>
-    </label>
-  )
+  const toolbar = <UserModeSelect userMode={userMode} setUserMode={setUserMode} />
   return (
     <Shell agent={user} items={items} toolbar={toolbar}>
       <Routes>
@@ -84,11 +80,29 @@ function AdminArea({ user }) {
   )
 }
 
-function SalesArea({ user }) {
+// Which users the portal shows: real app users, the ~500 demo users, or both.
+function UserModeSelect({ userMode, setUserMode }) {
   return (
-    <Shell agent={user} items={[{ to: '/sales', icon: '💼', label: 'Sales dashboard' }]}>
+    <label className="flex items-center gap-2 text-xs font-semibold text-ink-2">
+      Showing
+      <select value={userMode} onChange={e => setUserMode(e.target.value)}
+        className="rounded-lg border border-line bg-card px-2.5 py-1.5 text-xs font-semibold text-ink">
+        {USER_MODES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+      </select>
+      <span className="hidden sm:inline text-ink-3 font-normal">(live = real app users, tagged LIVE)</span>
+    </label>
+  )
+}
+
+function SalesArea({ user }) {
+  const { people, apps, userMode, setUserMode } = useData()
+  return (
+    <Shell agent={user} items={[{ to: '/sales', icon: '💼', label: 'Sales dashboard', notOn: '/sales/reports' }, { to: '/sales/reports', icon: '📈', label: 'Reports' }]}
+      toolbar={<UserModeSelect userMode={userMode} setUserMode={setUserMode} />}>
       <Routes>
-        <Route path="sales" element={<Sales user={user} />} />
+        <Route path="sales/reports" element={<SalesReports people={people} apps={apps} />} />
+        <Route path="sales/person/:mobile" element={<SalesPerson people={people} apps={apps} />} />
+        <Route path="sales/:stage?" element={<Sales user={user} people={people} apps={apps} />} />
         <Route path="*" element={<Navigate to="/sales" replace />} />
       </Routes>
     </Shell>

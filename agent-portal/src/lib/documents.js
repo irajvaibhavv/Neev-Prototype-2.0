@@ -2,7 +2,7 @@
 // this list. Stored in localStorage 'neev_portal_documents' as an array; seeded on first use with every
 // document name the schemes already use. Schemes reference documents by name, so a rename is copied
 // into every scheme that uses it.
-import { getSchemes, renameDocInSchemes } from './schemes'
+import { getSchemes, renameDocInSchemes } from './schemes.js'
 
 const KEY = 'neev_portal_documents'
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) } catch { return null } }
