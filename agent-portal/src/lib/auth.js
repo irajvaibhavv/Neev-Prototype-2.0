@@ -4,7 +4,7 @@
 export const ROLES = {
   super: { label: 'Super admin', home: '/admin/users', area: 'Neev backend' },
   agent: { label: 'Agent', home: '/new', area: 'Govt schemes' },
-  sales: { label: 'Sales', home: '/dashboard', area: 'Sales' },
+  sales: { label: 'Sales', home: '/sales', area: 'Sales' },
 }
 export const MANAGED_ROLES = ['agent', 'sales', 'super'] // roles the super admin can create
 const SEED_USERS = [

@@ -23,10 +23,11 @@ const SCHEMES = [
   ['Ayushman Bharat (PM-JAY)', ['Aadhaar card', 'Ration card', 'Mobile number']],
   ['Sukanya Samriddhi Yojana', ["Daughter's birth certificate", 'Parent Aadhaar & PAN', 'Address proof']],
 ]
+const COMPANIES = ['Zomato', 'Swiggy', 'BuildRight Constructions', 'QuickServe Retail', 'SecureGuard Services', 'Urban Company', 'Porter']
 const DAY = 86400000
 
 export function makeSample(now = Date.now()) {
-  const r = rng(20260930)
+  const r = rng(20260930), r2 = rng(20261001)
   const pick = a => a[Math.floor(r() * a.length)]
   const people = [], apps = [], stageOverrides = {}
   for (let i = 0; i < 500; i++) {
@@ -51,6 +52,11 @@ export function makeSample(now = Date.now()) {
         if (r() < 0.5) { t = at(t, 1); f.formStarted = t
           if (r() < 0.4) { t = at(t, 1); f.cartAdded = t
             if (r() < 0.6) { t = at(t, 1); f.paid = t } } } } }
+    // Aadhaar step (sales dashboard) uses its own random stream so the rest of the sample stays unchanged.
+    if (f.schemesOpened && (f.schemeClicked || r2() < 0.55)) f.aadhaarGiven = f.schemesOpened + 120000
+    if (f.schemeClicked) p.clickedScheme = SCHEMES[Math.floor(r2() * SCHEMES.length)][0]
+    if (f.aadhaarGiven) p.hasPan = r2() < 0.45 // PAN is optional
+    p.company = r2() < 0.55 ? COMPANIES[Math.floor(r2() * COMPANIES.length)] : '' // employer linked in the loan flow
     for (const k in f) f[k] = new Date(f[k]).toISOString()
     people.push(p)
 

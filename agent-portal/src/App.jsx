@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ROLES, getSession } from './lib/auth'
-import { AGENT_STAGES, LEAD_TABS, REMOVED, SALES_STAGES, STAGES, leadsAt, useData } from './lib/applications'
+import { AGENT_STAGES, LEAD_TABS, REMOVED, SALES_STAGES, STAGES, USER_MODES, leadsAt, useData } from './lib/applications'
 import Login from './pages/Login'
 import Shell from './components/Shell'
 import StagePage from './pages/StagePage'
@@ -17,6 +17,9 @@ import Fields from './pages/admin/Fields'
 import AgentAnalytics from './pages/admin/AgentAnalytics'
 import AgentDetail from './pages/admin/AgentDetail'
 import Payments from './pages/admin/Payments'
+import Sales from './pages/Sales'
+import SalesPerson from './pages/SalesPerson'
+import SalesReports from './pages/SalesReports'
 
 const STAGE_ICONS = { new: '🆕', in_progress: '📝', incomplete: '⚠️', pending: '⏳', filled: '✅', removed: '🗑️' }
 
@@ -79,14 +82,31 @@ function AdminArea({ user }) {
   )
 }
 
-// Sales area: the schemes funnel — Dashboard, Trends, Leads — plus the applications still waiting on the user:
-// Incomplete (not paid) and Pending (paid, documents missing → "Documents received → New" hands it to the agents).
+// Which users the portal shows: real app users, the ~500 demo users, or both.
+function UserModeSelect({ userMode, setUserMode }) {
+  return (
+    <label className="flex items-center gap-2 text-xs font-semibold text-ink-2">
+      Showing
+      <select value={userMode} onChange={e => setUserMode(e.target.value)}
+        className="rounded-lg border border-line bg-card px-2.5 py-1.5 text-xs font-semibold text-ink">
+        {USER_MODES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+      </select>
+      <span className="hidden sm:inline text-ink-3 font-normal">(live = real app users, tagged LIVE)</span>
+    </label>
+  )
+}
+
+// Sales area: the six-stage Sales dashboard (+ person track, reports), the schemes funnel — Dashboard, Trends, Leads —
+// and the applications still waiting on the user: Incomplete (not paid) and Pending (paid, documents missing →
+// "Documents received → New" hands it to the agents).
 function SalesArea({ user }) {
-  const { people, apps, update, logReminder, markAllDocs, removeApp, restoreApp } = useData()
+  const { people, apps, update, logReminder, markAllDocs, removeApp, restoreApp, userMode, setUserMode } = useData()
   const actions = { update, logReminder, markAllDocs, removeApp, restoreApp }
   const sections = STAGES.filter(s => SALES_STAGES.includes(s.key))
   const active = apps.filter(a => a.stage !== 'removed') // dashboard / trends ignore removed applications
   const items = [
+    { to: '/sales', icon: '💼', label: 'Sales dashboard', notOn: '/sales/reports' },
+    { to: '/sales/reports', icon: '🧾', label: 'Reports' },
     { to: '/dashboard', icon: '📊', label: 'Dashboard' },
     { to: '/trends', icon: '📈', label: 'Trends' },
     { group: 'Users' },
@@ -95,15 +115,18 @@ function SalesArea({ user }) {
     ...sections.map(s => ({ to: `/${s.key}`, icon: STAGE_ICONS[s.key], label: s.label, count: apps.filter(a => a.stage === s.key).length })),
   ]
   return (
-    <Shell agent={user} items={items}>
+    <Shell agent={user} items={items} toolbar={<UserModeSelect userMode={userMode} setUserMode={setUserMode} />}>
       <Routes>
+        <Route path="sales/reports" element={<SalesReports people={people} apps={apps} />} />
+        <Route path="sales/person/:mobile" element={<SalesPerson people={people} apps={apps} />} />
+        <Route path="sales/:stage?" element={<Sales user={user} people={people} apps={apps} />} />
         {sections.map(s => (
           <Route key={s.key} path={s.key} element={<StagePage stage={s.key} apps={apps} linkDetail={false} {...actions} />} />
         ))}
         <Route path="dashboard" element={<Dashboard agent={user} people={people} apps={active} />} />
         <Route path="trends" element={<Trends people={people} apps={active} />} />
         <Route path="leads/:step?" element={<Leads people={people} apps={apps} />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/sales" replace />} />
       </Routes>
     </Shell>
   )

@@ -63,7 +63,10 @@ function loadLive() {
   for (const [mobile, p] of Object.entries(db)) {
     const state = p.schemeProfile?.LiveState || '—'
     const name = p.name && p.name !== 'User' ? p.name : 'New user'
-    people.push({ mobile, name, state, signupAt: p.signupAt || null, funnel: p.funnel || {},
+    // Users who verified Aadhaar before the aadhaarGiven step was tracked: date it to when they opened schemes.
+    const funnel = { ...p.funnel }
+    if (!funnel.aadhaarGiven && funnel.schemesOpened && p.aadhaar) funnel.aadhaarGiven = funnel.schemesOpened
+    people.push({ mobile, name, state, signupAt: p.signupAt || null, funnel, clickedScheme: p.schemeClickedName, hasPan: !!(p.schemePan || p.panNumber), company: p.company || p.signupCompany || '',
       gender: p.gender, dob: p.dob, aadhaarLast4: (p.aadhaar || '').replace(/\s/g, '').slice(-4), address: p.address,
       currentAddress: p.currentAddress, answers: p.schemeProfile || {} })
     ;(p.schemeApplications || []).forEach((a, i) => {
@@ -76,8 +79,13 @@ function loadLive() {
   return { people, apps }
 }
 
-export function loadAll(includeSample, sample) {
-  const live = loadLive()
+// mode: 'all' | 'live' | 'sample' (true/false accepted = all/live, the old checkbox values).
+export const USER_MODES = [['all', 'All users'], ['live', 'Live users only'], ['sample', 'Sample users only']]
+const asMode = m => (m === true ? 'all' : m === false ? 'live' : USER_MODES.some(([k]) => k === m) ? m : 'all')
+export function loadAll(mode, sample) {
+  mode = asMode(mode)
+  const includeSample = mode !== 'live'
+  const live = mode === 'sample' ? { people: [], apps: [] } : loadLive()
   const overrides = { ...(includeSample ? sample.stageOverrides : {}), ...read(STAGES_KEY, {}) }
   const people = [...live.people, ...(includeSample ? sample.people : [])]
   const byMobile = Object.fromEntries(people.map(p => [p.mobile, p]))
@@ -106,10 +114,10 @@ export function leadsAt(people, key) {
 
 export function useData() {
   const sample = useMemo(() => makeSample(), [])
-  // Sample data is always on (the "Include sample data" toggle was removed).
-  const [includeSample, setIncludeSampleState] = useState(true)
-  const [data, setData] = useState(() => loadAll(includeSample, sample))
-  const reload = useCallback(() => setData(loadAll(includeSample, sample)), [includeSample, sample])
+  // Which users to show: 'all' | 'live' | 'sample' (sales picks it in the top bar; default all).
+  const [userMode, setUserModeState] = useState(() => asMode(read(SAMPLE_KEY, 'all')))
+  const [data, setData] = useState(() => loadAll(userMode, sample))
+  const reload = useCallback(() => setData(loadAll(userMode, sample)), [userMode, sample])
 
   useEffect(() => {
     const onStorage = e => { if ([EMPLOYEE_DB, STAGES_KEY, ADDED_KEY].includes(e.key)) reload() }
@@ -160,8 +168,8 @@ export function useData() {
     return app.id
   }, [update])
 
-  const setIncludeSample = v => { write(SAMPLE_KEY, v); setIncludeSampleState(v); setData(loadAll(v, sample)) }
-  return { ...data, update, logReminder, setDoc, markAllDocs, removeApp, restoreApp, addApp, includeSample, setIncludeSample }
+  const setUserMode = v => { write(SAMPLE_KEY, v); setUserModeState(v); setData(loadAll(v, sample)) }
+  return { ...data, update, logReminder, setDoc, markAllDocs, removeApp, restoreApp, addApp, userMode, setUserMode }
 }
 
 // Internal application ID shown to agents, e.g. NEEV-4K7Q2M — the same for an application every time

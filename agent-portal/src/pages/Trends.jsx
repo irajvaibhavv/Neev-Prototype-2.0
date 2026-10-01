@@ -8,10 +8,10 @@ const RANGES = [7, 30, 60]
 const dayKey = d => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}` }
 const dayLabel = k => new Date(k + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 
-function buckets(dates, days, now) {
+export function buckets(dates, days, now, weights) {
   const keys = Array.from({ length: days }, (_, i) => dayKey(now - (days - 1 - i) * 86400000))
   const counts = Object.fromEntries(keys.map(k => [k, 0]))
-  dates.forEach(d => { if (d) { const k = dayKey(d); if (k in counts) counts[k]++ } })
+  dates.forEach((d, i) => { if (d) { const k = dayKey(d); if (k in counts) counts[k] += weights ? weights[i] : 1 } })
   return keys.map(k => ({ k, n: counts[k] }))
 }
 

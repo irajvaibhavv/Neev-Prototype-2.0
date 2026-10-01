@@ -88,6 +88,7 @@ node tests/clicks.check.js                    # every onclick / go() / getElemen
 node tests/schemes.check.js                   # eligibility rules, forms, cart flow
 node agent-portal/tests/applications.check.mjs
 node agent-portal/tests/admin.check.mjs
+node agent-portal/tests/sales.check.mjs
 ```
 
 ## Deploy
