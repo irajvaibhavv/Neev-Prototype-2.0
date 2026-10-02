@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neev design options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhai+2:wght@600;700;800&family=Mukta:wght@500;600;700&family=Sora:wght@400;600;700;800&family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E9E7EF;font-family:system-ui,sans-serif;color:#1d1a2b;padding:32px 16px 60px}
+.intro{max-width:1100px;margin:0 auto 28px}
+.intro h1{font-size:26px}
+.intro p{color:#4a4560;margin-top:6px;max-width:640px;line-height:1.5}
+.option{max-width:1100px;margin:0 auto 48px;background:#fff;border-radius:24px;padding:24px;display:grid;grid-template-columns:260px 1fr;gap:28px;align-items:start}
+.option h2{font-size:22px}
+.option .why{color:#4a4560;font-size:14px;line-height:1.55;margin-top:8px}
+.swatches{display:flex;gap:6px;margin-top:14px}
+.swatches span{width:30px;height:30px;border-radius:8px;box-shadow:inset 0 0 0 1px rgb(0 0 0/.1)}
+.phones{display:flex;gap:22px;flex-wrap:wrap}
+.phone{width:320px;height:660px;border-radius:40px;background:#0a0a0a;padding:9px;flex-shrink:0}
+.screen{height:100%;border-radius:32px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.status{display:flex;justify-content:space-between;padding:12px 24px 4px;font-size:12px;font-weight:700}
+.body{flex:1;overflow:hidden;padding:6px 16px 16px}
+@media(max-width:820px){.option{grid-template-columns:1fr}}
+
+/* ============ A · Rangoli: festive Indian, sticker cards ============ */
+.a{--ink:#1D1442;--indigo:#2B1A78;--saffron:#FF8A00;--rani:#E8336D;--leaf:#13A06B;--paper:#FFFBF3;
+  font-family:'Mukta',sans-serif;color:var(--ink);background:var(--indigo);
+  background-image:radial-gradient(circle at 12px 12px,rgb(255 255 255/.09) 2.5px,transparent 3px),radial-gradient(circle at 0 0,rgb(255 138 0/.12) 2px,transparent 2.5px);
+  background-size:24px 24px,24px 24px}
+.a .status{color:#fff}
+.a h3,.a .disp{font-family:'Baloo Bhai 2',sans-serif}
+.a .sticker{background:var(--paper);border:2.5px solid var(--ink);border-radius:20px;box-shadow:4px 4px 0 var(--ink)}
+.a .hello{color:#fff;display:flex;align-items:center;gap:10px;margin:4px 0 14px}
+.a .av{width:42px;height:42px;border-radius:14px;background:var(--saffron);border:2.5px solid #fff;display:grid;place-items:center;font-family:'Baloo Bhai 2';font-weight:800;color:var(--ink)}
+.a .hello b{font-family:'Baloo Bhai 2';font-size:22px;line-height:1}
+.a .hello small{display:block;font-size:13px;opacity:.8}
+.a .money{padding:14px;position:relative;overflow:hidden;background:var(--saffron)}
+.a .money small{font-weight:700;font-size:13px}
+.a .money .disp{font-size:40px;font-weight:800;line-height:1}
+.a .money button{margin-top:10px;width:100%;background:var(--ink);color:#fff;border:0;border-radius:14px;padding:11px;font:700 15px 'Mukta'}
+.a .money:after{content:'';position:absolute;right:-26px;top:-26px;width:110px;height:110px;border-radius:50%;
+  background:repeating-conic-gradient(var(--rani) 0 15deg,transparent 15deg 30deg);opacity:.35}
+.a .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.a .tile{padding:12px;font-weight:700;font-size:15px;line-height:1.15}
+.a .tile i{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;font-style:normal;font-size:24px;margin-bottom:8px;border:2px solid var(--ink)}
+.a .tile span{display:block;font-weight:500;font-size:12px;color:#5b5480;margin-top:2px}
+.a .t1 i{background:#FFD7E4}.a .t2 i{background:#FFE2B8}.a .t3 i{background:#C9F0DE}.a .t4 i{background:#E0D8FF}
+.a .pts{margin-top:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;background:var(--leaf);color:#fff;font-weight:700}
+.a .hero{padding:12px;background:var(--rani);color:#fff}
+.a .hero .row{display:flex;justify-content:space-between;align-items:center}
+.a .hero .disp{font-size:38px;font-weight:800;line-height:.9;color:#FFE14D;-webkit-text-stroke:1.5px var(--ink);paint-order:stroke}
+.a .lock{background:var(--ink);border-radius:99px;padding:4px 10px;font-weight:700;font-size:13px}
+.a .shelf{display:flex;gap:8px;margin-top:10px}
+.a .won{flex:0 0 112px;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:14px;padding:7px 8px;font-size:12px;font-weight:700;line-height:1.15;transform:rotate(-2deg)}
+.a .won:nth-child(2){transform:rotate(1.5deg)}
+.a .won em{font-style:normal;color:var(--leaf);display:block;margin-top:3px}
+.a .lv{display:flex;gap:6px;margin:14px 0 10px}
+.a .lv span{flex:1;text-align:center;border:2px solid #fff;color:#fff;border-radius:99px;padding:3px 0;font-weight:700;font-size:12px}
+.a .lv .on{background:var(--saffron);border-color:var(--ink);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.a .q{padding:16px 12px 12px;text-align:center}
+.a .q h3{font-size:22px;line-height:1.1;margin:4px 0 12px}
+.a .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.a .opt{border:2px solid var(--ink);border-radius:14px;padding:8px 2px;font-weight:700;font-size:12.5px;line-height:1.1;background:#fff;box-shadow:2px 2px 0 var(--ink)}
+.a .opt i{display:block;font-style:normal;font-size:22px}
+.a .opt.sel{background:var(--saffron)}
+
+/* ============ B · Night gold: premium fintech ============ */
+.b{--bg:#13112E;--card:#1F1C48;--line:rgb(255 255 255/.09);--gold:#F5C451;--mint:#43E0A0;--text:#EEEBFF;--soft:#A7A2D6;
+  font-family:'Sora',sans-serif;color:var(--text);background:radial-gradient(420px 300px at 85% -5%,#3B2E8F 0%,transparent 70%),var(--bg)}
+.b .card{background:var(--card);border:1px solid var(--line);border-radius:22px}
+.b .hello{display:flex;align-items:center;gap:10px;margin:4px 0 16px}
+.b .av{width:40px;height:40px;border-radius:50%;background:conic-gradient(var(--gold),var(--mint),var(--gold));padding:2px}
+.b .av span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--bg);font-weight:700;font-size:14px}
+.b .hello small{display:block;color:var(--soft);font-size:12px}
+.b .hello b{font-size:18px}
+.b .money{padding:18px;background:linear-gradient(150deg,#2E2775,#1F1C48 60%);position:relative;overflow:hidden}
+.b .money small{color:var(--soft);font-size:12px}
+.b .money .big{font-size:38px;font-weight:800;letter-spacing:-1px;background:linear-gradient(180deg,#FFE7A6,var(--gold));-webkit-background-clip:text;color:transparent}
+.b .bar{height:6px;border-radius:9px;background:rgb(255 255 255/.1);margin:12px 0 4px}
+.b .bar i{display:block;height:100%;width:52%;border-radius:9px;background:linear-gradient(90deg,var(--mint),var(--gold))}
+.b .money .meta{display:flex;justify-content:space-between;color:var(--soft);font-size:11px}
+.b .money button{margin-top:14px;width:100%;border:0;border-radius:14px;padding:12px;background:var(--gold);color:#241A00;font:700 14px 'Sora'}
+.b .coin{position:absolute;right:16px;top:14px;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF1BF,var(--gold) 55%,#B98512);box-shadow:0 0 30px rgb(245 196 81/.5);display:grid;place-items:center;font-weight:800;color:#6B4A00}
+.b .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;text-align:center;font-size:11px;color:var(--soft)}
+.b .tiles i{display:grid;place-items:center;height:58px;border-radius:18px;background:var(--card);border:1px solid var(--line);font-style:normal;font-size:24px;margin-bottom:6px}
+.b .promo{margin-top:14px;padding:14px;display:flex;gap:12px;align-items:center}
+.b .promo b{font-size:14px}.b .promo small{display:block;color:var(--soft);font-size:11.5px}
+.b .promo .tag{margin-left:auto;background:rgb(67 224 160/.15);color:var(--mint);font-size:11px;font-weight:700;border-radius:99px;padding:4px 9px}
+.b .hero{padding:14px}
+.b .hero .row{display:flex;justify-content:space-between;align-items:baseline}
+.b .hero .big{font-size:40px;font-weight:800;color:var(--gold);text-shadow:0 0 24px rgb(245 196 81/.45)}
+.b .hero small{color:var(--soft);font-size:12px}
+.b .lock{font-size:12px;color:var(--soft)}
+.b .shelf{display:flex;gap:8px;margin-top:10px}
+.b .won{flex:0 0 118px;border-radius:14px;padding:9px;font-size:11.5px;font-weight:600;background:linear-gradient(160deg,rgb(245 196 81/.16),rgb(255 255 255/.03));border:1px solid rgb(245 196 81/.35)}
+.b .won em{font-style:normal;display:block;color:var(--mint);margin-top:4px}
+.b .steps{display:flex;gap:6px;margin:14px 2px 12px}
+.b .steps i{flex:1;height:5px;border-radius:9px;background:rgb(255 255 255/.1)}
+.b .steps .on{background:var(--gold)}
+.b .q{padding:16px 12px 12px}
+.b .q small{color:var(--soft);font-size:11.5px}
+.b .q h3{font-size:20px;line-height:1.2;margin:4px 0 14px}
+.b .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.b .opt{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:14px;padding:10px;font-size:12.5px;font-weight:600;background:rgb(255 255 255/.03)}
+.b .opt i{font-style:normal;font-size:18px}
+.b .opt.sel{border-color:var(--gold);background:rgb(245 196 81/.12);color:#FFE7A6}
+
+/* ============ C · Play: bright game, chunky 3D buttons ============ */
+.c{--ink:#22313B;--green:#14B87F;--green-d:#0E8C60;--sun:#FFC52E;--sun-d:#D99A00;--coral:#FF6B5B;--sky:#3D8BFF;--line:#E3E9EE;--bg:#F5F8FA;
+  font-family:'Nunito',sans-serif;color:var(--ink);background:var(--bg)}
+.c h3,.c .disp{font-family:'Fredoka',sans-serif}
+.c .top{display:flex;justify-content:space-between;align-items:center;margin:2px 0 14px}
+.c .chip{display:flex;align-items:center;gap:4px;font-weight:800;font-size:14px;background:#fff;border:2px solid var(--line);border-radius:12px;padding:4px 9px}
+.c .hello b{font-family:'Fredoka';font-size:24px}
+.c .money{border-radius:22px;padding:16px;background:var(--green);color:#fff;box-shadow:0 6px 0 var(--green-d)}
+.c .money small{font-weight:700;font-size:13px;opacity:.9}
+.c .money .disp{font-size:40px;font-weight:700;line-height:1.05}
+.c .btn3d{display:block;width:100%;margin-top:12px;border:0;border-radius:16px;padding:12px;font:700 16px 'Fredoka';background:#fff;color:var(--green-d);box-shadow:0 4px 0 #CDEFE2}
+.c .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.c .tile{background:#fff;border:2px solid var(--line);border-bottom-width:5px;border-radius:20px;padding:12px;font-weight:800;font-size:15px}
+.c .tile i{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;font-style:normal;font-size:24px;margin-bottom:6px}
+.c .tile span{display:block;font-weight:600;font-size:12px;color:#6B7A85}
+.c .t1 i{background:#E5F7EF}.c .t2 i{background:#FFF3D1}.c .t3 i{background:#FFE6E2}.c .t4 i{background:#E3EEFF}
+.c .streak{margin-top:14px;display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--line);border-radius:18px;padding:10px 12px;font-weight:800;font-size:13.5px}
+.c .streak .days{margin-left:auto;display:flex;gap:4px}
+.c .streak .days i{width:16px;height:16px;border-radius:50%;background:var(--line)}
+.c .streak .days .on{background:var(--sun)}
+.c .xp{display:flex;align-items:center;gap:10px;margin:2px 0 12px}
+.c .x{font-size:22px;color:#9AA7B1;font-weight:800}
+.c .xp .track{flex:1;height:16px;border-radius:99px;background:var(--line);overflow:hidden}
+.c .xp .track i{display:block;height:100%;width:30%;border-radius:99px;background:var(--green);box-shadow:inset 0 -4px 0 rgb(0 0 0/.12)}
+.c .won-row{display:flex;gap:8px;margin-bottom:12px}
+.c .won{flex:1;background:#fff;border:2px solid var(--sun);border-bottom-width:5px;border-radius:16px;padding:8px;font-size:11.5px;font-weight:800;line-height:1.15}
+.c .won em{font-style:normal;display:block;color:var(--green-d);margin-top:2px}
+.c .won.lock{border-color:var(--line);color:#9AA7B1;text-align:center;display:grid;place-items:center;font-size:20px}
+.c .q h3{font-size:24px;line-height:1.15;margin:4px 0 14px}
+.c .bubble{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px}
+.c .mascot{width:52px;height:52px;border-radius:18px;background:var(--sun);display:grid;place-items:center;font-size:28px;flex-shrink:0;box-shadow:0 4px 0 var(--sun-d)}
+.c .bubble h3{background:#fff;border:2px solid var(--line);border-radius:18px 18px 18px 4px;padding:10px 12px;margin:0;font-size:19px}
+.c .opts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.c .opt{background:#fff;border:2px solid var(--line);border-bottom-width:5px;border-radius:16px;padding:9px;font-weight:800;font-size:13.5px;display:flex;gap:8px;align-items:center}
+.c .opt i{font-style:normal;font-size:20px}
+.c .opt.sel{border-color:var(--sky);background:#EAF2FF;color:#1C5FCC}
+.c .check{position:absolute;left:16px;right:16px;bottom:16px;border:0;border-radius:16px;padding:13px;font:700 17px 'Fredoka';background:var(--green);color:#fff;box-shadow:0 5px 0 var(--green-d)}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>Neev employee app: 3 design directions</h1>
+  <p>The same two screens (Home and the schemes quiz) in three very different looks. Pick one, or mix parts ("B's colours with C's buttons"), and the whole app gets restyled to match.</p>
+</div>
+
+<!-- A -->
+<section class="option">
+  <div>
+    <h2>A · Rangoli</h2>
+    <p class="why">Festive and Indian. Indigo with saffron and rani pink, thick-outlined "sticker" cards and tilted reward badges. Feels like a mela, not a bank. Fonts support Hindi (Devanagari).</p>
+    <div class="swatches"><span style="background:#2B1A78"></span><span style="background:#FF8A00"></span><span style="background:#E8336D"></span><span style="background:#13A06B"></span><span style="background:#FFFBF3"></span></div>
+  </div>
+  <div class="phones">
+    <div class="phone"><div class="screen a"><div class="status"><span>10:07</span><span>●●● 🔋</span></div><div class="body">
+      <div class="hello"><div class="av">RK</div><div><small>Namaste 🙏</small><b>Ramesh Kumar</b></div></div>
+      <div class="sticker money"><small>Ready to withdraw today</small><div class="disp">₹7,000</div><button>Get my money</button></div>
+      <div class="tiles">
+        <div class="sticker tile t1"><i>🎯</i>Govt schemes<span>6 waiting for you</span></div>
+        <div class="sticker tile t2"><i>💰</i>Salary advance<span>Instant</span></div>
+        <div class="sticker tile t3"><i>🛡️</i>Insurance<span>From ₹19/mo</span></div>
+        <div class="sticker tile t4"><i>🪙</i>Gold<span>From ₹10</span></div>
+      </div>
+      <div class="sticker pts">🏅 120 points · Silver</div>
+    </div></div></div>
+    <div class="phone"><div class="screen a"><div class="status"><span>10:07</span><span>●●● 🔋</span></div><div class="body">
+      <div class="sticker hero"><div class="row"><div style="display:flex;align-items:center;gap:8px"><span class="disp">2</span><b style="line-height:1.1">schemes<br>unlocked</b></div><span class="lock">🔒 10 left</span></div>
+        <div class="shelf"><div class="won">🛡️ PM Suraksha Bima<em>₹2 lakh accident cover</em></div><div class="won">💙 PM Jeevan Jyoti<em>₹2 lakh life cover</em></div></div></div>
+      <div class="lv"><span class="on">Work</span><span>Family</span><span>Home</span></div>
+      <div class="sticker q"><div style="font-size:34px">💼</div><h3>What work do you do?</h3>
+        <div class="opts"><div class="opt"><i>🏗️</i>Construction</div><div class="opt sel"><i>🛵</i>Delivery</div><div class="opt"><i>🧹</i>Domestic</div><div class="opt"><i>🏭</i>Factory</div><div class="opt"><i>🌾</i>Farmer</div><div class="opt"><i>🛒</i>Vendor</div></div>
+        <p style="margin-top:10px;font-weight:700;color:#5b5480">Skip</p></div>
+    </div></div></div>
+  </div>
+</section>
+
+<!-- B -->
+<section class="option">
+  <div>
+    <h2>B · Night gold</h2>
+    <p class="why">Premium fintech (CRED / Jupiter style). Deep night indigo, glowing gold for money, mint for "unlocked". Feels expensive and trustworthy. Every rupee looks like a reward.</p>
+    <div class="swatches"><span style="background:#13112E"></span><span style="background:#1F1C48"></span><span style="background:#F5C451"></span><span style="background:#43E0A0"></span><span style="background:#EEEBFF"></span></div>
+  </div>
+  <div class="phones">
+    <div class="phone"><div class="screen b"><div class="status"><span>10:07</span><span>●●● 🔋</span></div><div class="body">
+      <div class="hello"><div class="av"><span>RK</span></div><div><small>Good evening</small><b>Ramesh</b></div></div>
+      <div class="card money"><div class="coin">₹</div><small>Earned this month</small><div class="big">₹7,000</div>
+        <div class="bar"><i></i></div><div class="meta"><span>Day 15 of 30</span><span>Payday 30 Aug</span></div><button>Withdraw now</button></div>
+      <div class="tiles"><div><i>🎯</i>Schemes</div><div><i>💰</i>Advance</div><div><i>🛡️</i>Insure</div><div><i>🪙</i>Gold</div></div>
+      <div class="card promo"><span style="font-size:26px">🎯</span><div><b>6 govt schemes</b><small>₹2 lakh cover + pension</small></div><span class="tag">Check</span></div>
+    </div></div></div>
+    <div class="phone"><div class="screen b"><div class="status"><span>10:07</span><span>●●● 🔋</span></div><div class="body">
+      <div class="card hero"><div class="row"><div><span class="big">2</span> <small>schemes unlocked</small></div><span class="lock">🔒 10 left</span></div>
+        <div class="shelf"><div class="won">🛡️ PM Suraksha Bima<em>₹2 lakh cover</em></div><div class="won">💙 PM Jeevan Jyoti<em>₹2 lakh life cover</em></div></div></div>
+      <div class="steps"><i class="on"></i><i></i><i></i></div>
+      <div class="card q"><small>Work · Delhi</small><h3>What work do you do?</h3>
+        <div class="opts"><div class="opt"><i>🏗️</i>Construction</div><div class="opt sel"><i>🛵</i>Delivery / gig</div><div class="opt"><i>🧹</i>Domestic</div><div class="opt"><i>🏭</i>Factory</div><div class="opt"><i>🌾</i>Farmer</div><div class="opt"><i>🛒</i>Vendor</div></div>
+        <p style="margin-top:12px;text-align:center;color:#A7A2D6;font-size:13px">Skip</p></div>
+    </div></div></div>
+  </div>
+</section>
+
+<!-- C -->
+<section class="option">
+  <div>
+    <h2>C · Play</h2>
+    <p class="why">Bright and game-like (Duolingo style). Chunky 3D buttons you want to press, a friendly helper character asking the questions, progress bar and streaks. Easiest for first-time smartphone users.</p>
+    <div class="swatches"><span style="background:#14B87F"></span><span style="background:#FFC52E"></span><span style="background:#FF6B5B"></span><span style="background:#3D8BFF"></span><span style="background:#22313B"></span></div>
+  </div>
+  <div class="phones">
+    <div class="phone"><div class="screen c"><div class="status"><span>10:07</span><span>●●● 🔋</span></div><div class="body">
+      <div class="top"><div class="hello"><b>Hi Ramesh! 👋</b></div><div style="display:flex;gap:6px"><span class="chip">🔥 3</span><span class="chip">🪙 120</span></div></div>
+      <div class="money"><small>You can take today</small><div class="disp">₹7,000</div><button class="btn3d">Get money</button></div>
+      <div class="tiles">
+        <div class="tile t1"><i>🎯</i>Schemes<span>6 for you</span></div>
+        <div class="tile t2"><i>💰</i>Advance<span>Instant</span></div>
+        <div class="tile t3"><i>🛡️</i>Insurance<span>₹19/mo</span></div>
+        <div class="tile t4"><i>🪙</i>Gold<span>From ₹10</span></div>
+      </div>
+      <div class="streak">🔥 3-day streak<div class="days"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
+    </div></div></div>
+    <div class="phone"><div class="screen c"><div class="status"><span>10:07</span><span>●●● 🔋</span></div><div class="body">
+      <div class="xp"><span class="x">✕</span><div class="track"><i></i></div><span class="chip">🎁 2</span></div>
+      <div class="won-row"><div class="won">🛡️ Suraksha Bima<em>₹2 lakh cover</em></div><div class="won">💙 Jeevan Jyoti<em>₹2 lakh life</em></div><div class="won lock">🔒<small style="font-size:11px">10 more</small></div></div>
+      <div class="bubble"><div class="mascot">🦁</div><h3>What work do you do?</h3></div>
+      <div class="opts"><div class="opt"><i>🏗️</i>Construction</div><div class="opt sel"><i>🛵</i>Delivery</div><div class="opt"><i>🧹</i>Domestic</div><div class="opt"><i>🏭</i>Factory</div><div class="opt"><i>🌾</i>Farmer</div><div class="opt"><i>🛒</i>Vendor</div></div>
+      <button class="check">Continue</button>
+    </div></div></div>
+  </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* Neev brand: deep teal + marigold. One token set — every screen uses these, never raw hex. */
+@theme {
+  --color-teal-950: #073A33;
+  --color-teal-900: #0B4F45;
+  --color-teal-700: #12695A;
+  --color-teal-500: #1B8570;
+  --color-teal-100: #DCEEE8;
+  --color-teal-50: #F0F8F5;
+  --color-sky-700: #1C5FCC;
+  --color-sky-100: #EAF2FF;
+  --color-gold-600: #B87708;
+  --color-gold-500: #F5A623;
+  --color-gold-400: #D99A00;
+  --color-gold-100: #FFF4DE;
+  --color-coral: #FF6B5B;
+  --color-page: #F2F6F4;
+  --color-card: #FFFFFF;
+  --color-ink: #122420;
+  --color-muted: #55665F;
+  --color-line: #E1E9E5;
+  --color-line-2: #CFD8DF;
+  --color-ok: #23764F;
+  --color-ok-100: #E3F4EA;
+  --color-bad: #B93A22;
+  --color-bad-100: #FCEBE3;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Baloo 2', 'Inter', sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, monospace;
+  --shadow-card: 0 1px 2px rgb(18 36 32 / .04), 0 4px 14px rgb(18 36 32 / .06);
+  --shadow-lift: 0 10px 30px rgb(11 79 69 / .25);
+  --animate-in: in .28s cubic-bezier(.22, 1, .36, 1);
+  --animate-pop: pop .55s cubic-bezier(.34, 1.56, .64, 1);
+  --animate-up: up .3s cubic-bezier(.22, 1, .36, 1);
+}
+
+/* "Play" look — ONLY the Govt Schemes screens (<Screen play>): bright, game-like, chunky 3D buttons.
+   Lead picked option C of design-options.html; user then limited it to schemes. Same token names, Play values:
+   teal-700 = brand green (#0A855A, white text 4.65:1), teal-500 = sky (selection), gold-* = sun. */
+.play {
+  --color-teal-950: #06603F; --color-teal-900: #22313B; --color-teal-700: #0A855A; --color-teal-500: #3D8BFF;
+  --color-teal-100: #DDF5EB; --color-teal-50: #EFFAF5;
+  --color-gold-600: #946200; --color-gold-500: #FFC52E; --color-gold-400: #D99A00; --color-gold-100: #FFF3D1;
+  --color-page: #F5F8FA; --color-ink: #22313B; --color-muted: #5F6E79; --color-line: #E3E9EE; --color-line-2: #CFD8DF;
+  --color-ok: #0A855A; --color-ok-100: #DDF5EB; --color-bad: #D23A2A; --color-bad-100: #FFE6E2;
+  --font-sans: 'Nunito', 'Baloo 2', system-ui, sans-serif;
+  --font-display: 'Fredoka', 'Baloo 2', 'Nunito', sans-serif;
+  --shadow-card: 0 4px 0 var(--color-line-2);
+  --shadow-lift: 0 6px 0 var(--color-teal-950);
+  font-family: var(--font-sans); font-weight: 600; color: var(--color-ink);
+}
+.play h1, .play h2, .play h3 { font-weight: 600; }
+/* Big green reward card. */
+.hero { background: var(--color-teal-700); color: #fff; box-shadow: 0 6px 0 var(--color-teal-950); }
+/* Pressable 3D surfaces sink on tap. */
+.press { transition: transform .08s, box-shadow .08s; }
+.press:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--edge, var(--color-line-2)); }
+@keyframes in { from { opacity: 0; transform: translateY(8px) } }
+@keyframes pop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.06) } }
+@keyframes up { from { transform: translateY(100%) } }
+
+html, body, #root { height: 100%; }
+body { background: radial-gradient(1200px 700px at 30% 0%, #136556 0%, #0B4F45 45%, #062F29 100%); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: var(--font-display); }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+input, select, textarea { font: inherit; }
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* Desktop: phone mockup. Real phones (≤ 500px): the app is the whole screen. */
+.phone { width: 390px; height: 844px; border-radius: 48px; padding: 11px; background: #050505; box-shadow: 0 40px 90px rgb(0 0 0 / .5), inset 0 0 0 2px rgb(255 255 255 / .08); }
+.phone-screen { border-radius: 38px; }
+@media (max-width: 500px) {
+  .phone { width: 100%; height: 100dvh; border-radius: 0; padding: 0; box-shadow: none; }
+  .phone-screen { border-radius: 0; }
+  .phone-notch, .phone-status { display: none; }
+  input, select, textarea { font-size: 16px !important; } /* stops iOS zoom on focus */
+}
+
+/* Range slider */
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; border-radius: 99px; background: var(--color-teal-100); outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: var(--color-teal-700); border: 4px solid #fff; box-shadow: 0 2px 8px rgb(0 0 0 / .25); }
+input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--color-teal-700); border: 4px solid #fff; }

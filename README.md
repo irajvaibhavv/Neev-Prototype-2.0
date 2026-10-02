@@ -13,7 +13,8 @@ or kept in the browser's `localStorage`. If the product is approved, it will be 
 
 | App | Entry | Stack | For |
 |-----|-------|-------|-----|
-| Employee app | [`employee.html`](employee.html) | Vanilla HTML/CSS/JS | Worker (mobile): signup, salary advance, govt schemes, insurance, gold |
+| Employee app | [`app/`](app/) (built from [`employee-app/`](employee-app/)) | React 19 + Vite + Tailwind v4 | Worker (mobile): signup, salary advance, govt schemes, insurance, gold |
+| Employee app (old) | [`employee.html`](employee.html) | Vanilla HTML/CSS/JS | Previous version, kept until the React app is signed off |
 | Schemes manager portal | [`agent/`](agent/) (built from [`agent-portal/`](agent-portal/)) | React 19 + Vite + Tailwind v4 | Neev manager: scheme funnel, leads, applications |
 | Employer portal | [`company.html`](company.html) | Vanilla | Employer HR: verify employees, approvals, payroll deductions |
 | NBFC ops dashboard | [`admin.html`](admin.html) | Vanilla | Neev ops: KYC, credit limits, disbursement, reconciliation |
@@ -40,6 +41,13 @@ or kept in the browser's `localStorage`. If the product is approved, it will be 
 ├── admin.html   + admin/js/   NBFC ops dashboard
 ├── shared/                    theme.css (all apps), dashboard.css + components.js (company/admin),
 │                              protect.js (client builds only, not loaded here)
+├── employee-app/              employee app source (React) — builds to app/
+│   ├── src/store.js           state `S` (same shape as the old app), persistence, toast, funnel tracking
+│   ├── src/ui.jsx             shared building blocks: Screen, Btn, Card, Row, Otp, Sheet, Chip…
+│   ├── src/lib/               schemes.js (research data + eligibility engine), data.js, i18n.js
+│   ├── src/screens/           Auth, Home, Loans, Money (insurance/invest/bills), Schemes
+│   └── tests/schemes-parity.check.mjs   new engine must match employee/js/schemes.js
+├── app/                       built employee app (committed for GitHub Pages; do not edit)
 ├── agent-portal/              manager portal source (React)
 │   ├── src/lib/               data layer: applications.js (reads app data), sample.js, labels.js
 │   ├── src/pages/             Dashboard, Leads, StagePage, ApplicationDetail, Trends, Login
@@ -57,7 +65,7 @@ The HTML entry files stay at the repository root because the shared links point 
 ## How the pieces connect
 
 ```
-employee.html ──writes──▶ localStorage 'neev_employee_db' ──reads──▶ agent/ (manager portal)
+app/ (or employee.html) ──writes──▶ localStorage 'neev_employee_db' ──reads──▶ agent/ (manager portal)
                           { [mobile]: profile, funnel, schemeApplications[] }
 
 agent/ ──writes──▶ 'neev_agent_stages' (stage, outcome, reminders, removals)
@@ -75,6 +83,7 @@ agent/ ──writes──▶ 'neev_agent_stages' (stage, outcome, reminders, rem
 
 ```bash
 python -m http.server 3000          # from repo root → http://localhost:3000
+cd employee-app && npm install && npm run build   # rebuilds app/ after employee app changes
 cd agent-portal && npm install && npm run build   # rebuilds agent/ after portal changes
 ```
 
@@ -86,6 +95,7 @@ Portal logins (OTP `1234`): super admin `9876500000`, agent `9876500001`, sales 
 ```bash
 node tests/clicks.check.js                    # every onclick / go() / getElementById target exists
 node tests/schemes.check.js                   # eligibility rules, forms, cart flow
+node employee-app/tests/schemes-parity.check.mjs   # React app's scheme engine = old engine
 node agent-portal/tests/applications.check.mjs
 node agent-portal/tests/admin.check.mjs
 node agent-portal/tests/sales.check.mjs
@@ -93,5 +103,5 @@ node agent-portal/tests/sales.check.mjs
 
 ## Deploy
 
-GitHub Pages redeploys on every push to `main`. If you changed `agent-portal/`, run `npm run build` first,
-because Pages serves the committed `agent/` folder. Keep all paths relative (`./`, never `/`).
+GitHub Pages redeploys on every push to `main`. If you changed `employee-app/` or `agent-portal/`, run
+`npm run build` there first, because Pages serves the committed `app/` and `agent/` folders. Keep all paths relative (`./`, never `/`).
