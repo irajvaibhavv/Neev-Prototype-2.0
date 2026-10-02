@@ -133,7 +133,7 @@ function ChooseStep({ onBest, go }) {
   const best = () => { update({ schemeProfile: { ...S.schemeProfile, LiveState: live } }); onBest() }
   return (
     <Screen play title="Find your schemes" back="/home" footer={showAll && <Btn onClick={best}>✨ Find the best ones for me</Btn>}>
-      <div className="relative">
+      <div>
         <div className={`grid grid-cols-2 gap-3 transition duration-500 ${showAll ? '' : 'pointer-events-none select-none blur-[5px]'}`} aria-hidden={!showAll}>
           {list.map(x => (
             <button key={x.name} onClick={() => setOpen(x)} tabIndex={showAll ? 0 : -1}
@@ -147,13 +147,14 @@ function ChooseStep({ onBest, go }) {
           ))}
         </div>
         {!showAll && (
-          <div className="absolute inset-x-0 top-6 animate-in">
-            <div className="rounded-[28px] border-2 border-line bg-card p-5 text-center shadow-[0_6px_0_var(--color-line-2),0_20px_40px_rgb(0_0_0/.12)]">
-              <span className="mx-auto mb-2 grid size-16 place-items-center rounded-3xl bg-gold-500 text-4xl shadow-[0_4px_0_var(--color-gold-400)]">🎁</span>
-              <p className="font-display text-[22px] leading-tight font-semibold text-ink">{list.length} govt schemes in {live}</p>
-              <p className="mt-1 mb-4 text-[13.5px] font-bold text-muted">Want us to find the ones you get, or already know which one you want?</p>
+          // Centred over the whole screen (positioned against the app frame, so it stays put while the grid scrolls).
+          <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center px-9 animate-in">
+            <div className="pointer-events-auto w-full max-w-72 rounded-[26px] border-2 border-line bg-card p-4 text-center shadow-[0_6px_0_var(--color-line-2),0_20px_40px_rgb(0_0_0/.14)]">
+              <span className="mx-auto mb-2 grid size-12 place-items-center rounded-2xl bg-gold-500 text-3xl shadow-[0_4px_0_var(--color-gold-400)]">🎁</span>
+              <p className="font-display text-[19px] leading-tight font-semibold text-ink">{list.length} govt schemes in {live}</p>
+              <p className="mt-1 mb-3 text-[12.5px] font-bold text-muted">Find the ones you get, or pick the one you want.</p>
               <Btn onClick={best}>✨ Choose best for me</Btn>
-              <p className="mt-1.5 mb-3 text-[12px] font-bold text-muted">A few quick taps · about 1 minute</p>
+              <p className="mt-1 mb-2.5 text-[11.5px] font-bold text-muted">A few quick taps · about 1 minute</p>
               <Btn v="outline" onClick={() => setShowAll(true)}>📋 Show all schemes</Btn>
             </div>
           </div>
