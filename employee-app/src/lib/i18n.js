@@ -50,11 +50,17 @@ const HI = {
 // t('Get advance') → Hindi when the user picked Hindi; untranslated strings stay English.
 export const t = str => (S.voiceLang === 'hi' && HI[str]) || str
 
-export function speak(text, onEnd) {
+// Browser voice — the fallback when a recorded clip is missing. Prefers natural/neural voices
+// (Edge "Natural", Google) over the robotic default.
+export function speak(text, onEnd, lang = S.voiceLang === 'hi' ? 'hi' : 'en') {
   if (!('speechSynthesis' in window)) return
   window.speechSynthesis.cancel()
   const u = new SpeechSynthesisUtterance(text)
-  u.lang = S.voiceLang === 'hi' ? 'hi-IN' : 'en-IN'
+  u.lang = lang === 'hi' ? 'hi-IN' : 'en-IN'
+  const voices = window.speechSynthesis.getVoices().filter(v => v.lang.replace('_', '-').startsWith(u.lang.slice(0, 2)))
+  u.voice = voices.find(v => /natural|neural|online/i.test(v.name)) || voices.find(v => /google/i.test(v.name)) ||
+    voices.find(v => v.lang.replace('_', '-') === u.lang) || voices[0] || null
+  u.rate = 0.85
   u.onend = u.onerror = onEnd
   window.speechSynthesis.speak(u)
 }

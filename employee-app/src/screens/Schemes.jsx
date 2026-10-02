@@ -5,7 +5,10 @@ import { Navigate, useLocation, useParams } from 'react-router-dom'
 import { S, addNotification, toast, trackFunnel, update, useApp } from '../store.js'
 import { AADHAAR_SAMPLE } from '../lib/data.js'
 import SchemeIcon from '../lib/SchemeIcon.jsx'
-import { speak } from '../lib/i18n.js'
+import { speak, stopSpeaking } from '../lib/i18n.js'
+import { LEVELS_HI, QUIZ_HI } from '../lib/schemes-hi.js'
+
+const VOICE_SPEED = 0.85 // quiz voice playback speed (1 = as recorded)
 import {
   RE_MOB, SCHEME_FEE, SCHEME_FORM, SP_KEYS, SP_LEVELS, SP_QUESTIONS, STATE_SCHEMES, cartApps, docOnFile, docsToAsk,
   eligibleSchemes, findScheme, foundSchemes, getStateFromAddress, openAppFor, schemeApps, spQ, spQueue, spResolve,
@@ -175,6 +178,10 @@ function Quiz({ mode, go, back }) {
   const [done, setDone] = useState(() => new Set())
   const [checkpoint, setCheckpoint] = useState(0)
   const [openScheme, setOpenScheme] = useState(null) // tapped a won scheme → its details sheet
+  // Question language (text + voice). Starts from the language picked at signup; the EN | हिं switch changes it.
+  const [lang, setLang] = useState(S.voiceLang === 'hi' ? 'hi' : 'en')
+  const [playing, setPlaying] = useState(false)
+  const audio = useRef(null)
   const sp = { ...ans, LiveState: live }
   const opts = { mode, done, editAuto }
   const [cur, setCur] = useState(() => spQueue(sp, opts)[0]?.f)
@@ -189,7 +196,21 @@ function Quiz({ mode, go, back }) {
   const save = next => update({ schemeProfile: next })
   const finish = next => { update({ schemeProfile: next, schemeQuizDone: true }); go('/schemes', { replace: true }) }
   useEffect(() => { if (!cur) finish(sp) }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (q && S.voiceMode && !checkpoint) speak(q.q) }, [cur, checkpoint]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Voice: reads ONLY the question. Recorded human voice (Murf, public/voice/<lang>/<Field>.mp3); browser voice if missing.
+  const stopVoice = () => { audio.current?.pause(); stopSpeaking(); setPlaying(false) }
+  const playVoice = (l = lang) => {
+    stopVoice()
+    const text = l === 'hi' ? QUIZ_HI[q.f]?.q || q.q : q.q
+    const a = new Audio(`./voice/${l}/${q.f}.mp3`)
+    audio.current = a
+    a.playbackRate = VOICE_SPEED // clips felt too fast for first-time users; pitch is kept (preservesPitch)
+    a.onended = () => setPlaying(false)
+    a.onerror = () => { if (audio.current === a) speak(text, () => setPlaying(false), l) }
+    setPlaying(true)
+    a.play()?.catch?.(() => {}) // a missing clip fires onerror → browser voice (older browsers return no promise)
+  }
+  useEffect(() => { if (q && S.voiceMode && !checkpoint) playVoice(); return stopVoice }, [cur, checkpoint]) // eslint-disable-line react-hooks/exhaustive-deps
+  const switchLang = l => { setLang(l); update({ voiceLang: l }); if (playing) playVoice(l) }
 
   const advance = (nextAns, nextEdit, nextDone) => {
     const nsp = { ...nextAns, LiveState: live }
@@ -224,24 +245,42 @@ function Quiz({ mode, go, back }) {
   return (
     <Screen play title={undefined} noSpeak footer={checkpoint
       ? <><Btn onClick={() => setCheckpoint(0)}>Keep going</Btn><Btn v="ghost" onClick={() => finish(sp)}>See my schemes</Btn></>
-      : <Btn v="outline" onClick={skip}>Skip</Btn>}>
+      : <Btn v="outline" onClick={skip}>{lang === 'hi' ? 'छोड़ें' : 'Skip'}</Btn>}>
       <div className="flex min-h-full flex-col">
-      <div className="flex items-center gap-3 pt-2 pb-1">
+      <div className="flex items-center gap-3 pt-2">
         <IconBtn label="Back" onClick={prevQ}>
           <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
         </IconBtn>
-        <div className="h-4 flex-1 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-label="Quiz progress">
-          <div className="h-full rounded-full bg-teal-700 shadow-[inset_0_-4px_0_rgb(0_0_0/.15)] transition-all duration-500" style={{ width: `${Math.max(6, progress * 100)}%` }} />
+        <div className="min-w-0 flex-1">
+          <div className="h-4 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-label="Quiz progress">
+            <div className="h-full rounded-full bg-teal-700 shadow-[inset_0_-4px_0_rgb(0_0_0/.15)] transition-all duration-500" style={{ width: `${Math.max(6, progress * 100)}%` }} />
+          </div>
+          <p className="mt-1 truncate pl-1 text-[11.5px] font-extrabold text-muted">{lang === 'hi' ? `लेवल ${level} / 3 · ${LEVELS_HI[level]}` : `Level ${level} of 3 · ${SP_LEVELS[level]}`}{locked > 0 && ` · 🔒 ${locked} ${lang === 'hi' ? 'बाकी' : 'to unlock'}`}</p>
         </div>
         <span key={found.length} className="flex h-10 items-center gap-1 rounded-2xl border-2 border-gold-500 bg-gold-100 px-2.5 font-display text-[16px] animate-pop">🎁 {found.length}</span>
       </div>
-      <div className="mb-3 flex items-center justify-between pl-1">
-        <span className="text-[13px] font-extrabold text-muted">Level {level} of 3 · {SP_LEVELS[level]}{locked > 0 && ` · 🔒 ${locked} to unlock`}</span>
-        <label className="flex items-center text-[13px] font-extrabold text-sky-700">📍
-          <select value={live} onChange={e => changeState(e.target.value)} aria-label="State you live in" className="bg-transparent py-1 font-extrabold text-sky-700 outline-none">
+      {/* Voice + language at the top; Listen reads only the current question. */}
+      <div className="mt-2 mb-3 flex items-center justify-between gap-2">
+        <label className="flex min-w-0 items-center text-[13px] font-extrabold text-sky-700">📍
+          <select value={live} onChange={e => changeState(e.target.value)} aria-label="State you live in" className="min-w-0 bg-transparent py-1 font-extrabold text-sky-700 outline-none">
             {Object.keys(STATE_SCHEMES).map(st => <option key={st}>{st}</option>)}
           </select>
         </label>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {!checkpoint && (
+            <button onClick={() => (playing ? stopVoice() : playVoice())} aria-label={playing ? 'Stop' : 'Listen to the question'}
+              className={`press flex h-9 items-center gap-1.5 rounded-full border-2 px-3 font-display text-[14px] shadow-card ${playing ? 'border-teal-500 bg-sky-100 text-sky-700' : 'border-line bg-card text-sky-700'}`}>
+              {playing ? <span className="flex h-4 items-end gap-0.5" aria-hidden>{[0, 1, 2].map(i => <i key={i} className="w-1 animate-pulse rounded-full bg-sky-700" style={{ height: `${8 + i * 4}px`, animationDelay: `${i * 0.15}s` }} />)}</span> : '🔊'}
+              {playing ? (lang === 'hi' ? 'रोकें' : 'Stop') : lang === 'hi' ? 'सुनें' : 'Listen'}
+            </button>
+          )}
+          <div className="flex rounded-full border-2 border-line bg-card p-0.5 text-[12.5px] font-extrabold" role="group" aria-label="Language">
+            {[['en', 'EN'], ['hi', 'हिं']].map(([k, l]) => (
+              <button key={k} onClick={() => switchLang(k)} aria-pressed={lang === k}
+                className={`rounded-full px-2.5 py-1 ${lang === k ? 'bg-teal-700 text-white' : 'text-muted'}`}>{l}</button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Won schemes stay on screen for the whole quiz (user ask: "so he can't forget"). Newest first, full names. */}
@@ -259,7 +298,7 @@ function Quiz({ mode, go, back }) {
         <div key={q.f} className="flex flex-1 flex-col justify-center py-6 animate-in">
           <div className="mb-5 text-center">
             <span aria-hidden className="mx-auto mb-3 grid size-18 place-items-center rounded-3xl bg-gold-500 text-[40px] shadow-[0_4px_0_var(--color-gold-400)]">{q.ic}</span>
-            <p className="font-display text-[24px] leading-tight font-semibold text-ink">{q.q}</p>
+            <p className="font-display text-[24px] leading-tight font-semibold text-ink">{lang === 'hi' ? QUIZ_HI[q.f]?.q || q.q : q.q}</p>
           </div>
           <div className={`grid gap-2.5 ${q.cols === 5 ? 'grid-cols-5' : 'grid-cols-2'}`}>
             {q.opts.map(([v, label, , ic]) => {
@@ -268,7 +307,7 @@ function Quiz({ mode, go, back }) {
                 <button key={v} type="button" onClick={() => pick(v)}
                   className={`press flex min-h-14 items-center gap-2 rounded-2xl border-2 px-3 py-2.5 text-left text-[15px] leading-tight font-extrabold ${q.cols === 5 || !ic ? 'justify-center text-center' : ''} ${q.cols === 5 ? 'px-1 font-display text-[20px]' : ''} ${
                     sel ? 'border-teal-500 bg-sky-100 text-sky-700 shadow-[0_4px_0_var(--color-teal-500)] [--edge:var(--color-teal-500)]' : 'border-line bg-card text-ink shadow-card'}`}>
-                  {ic && <span className="text-2xl">{ic}</span>}{label}
+                  {ic && <span className="text-2xl">{ic}</span>}{(lang === 'hi' && QUIZ_HI[q.f]?.opts[v]) || label}
                 </button>
               )
             })}
