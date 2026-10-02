@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router-dom'
 import { S, addNotification, toast, trackFunnel, update, useApp } from '../store.js'
 import { AADHAAR_SAMPLE } from '../lib/data.js'
+import SchemeIcon from '../lib/SchemeIcon.jsx'
 import { speak } from '../lib/i18n.js'
 import {
   RE_MOB, SCHEME_FEE, SCHEME_FORM, SP_KEYS, SP_LEVELS, SP_QUESTIONS, STATE_SCHEMES, cartApps, docOnFile, docsToAsk,
@@ -138,7 +139,7 @@ function ChooseStep({ onBest, go }) {
           {list.map(x => (
             <button key={x.name} onClick={() => setOpen(x)} tabIndex={showAll ? 0 : -1}
               className="press flex aspect-square flex-col items-start justify-between rounded-3xl border-2 border-line bg-card p-3 text-left shadow-card">
-              <span className="grid size-12 place-items-center rounded-2xl bg-gold-100 text-2xl">{x.icon}</span>
+              <span className="grid size-12 place-items-center rounded-2xl bg-gold-100 text-2xl"><SchemeIcon s={x} size="size-9" /></span>
               <span>
                 <b className="line-clamp-3 text-[13.5px] leading-tight font-extrabold">{x.name}</b>
                 <span className="mt-1 line-clamp-2 block text-[12px] leading-tight font-extrabold text-ok">{x.win}</span>
@@ -292,7 +293,7 @@ function WonGrid({ found, seen, onOpen }) {
         return (
           <button key={s.name} onClick={() => onOpen(s)} className={`press relative flex gap-2 rounded-2xl border-2 border-gold-500 bg-card p-2.5 text-left shadow-[0_4px_0_var(--color-gold-400)] [--edge:var(--color-gold-400)] ${isNew ? 'animate-pop' : ''}`}>
             {isNew && <em className="absolute -top-2.5 right-2 rounded-lg bg-coral px-1.5 py-0.5 font-display text-[11px] not-italic text-white">NEW</em>}
-            <span className="text-xl leading-none">{s.icon}</span>
+            <span className="text-xl leading-none"><SchemeIcon s={s} size="size-7" /></span>
             <span className="min-w-0">
               <b className="block text-[12.5px] leading-tight font-extrabold">{s.name}</b>
               <span className="mt-0.5 block text-[12px] leading-tight font-extrabold text-ok">{s.win}</span>
@@ -317,7 +318,7 @@ function SchemeSheet({ s, onClose, onApply, go, closeLabel = 'Keep answering' })
   return (
     <Sheet open onClose={onClose} tall>
       <div className="mb-4 text-center">
-        <span className="mx-auto mb-2 grid size-16 place-items-center rounded-3xl bg-gold-500 text-4xl shadow-[0_4px_0_var(--color-gold-400)]">{s.icon}</span>
+        <span className="mx-auto mb-2 grid size-16 place-items-center rounded-3xl bg-gold-500 text-4xl shadow-[0_4px_0_var(--color-gold-400)]"><SchemeIcon s={s} size="size-11" /></span>
         <h2 className="text-[22px] leading-tight text-ink">{s.name}</h2>
         <p className="mt-1 font-display text-[18px] text-ok">{s.win}</p>
         <div className="mt-2 flex justify-center gap-1.5">
@@ -399,7 +400,7 @@ function SchemeCard({ s, onApply, go }) {
   return (
     <Card className="mb-3">
       <div className="flex gap-3">
-        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-teal-50 text-2xl">{s.icon}</span>
+        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-teal-50 text-2xl"><SchemeIcon s={s} size="size-9" /></span>
         <div className="min-w-0 flex-1">
           <b className="block text-[15px] leading-snug">{s.name}</b>
           <p className="my-0.5 text-[13px] font-bold text-ok">{s.win}</p>
@@ -492,7 +493,7 @@ export function SchemeApply() {
   return (
     <Screen play title="Apply" onBack={() => back('/schemes')} footer={<Btn onClick={submit}>Add to cart 🛒 · ₹{SCHEME_FEE}</Btn>}>
       <div className="mb-4 flex items-center gap-3">
-        <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gold-500 text-3xl shadow-[0_4px_0_var(--color-gold-400)]">{sch.icon}</span>
+        <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gold-500 text-3xl shadow-[0_4px_0_var(--color-gold-400)]"><SchemeIcon s={sch} size="size-10" /></span>
         <div><h2 className="text-[21px] leading-tight text-ink">{name}</h2><p className="text-[13px] font-extrabold text-ok">{sch.win}</p></div>
       </div>
       <details className="group mb-4 rounded-2xl border-2 border-ok/30 bg-ok-100 px-3.5 py-2.5 text-[12.5px]">
@@ -581,7 +582,7 @@ export function SchemeCart() {
         const sch = findScheme(a.scheme) || { icon: '📄' }
         return (
           <Card key={a.id} className="mb-2.5 flex gap-3">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-teal-50 text-xl">{sch.icon}</span>
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-teal-50 text-xl"><SchemeIcon s={{ ...sch, name: a.scheme }} size="size-8" /></span>
             <div className="min-w-0 flex-1">
               <b className="block text-[14px]">{a.scheme}</b>
               <p className={`my-1 text-[12px] ${a.docsMissing.length ? 'text-gold-600' : 'text-ok'}`}>
